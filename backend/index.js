@@ -6,7 +6,10 @@ const UserModel = require("./models/User")
 const app = express ()
 app.use(express.json())
 app.use(cors())
-mongoose.connect("mongodb://127.0.0.1:27017/user")
+
+mongoose.connect("mongodb+srv://limosaprojects:UmutHoca@limosainstance0.ccyvaqc.mongodb.net/?retryWrites=true&w=majority")
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.error('Could not connect to MongoDB', err));
 
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
