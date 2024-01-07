@@ -1,12 +1,18 @@
-import React from "react";
+import '../style/Home.css';
+
+import homeImage from '../assets/home-image.jpg'; // Adjust the path to your image
 
 function Home() {
     return (
-        <div className="d-flex justify-content-center align-items-center bg-secondary vh-100">
-        <div className="bg-white p-3 rounded w-25">
-            <h2>Home</h2>
+      <div className="home-container">
+        <div className="home-text">
+          <h1>Limosa</h1>
+          <p>Create your itinerary...</p>
+          {/* Add more text or components here as needed */}
         </div>
-        </div>
+        {/* The image is set as a background in the CSS */}
+      </div>
     );
-    }
+  }
+  
 export default Home;

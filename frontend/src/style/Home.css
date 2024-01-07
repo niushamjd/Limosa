@@ -1,0 +1,35 @@
+/* Home.css */
+.home-container {
+    position: relative; /* Establish a positioning context */
+    width: 100%; /* Full width */
+    height: 50vh; /* Set the height you want for this section */
+    background-image: url('../assets/home-image.jpg'); /* Path to your image */
+    background-size: cover; /* Cover the entire container */
+    background-position: center; /* Center the background image */
+    display: flex; /* Use flexbox for the layout */
+    align-items: flex-start; /* Align items to the top */
+    justify-content: center; /* Center items horizontally */
+    text-align: center; /* Center text horizontally */
+  }
+  
+  .home-text {
+    position: absolute; /* Position text over the image */
+    top: 50%; /* Align to the middle of the container */
+    left: 50%; /* Align to the middle of the container */
+    transform: translate(-50%, -50%); /* Offset the position to truly center it */
+    width: 100%; /* Text container takes up full width */
+    background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent black background */
+    border-radius: 10px; /* Optional: rounds the corners of the text background */
+    padding: 20px;
+    color: #f0f0f0; /* Lighter color for the text */
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2); /* Stronger text shadow for better readability */
+  
+  }
+  
+  .home-text h1 {
+    font-size: 3.5em; /* Larger font size for the heading */
+  }
+  
+  .home-text p {
+    font-size: 2.5em; /* Larger font size for the paragraph */
+  }
