@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 import Login from "./Login";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import './SignUp.css'
+import user_icon from '../assets/person.png'
+import email_icon from '../assets/email.png'
+import password_icon from '../assets/password.png'
 
 function Signup() {
   const [name, setName] = useState("");
@@ -12,6 +16,13 @@ function Signup() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+     // Boş alan kontrolü
+     if (!name || !email || !password) {
+      setError("All fields must be filled in");
+      return; // Form gönderimini engelle
+    }
+
     axios.post("http://localhost:3001/signup", {name, email, password})
     .then(res => {
       console.log(res)
@@ -19,63 +30,81 @@ function Signup() {
     })
     .catch(err => {
       console.log(err)
-    })
+    });
   }
 
+  const handleLoginRedirect = () => {
+    navigate('/login');
+  }
+
+  const [action, setAction] = useState("Sign Up");
+  const [error, setError] = useState("");
+
   return (
-    <div className="d-flex justify-content-center align-items-center bg-secondary vh-100">
-      <div className="bg-white p-3 rounded w-25">
-        <h2>Sign Up</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="name">
-              <strong>Name</strong>
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Name"
-              autoComplete="off"
-              name="name" // Corrected the name attribute
-              className="form-control rounded-0"
-              onChange={(e) => setName(e.target.value) }
-            />
-          </div>
-          <div className="mb-3">
-            <label htmlFor="email">
-              <strong>Email</strong>
-            </label>
-            <input
-              type="email"
-              placeholder="Enter Email"
-              autoComplete="off" // Corrected attribute name
-              name="email"
-              className="form-control rounded-0"
-              onChange={(e) => setEmail(e.target.value) }
-            />
-          </div>
-          <div className="mb-3">
-            <label htmlFor="password">
-              <strong>Password</strong>
-            </label>
-            <input
-              type="password"
-              placeholder="Enter Password"
-              name="password"
-              className="form-control rounded-0"
-              onChange={(e) => setPassword(e.target.value) }
-            />
-          </div>
-          <button type="submit" className="btn btn-success w-100 rounded-0">
-            Sign Up
-          </button>
-          </form>
-          <p>Already Have an Account</p>
-          <Link to="/login" className="btn btn-default border w-100 bg-light rounded-0 text-decoration-none">
-            Login
-          </Link>
-        
+ 
+    <form className="container-1" onSubmit={handleSubmit}>
+    <div className="header">
+      <div className="text">{action}</div>
+      <div className="underline"></div>
+    </div>
+    <div className="inputs">
+      {action === "Login" ? null : 
+        <div className="input">
+          <img src={user_icon} alt="" />
+          <input type="text" placeholder="Name" autoComplete="off" onChange={(e) => setName(e.target.value)} />        
+        </div>
+      }    
+      <div className="input">
+        <img src={email_icon} alt="" />
+        <input type="email" placeholder="Email" autoComplete="off" onChange={(e) => setEmail(e.target.value)} />
+      </div>
+      <div className="input">
+        <img src={password_icon} alt="" />
+        <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+      </div>
+      {error && <div className="error-message">{error}</div>} {/* Hata mesajını göster */}
+    </div>
+    {action === "Sign Up" ? null : <div className="forget-password">Forget Password? <span>Click Here!</span></div>}
+    
+    <div className="submit-container">
+      <button type="submit" className={action === "Login" ? "submit gray":"submit"}>Sign Up</button>
+      <button type="submit" className={action === "Sign Up" ? "submit gray":"submit"} onClick={handleLoginRedirect}>Login</button>
+    </div>
+  </form>
+
+
+    /*
+    <div className="container">
+      <div className="header">
+        <div className="text">{action}</div>
+        <div className="underline"></div>
+      </div>
+      <div className="inputs">
+        {action==="Login"?<div></div>: 
+        <div className="input">
+          <img src={user_icon} alt="" />
+          <input type="text" placeholder="Name"/>
+        </div>}      
+        <div className="input">
+          <img src={email_icon} alt="" />
+          <input type="email" placeholder="Email"/>
+        </div>
+        <div className="input">
+          <img src={password_icon} alt="" />
+          <input type="password" placeholder="Password"/>
+        </div>
+      </div>
+      {action==="Sign Up"?<div></div>: <div className="forget-password">Forget Password? <span>Click Here!</span></div>}
+      
+      <div className="submit-container">
+        <div className={action === "Login" ? "submit gray":"submit"} onClick={() => {setAction("Sign Up")}}>Sign Up</div>
+        <div className={action === "Sign Up" ? "submit gray":"submit"} onClick={() => {setAction("Login")}}>Login</div>
       </div>
     </div>
+    */
+
+  
+    
   );
 }
 
