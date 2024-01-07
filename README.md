@@ -14,7 +14,7 @@ Limosa is a personalized AI based Itinerary generator.
  ```sh
 git clone https://github.com/niushamjd/Limosa.git
 ```
-##and run the following commands to start the server:
+## and run the following commands to start the server:
 ```sh
 cd backend
 ```
@@ -24,7 +24,7 @@ npm install
 ```sh
 npm start
 ```
-##and run the following commands to run the frontend: 
+## and run the following commands to run the frontend: 
 ```sh
 cd frontend
 ```

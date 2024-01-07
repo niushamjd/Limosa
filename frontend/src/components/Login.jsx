@@ -6,6 +6,10 @@ import './SignUp.css'
 import user_icon from '../assets/person.png'
 import email_icon from '../assets/email.png'
 import password_icon from '../assets/password.png'
+import {GoogleLogin} from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode";
+
+
 
 
 function Login() {
@@ -70,12 +74,23 @@ function Login() {
     {error && <div className="error-message">{error}</div>} {/* Hata mesajını göster */}
   </div>
   {action === "Sign Up" ? null : <div className="forget-password">Forget Password? <span>Click Here!</span></div>}
-  
+  <GoogleLogin className="input"
+  onSuccess={credentialResponse => {
+   const credentialsDecoded = jwtDecode(credentialResponse.credential);
+   setEmail(credentialsDecoded.email);
+    console.log(credentialsDecoded);
+    navigate('/home');
+  }}
+  onError={() => {
+    console.log('Login Failed');
+  }}
+/>
   <div className="submit-container">
     <button type="submit" className={action === "Login" ? "submit gray":"submit"} onClick={handleSignUpRedirect}>Sign Up</button>
     <button type="submit" className={action === "Sign Up" ? "submit gray":"submit"} onClick={() => {setAction("Login")}}>Login</button>
   </div>
 </form>
+
 
     /*
     <div className="d-flex justify-content-center align-items-center bg-secondary vh-100">
