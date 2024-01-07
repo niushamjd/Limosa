@@ -92,8 +92,6 @@ function Login() {
     <button type="submit" className={action === "Sign Up" ? "submit gray":"submit"} onClick={() => {setAction("Login")}}>Login</button>
   </div>
 </form>
-<<<<<<< HEAD
-=======
 
 
     /*
@@ -138,7 +136,6 @@ function Login() {
       </div>
     </div>
     */
->>>>>>> origin/dev
   );
 }
 

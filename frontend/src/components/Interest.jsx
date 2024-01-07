@@ -3,6 +3,7 @@ import '../style/Interest.css'
 import historicalImage from '../assets/historical.jpg';
 import cultureImage from '../assets/cultural.jpg';
 import adventureImage from '../assets/adventure.jpeg';
+import foodieImage from '../assets/foodie.jpg';
 
 const Interest = () => {
   return (
@@ -21,8 +22,8 @@ const Interest = () => {
         <p>Adventure</p>
       </div>
       <div className="image-card">
-      <img src={cultureImage} alt="culture" />
-        <p>Culture</p>
+      <img src={foodieImage} alt="foodie" />
+        <p>Foodie</p>
       </div>
       <div className="image-card">
       <img src={cultureImage} alt="culture" />
