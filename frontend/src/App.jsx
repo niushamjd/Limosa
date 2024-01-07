@@ -44,6 +44,7 @@ function App() {
                 <Nav.Link as={Link} to="/community" className="nav-link-text">Community Trips</Nav.Link>
               </Nav>
               <Nav>
+<<<<<<< HEAD
                 {/* Giriş yapıldıysa profil ve çıkış butonlarını göster */}
                 {isSignedIn ? (
                   <>
@@ -56,6 +57,10 @@ function App() {
                     <Nav.Link as={Link} to="/login" className="nav-link-text">Log In</Nav.Link>
                   </>
                 )}
+=======
+                <Nav.Link as={Link} to="/signup" className="nav-link-text">Sign Up</Nav.Link>
+                <Nav.Link as={Link} to="/login" className="nav-link-text">Log In</Nav.Link>
+>>>>>>> origin/dev
               </Nav>
             </Navbar.Collapse>
           </Container>
