@@ -30,7 +30,7 @@ function App() {
                 <Nav.Link as={Link} to="/community" className="nav-link-text">Community Trips</Nav.Link>
               </Nav>
               <Nav>
-                <Nav.Link as={Link} to="/signup" className="nav-link-text">Sign In</Nav.Link>
+                <Nav.Link as={Link} to="/signup" className="nav-link-text">Sign Up</Nav.Link>
                 <Nav.Link as={Link} to="/login" className="nav-link-text">Log In</Nav.Link>
               </Nav>
             </Navbar.Collapse>

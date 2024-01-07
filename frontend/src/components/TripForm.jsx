@@ -20,17 +20,9 @@ function TripForm() {
   const [destination, setDestination] = useState("");
   const [peopleGroup, setPeopleGroup] = useState("");
   const [budget, setBudget] = useState("");
-  const [selectedInterests, setSelectedInterests] = useState([]);
 
   const peopleOptions = ["Solo", "Family", "Couple", "Group"];
   const budgetOptions = ["Economy", "Standard", "Luxury"];
-  const interestsOptions = [
-    "Cultural",
-    "Foodie",
-    "Adventure",
-    "Relaxation-lover",
-    "History",
-  ];
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -41,7 +33,6 @@ function TripForm() {
       dateRange,
       peopleGroup,
       budget,
-      selectedInterests,
     };
     console.log(formData);
     // Send a POST request to your server with the form data using Axios
@@ -112,24 +103,6 @@ function TripForm() {
               {budgetOptions.map((option) => (
                 <MenuItem key={option} value={option}>
                   {option}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-        <Box mt={2} mb={2}>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Choose your interests</InputLabel>
-            <Select
-              multiple
-              value={selectedInterests}
-              onChange={(e) => setSelectedInterests(e.target.value)}
-              input={<OutlinedInput label="Choose your interests" />}
-              renderValue={(selected) => selected.join(", ")}
-            >
-              {interestsOptions.map((interest) => (
-                <MenuItem key={interest} value={interest}>
-                  {interest}
                 </MenuItem>
               ))}
             </Select>
