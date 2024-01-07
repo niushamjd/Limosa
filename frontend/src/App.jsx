@@ -11,7 +11,7 @@ import './style/App.css'; // Adjust the path if your App.css is in a different d
 function App() {
     return (
       <BrowserRouter>
-        <Navbar bg="light" expand="lg">
+        <Navbar  expand="lg">
           <Container>
             <Navbar.Brand as={Link} to="/home">
               <img

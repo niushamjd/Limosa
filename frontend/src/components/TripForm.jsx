@@ -1,50 +1,74 @@
-import React, { useState, useEffect } from 'react';
-import '../style/TripForm.css';
-import dayjs from 'dayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateRangePicker } from '@mui/x-date-pickers-pro/DateRangePicker';
-import { Box, TextField, Button, InputLabel, Select, MenuItem, FormControl, OutlinedInput } from '@mui/material';
+import React, { useState } from "react";
+import "../style/TripForm.css";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
+import {
+  Box,
+  TextField,
+  Button,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControl,
+  OutlinedInput,
+} from "@mui/material";
+import axios from "axios";
 
 function TripForm() {
-    const [dateRange, setDateRange] = useState([null, null]);
-    const [destination, setDestination] = useState('');
-    const [numberOfPeople, setNumberOfPeople] = useState('');
-    const [budget, setBudget] = useState('');
-    const [selectedInterests, setSelectedInterests] = useState([]);
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [destination, setDestination] = useState("");
+  const [peopleGroup, setPeopleGroup] = useState("");
+  const [budget, setBudget] = useState("");
+  const [selectedInterests, setSelectedInterests] = useState([]);
 
-    const interestsOptions = ['Cultural', 'Foodie', 'Adventure', 'Relaxation-lover', 'History'];
+  const peopleOptions = ["Solo", "Family", "Couple", "Group"];
+  const budgetOptions = ["Economy", "Standard", "Luxury"];
+  const interestsOptions = [
+    "Cultural",
+    "Foodie",
+    "Adventure",
+    "Relaxation-lover",
+    "History",
+  ];
 
-    const handleInterestChange = (event) => {
-        setSelectedInterests(event.target.value);
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    // Create an object with the form data
+    const formData = {
+      destination,
+      dateRange,
+      peopleGroup,
+      budget,
+      selectedInterests,
     };
+    console.log(formData);
+    // Send a POST request to your server with the form data using Axios
+    axios
+      .post("http://localhost:3001/itinerary", formData)
+      .then((response) => {
+        console.log("Response from server:", response.data);
+        // Handle the server response here
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        // Handle any errors here
+      });
+  };
 
-    useEffect(() => {
-      // Log date range when it changes
-      if (dateRange[0] && dateRange[1]) {
-        console.log('Date Range:', dateRange.map(date => date ? date.format('YYYY-MM-DD') : 'null'));
-      }
-    }, [dateRange]);
-
-    const handleSubmit = (event) => {
-      event.preventDefault();
-      console.log('Form Data:', { destination, dateRange, numberOfPeople, budget, selectedInterests });
-      // Further form submission logic goes here
-    };
-
-   
-
-    return (
-      <div className="trip-form-container">
-        <h2>Get your personalized itinerary</h2>
-        <form onSubmit={handleSubmit}>
+  return (
+    <div className="trip-form-container">
+      <h2>Get your personalized itinerary</h2>
+      <form onSubmit={handleSubmit}>
         <TextField
-            label="Where do you want to go?"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
+          label="Where do you want to go?"
+          value={destination}
+          onChange={(e) => setDestination(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <Box mt={2}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DateRangePicker
               startText="Start Date"
@@ -60,33 +84,48 @@ function TripForm() {
               )}
             />
           </LocalizationProvider>
-
-
-
-          <TextField
-            label="How many people are going?"
-            value={numberOfPeople}
-            onChange={(e) => setNumberOfPeople(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-
-          <TextField
-            label="What is your ideal budget?"
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-
-<FormControl fullWidth margin="normal">
+        </Box>
+        <Box mt={2}>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>How many people are going?</InputLabel>
+            <Select
+              value={peopleGroup}
+              onChange={(e) => setPeopleGroup(e.target.value)}
+              input={<OutlinedInput label="How many people are going?" />}
+            >
+              {peopleOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+        <Box mt={2}>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>What is your ideal budget?</InputLabel>
+            <Select
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              input={<OutlinedInput label="What is your ideal budget?" />}
+            >
+              {budgetOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+        <Box mt={2} mb={2}>
+          <FormControl fullWidth margin="normal">
             <InputLabel>Choose your interests</InputLabel>
             <Select
               multiple
               value={selectedInterests}
-              onChange={handleInterestChange}
+              onChange={(e) => setSelectedInterests(e.target.value)}
               input={<OutlinedInput label="Choose your interests" />}
-              renderValue={(selected) => selected.join(', ')}
+              renderValue={(selected) => selected.join(", ")}
             >
               {interestsOptions.map((interest) => (
                 <MenuItem key={interest} value={interest}>
@@ -95,10 +134,21 @@ function TripForm() {
               ))}
             </Select>
           </FormControl>
-          <Button type="submit" variant="contained" color="primary" className="submit-button">Create my trip</Button>
-        </form>
-      </div>
-    );
+        </Box>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            className="submit-button"
+            style={{ width: "170px" }} // Adjust the width as needed
+          >
+            Create my trip
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
 }
 
 export default TripForm;
