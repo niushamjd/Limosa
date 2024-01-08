@@ -32,7 +32,7 @@ function Login() {
       console.log(res)
       if (res.data.status === "ok") {
         navigate('/home');
-      } else if (attempts >= 10) {
+      }  if (attempts >= 10) {
         setError("Account locked. Too many unsuccessful login attempts.");
         res.data.status = "locked";
         res.data.error = "Too many unsuccessful login attempts.";
