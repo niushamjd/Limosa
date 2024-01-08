@@ -1,0 +1,92 @@
+.header{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    margin-top: 30px;
+}
+
+.text{
+    color: #1e1930;
+    font-size: 48px;
+    font-weight: 700;
+}
+
+.underline{
+    width: 61px;
+    height: 6px;
+    background-color: #1e1930;
+    border-radius: 9px;
+    margin-bottom: 50px;
+}
+/* Styling for the overall form */
+.travel-group-form {
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    
+  }
+  
+  /* Styling for each form group */
+  .form-group {
+    margin-bottom: 50px;
+  }
+  
+  /* Label styling */
+  .form-group label {
+    display: block;
+    margin-bottom: 10px;
+    color: #1e1930;
+    font-size: 20px;
+    font-weight: bold;
+  }
+  
+  /* Styling for the select dropdown */
+  .form-group select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #1e1930;
+    font-size: 18px;
+    color: #1e1930;
+  }
+  
+  /* Styling for the numeric input */
+  .form-group input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #1e1930;
+    font-size: 18px;
+    color: #1e1930;
+  }
+  
+  /* Save button styling */
+  .save-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 220px;
+    height: 59px;
+    color: #fff;
+    background: #fd9732;
+    border-radius: 50px;
+    font-size: 19px;
+    font-weight: 700;
+    cursor: pointer;
+    margin: auto;
+
+  }
+  
+  /* Hover effect for save button */
+  .save-btn:hover {
+    background-color: #e28743;
+  }
+
+ 
+  

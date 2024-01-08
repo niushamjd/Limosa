@@ -12,18 +12,29 @@
   box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* card shadow */
   border-radius: 8px; /* rounded corners for the card */
   overflow: hidden; /* prevents content from spilling outside the border-radius */
+  cursor: pointer; /* change cursor to pointer on hover */
+  transition: border-color 0.3s ease; /* smooth transition for border color */
 }
 
 .image-card img {
   width: 100%; /* ensures image takes up the full width of the card */
   height: auto; /* maintains the image's aspect ratio */
   object-fit: cover; /* ensures images cover the area without distortion */
+  transition: opacity 0.3s ease; /* smooth transition for opacity */
+}
+
+.image-card.selected img {
+  opacity: 0.5; /* semi-transparent when selected */
 }
 
 .image-card p {
   text-align: center; /* centers text */
   padding: 8px; /* padding inside card below image */
   margin: 0; /* removes default margin from paragraphs */
+}
+
+.image-card.selected {
+  border: 2px solid #fd9732; /* highlight color when selected */
 }
 
 @media (max-width: 980px) {
@@ -36,4 +47,29 @@
   .image-grid {
     grid-template-columns: 1fr; /* 1 column for smallest screens */
   }
+}
+
+h2{
+  text-align: center;
+
+}
+.submit-container{
+  display: flex; /* Use flexbox */
+  justify-content: center; /* Center items horizontally */
+  align-items: center; 
+}
+
+.submit{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 220px;
+  height: 59px;
+  color: #fff;
+  background: #fd9732;
+  /*background: #1e1930;*/
+  border-radius: 50px;
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
 }

@@ -10,7 +10,7 @@ import Interest from './components/Interest';
 import EditProfile from './components/EditProfile';
 import logo from './assets/logo.png';
 import './style/App.css';
-
+import TravelGroup from './components/TravelGroup';
 function App() {
     const [isSignedIn, setIsSignedIn] = useState(true);
 
@@ -69,6 +69,7 @@ function App() {
           <Route path='/profile' element={<Profile />}></Route>
           <Route path='/interest' element={<Interest />}></Route>
           <Route path='/editprofile' element={<EditProfile />}></Route>
+          <Route path='/TravelGroup' element={<TravelGroup />}></Route>
           {/* Rest of your routes */}
         </Routes>
       </BrowserRouter>
