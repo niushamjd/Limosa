@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import '../style/Interest.css'
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
+
 import historicalImage from '../assets/historical.jpg';
 import cultureImage from '../assets/cultural.jpg';
 import adventureImage from '../assets/adventure.jpeg';
@@ -45,7 +46,9 @@ const handleSubmit = (e) => {
     });
 }
 
- 
+const handleProfileRedirect = () => {
+  navigate('/profile');
+}
   const interests = [
     { name: 'History', image: historicalImage },
     { name: 'Culture', image: cultureImage },
@@ -79,7 +82,7 @@ const handleSubmit = (e) => {
         ))}
       </div>
       <div className="submit-container">
-      <button type="submit" className="submit">Save</button>
+      <button type="submit" className="submit" onClick={handleProfileRedirect}>Save</button>
       
     </div>
     </form>

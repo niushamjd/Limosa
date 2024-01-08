@@ -11,9 +11,21 @@ import EditProfile from './components/EditProfile';
 import logo from './assets/logo.png';
 import './style/App.css';
 import TravelGroup from './components/TravelGroup';
+import TravelPlan from './components/TravelPlan';
 function App() {
     const [isSignedIn, setIsSignedIn] = useState(true);
+    
+    const [travelData, setTravelData] = useState(null);
 
+    const sampleTravelData = {
+      destination: "İstanbul",
+      dateRange: ["2024-01-10T21:00:00.000Z", "2024-02-07T21:00:00.000Z"],
+      peopleGroup: "Solo",
+      budget: "Luxury"
+  };
+  const updateTravelData = () => {
+    setTravelData(sampleTravelData);
+};
     const handleLogout = () => {
         // Burada kullanıcıyı çıkış yapmış olarak işaretleyin
         // ve gerekirse diğer temizleme işlemlerini yapın (örneğin token'ı silme)
@@ -70,6 +82,7 @@ function App() {
           <Route path='/interest' element={<Interest />}></Route>
           <Route path='/editprofile' element={<EditProfile />}></Route>
           <Route path='/TravelGroup' element={<TravelGroup />}></Route>
+          <Route path='/TravelPlan' element={<TravelPlan data={travelData} />} />
           {/* Rest of your routes */}
         </Routes>
       </BrowserRouter>

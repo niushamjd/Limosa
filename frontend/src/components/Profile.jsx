@@ -11,7 +11,7 @@ const Profile = () => {
 
   // Function to handle navigation to the past itinerary
   const goToPastItinerary = () => {
-    navigate('/pastitinerary');
+    navigate('/travelplan');
   };
 
   // Function to handle navigation to edit profile
