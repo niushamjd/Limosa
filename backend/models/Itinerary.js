@@ -1,12 +1,45 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
-const itinerarySchema = new mongoose.Schema({
-    destination: String,
-    dateRange: Array,
-    peopleGroup: String,
-    budget: String,
-});
+const transferSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+     
+      unique: true,
+    },
+    origin: {
+      type: String,
+      required: true,
+    },
+    destination: {
+      type: String,
+      required: true,
+    },
+    price: {
+        type: Number,
+        required: true,
+      },
+      passengers: {
+        type: Number,
+        required: true,
+      },
+  
+      featured: {
+        type: Boolean,
+        default: false,
+      },
+    photo: {
+      type: String,
+      required: true,
+    },
+    departureDate: {
+      type: String,
+      required: true,
+    },
 
-const ItineraryModel = mongoose.model('itineraries', itinerarySchema);
 
-module.exports = ItineraryModel;
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model("Transfer", transferSchema);
