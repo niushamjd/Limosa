@@ -1,4 +1,3 @@
-import Tour from "../models/Tour.js";
 import Review from "../models/Review.js";
 
 

@@ -38,7 +38,6 @@ app.use(express.json());
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use("/api/v1/auth",authRoute);
-app.use('/api/v1/tours',tourRoute);
 app.use('/api/v1/itineraries',itineraryRoute);
 app.use('/api/v1/transfer-booking', transferBookingRoute); // Using the transfer booking routes
 

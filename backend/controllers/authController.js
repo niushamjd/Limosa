@@ -2,10 +2,11 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// user registration
+// Assuming the sendEmail function is exported from mailer.js
+import { sendEmail } from "../utils/mailer.js"; // Ensure this path is correct
+
 export const register = async (req, res) => {
   try {
-    // hash password
     const salt = await bcrypt.genSaltSync(10);
     const hash = await bcrypt.hashSync(req.body.password, salt);
     const newUser = new User({
@@ -14,15 +15,42 @@ export const register = async (req, res) => {
       password: hash,
       photo: req.body.photo,
     });
-    await newUser.save();
+    const savedUser = await newUser.save();
 
-    res.status(200).json({ success: true, message: "Successfully created" });
+    // Email content
+    const formattedMessage = `
+      Welcome ${savedUser.username},
+      Your account has been successfully created. Please wait for approval.
+    `;
+
+    // Email params
+    const params = {
+        Destination: {
+            ToAddresses: [savedUser.email], // Send to the registered user's email
+        },
+        Message: {
+            Body: {
+                Text: { Data: formattedMessage },
+            },
+            Subject: { Data: 'Account Registration Successful' },
+        },
+        Source: 'prosmarttravel@gmail.com', // Replace with your email
+    };
+
+    // Send email
+    try {
+        await sendEmail(params);
+        res.status(200).json({ success: true, message: "Successfully registered. Please check your email." });
+    } catch (emailError) {
+        console.error("Email sending error:", emailError);
+        // Consider how you want to handle email errors; e.g., log the error but still consider registration successful
+    }
+
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "failed to create. Try again" });
+    res.status(500).json({ success: false, message: "Registration failed. Try again." });
   }
 };
+
 
 // user login
 export const login = async (req, res) => {
