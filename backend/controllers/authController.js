@@ -101,3 +101,75 @@ export const login = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to login" });
   }
 };
+
+// In authController.js or a similar controller file
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+      const user = await User.findOne({ email });
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      const resetToken = user.getResetPasswordToken();
+      await user.save();
+
+      const resetUrl = `http://localhost:3000/resetpassword/${resetToken}`;
+      const formattedMessage = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
+
+      // Ensure this matches the structure expected by your sendEmail function
+      const params = {
+          Destination: {
+              ToAddresses: [user.email],
+          },
+          Message: {
+              Body: {
+                  Text: { Data: formattedMessage },
+              },
+              Subject: { Data: 'Password reset token' },
+          },
+          Source: 'prosmarttravel@gmail.com',
+      };
+
+      await sendEmail(params);
+      res.status(200).json({ success: true, data: "Email sent" });
+  } catch (error) {
+      console.log(error);
+      res.status(500).json({ success: false, message: "Email could not be sent" });
+  }
+};
+
+
+export const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+  try {
+    console.log(token); // Add this log statement
+    // Find user by resetPasswordToken and check if token has expired
+    const user = await User.findOne({
+      resetPasswordToken: token,
+    });
+    console.log("User found:", user); // Add this log statement
+
+    if (!user) {
+      console.log("Invalid or expired token");
+      return res.status(400).json({ message: "Invalid or expired password reset token" });
+    }
+    
+    // Hash the new password
+    const salt = await bcrypt.genSaltSync(10);
+    const hash = await bcrypt.hashSync(newPassword, salt);
+
+    // Update user's password and clear resetPasswordToken and resetPasswordExpire
+    user.password = hash;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    console.log("Password reset successful"); // Add this log statement
+    res.status(200).json({ message: "Password has been reset successfully" });
+  } catch (error) {
+    console.error("Error resetting password:", error); // Add this log statement
+    res.status(500).json({ message: "Error resetting password" });
+  }
+};
