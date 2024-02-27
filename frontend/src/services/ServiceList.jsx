@@ -9,18 +9,18 @@ import customizationImg from '../assets/images/customization.png'
 const servicesData = [
   {
     imgUrl: transferImg,
-    title: 'Transfer',
-    desc: 'Find a transfer for your trip'
+    title: 'Tailored Travel Itineraries',
+    desc: "Experience journeys crafted to your preferences with Limosa's AI-driven planning"
   },
   {
     imgUrl: toursImg,
-    title: 'Tours',
-    desc: 'Find a tour for your trip'
+    title: 'Group Travel Harmony',
+    desc: 'Connect and sync travel plans with friends and family for a unified adventure'
   },
   {
     imgUrl: customizationImg,
-    title: 'Customization',
-    desc: 'Customize your trip'
+    title: 'Business Visibility Boost',
+    desc: 'Enhance your reach and ratings by engaging more relevant customers through Limosa'
   }
 ]
 
