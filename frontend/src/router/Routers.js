@@ -7,7 +7,7 @@ import Itineraries from '../pages/Itineraries'
 import ForgotPassword from '../pages/ResetPassword'
 import UpdatePassword from '../pages/UpdatePassword'
 import ItineraryDetails from '../pages/ItineraryDetails'
-
+import Interest from '../pages/Interest'
 import SearhResultList from '../pages/SearchResultList'
 import Register from '../pages/Register'
 import ThankYou from '../pages/ThankYou'
@@ -26,6 +26,7 @@ const Routers = () => {
         <Route path="/tours/search" element={<SearhResultList />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/resetpassword/:token" element={<UpdatePassword />} />
+        <Route path='/interest' element={<Interest />}></Route>
 
     </Routes>
   )

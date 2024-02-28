@@ -1,0 +1,90 @@
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns */
+  gap: 16px; /* space between grid items */
+  margin: 0 auto; /* center the grid on the page */
+  max-width: 960px; /* maximum width of the grid */
+  padding: 16px; /* padding around the grid */
+}
+
+.image-card {
+  background: #fff; /* card background color */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* card shadow */
+  border-radius: 8px; /* rounded corners for the card */
+  overflow: hidden; /* prevents content from spilling outside the border-radius */
+  cursor: pointer; /* change cursor to pointer on hover */
+  transition: border-color 0.3s ease; /* smooth transition for border color */
+}
+
+.image-card img {
+  width: 100%; /* ensures image takes up the full width of the card */
+  height: auto; /* maintains the image's aspect ratio */
+  object-fit: cover; /* ensures images cover the area without distortion */
+  transition: opacity 0.3s ease; /* smooth transition for opacity */
+}
+
+.image-card.selected img {
+  opacity: 0.5; /* semi-transparent when selected */
+}
+
+.image-card p {
+  text-align: center; /* centers text */
+  padding: 8px; /* padding inside card below image */
+  margin: 0; /* removes default margin from paragraphs */
+}
+
+.image-card.selected {
+  border: 2px solid #FAA935; /* highlight color when selected */
+}
+
+@media (max-width: 980px) {
+  .image-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns for smaller screens */
+  }
+}
+
+@media (max-width: 680px) {
+  .image-grid {
+    grid-template-columns: 1fr; /* 1 column for smallest screens */
+  }
+}
+h2 {
+  text-align: center;
+  font-family: var(--subtitle-font-name);
+  font-weight: bolder;
+  margin-top: 30px;
+  position: relative; /* Added to position the pseudo-element */
+}
+
+h2::before {
+  content: ""; /* Required for the pseudo-element to work */
+  position: absolute;
+  top: 0; /* Aligns the line at the top of the h2 element */
+  left: 50%; /* Center align the line */
+  transform: translateX(-50%); /* Ensures the line is perfectly centered */
+  width: 50%; /* Width of the line, adjust as needed */
+  height: 2px; /* Thickness of the line */
+  background-color: #FAA935; /* Color of the line, change as desired */
+  margin-top: -10px; /* Adjust the distance of the line from the text */
+}
+
+.submit-container{
+  display: flex; /* Use flexbox */
+  justify-content: center; /* Center items horizontally */
+  align-items: center; 
+}
+
+.submit{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 220px;
+  height: 59px;
+  color: #fff;
+  background: #FAA935;
+  /*background: #1e1930;*/
+  border-radius: 50px;
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+}

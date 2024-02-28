@@ -40,7 +40,8 @@ const Profile = () => {
               {user ? (
                 <>
                   <h2>Welcome  {user.username}</h2>
-                  <p>Email: {user.email}</p>
+                  {/* <p>Email: {user.email}</p> */}
+
                   <div className="profile-container">
       <div className="profile-settings">
         <div className="settings-item" onClick={goToPastItinerary}>
