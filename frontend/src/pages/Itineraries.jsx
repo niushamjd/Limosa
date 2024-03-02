@@ -1,71 +1,133 @@
-import React, { useState, useEffect } from "react";
-import CommonSection from "../shared/CommonSection";
-import "../styles/profile.css";
-import SearchBar from "../shared/SearchBar";
-import Newsletter from "../shared/Newsletter";
-import ItineraryCard from "../shared/ItineraryCard";
-import { Container, Row, Col } from "reactstrap";
-
-import useFetch from "../hooks/useFetch";
+import React, { useState,useContext } from "react";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { BASE_URL } from "../utils/config";
+import { AuthContext } from "../context/AuthContext";
 
-const Itineraries = () => {
-  const [pageCount, setPageCount] = useState(0);
-  const [page, setPage] = useState(0);
-  const {
-    data: itineraries,
-    loading,
-    error,
-  } = useFetch(`${BASE_URL}/itineraries?page=${page}`);
-  const { data: itineraryCount } = useFetch(`${BASE_URL}/itineraries/search/getItineraryCount`);
+import {
+  Box,
+  TextField,
+  Button,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControl,
+  OutlinedInput,
+} from "@mui/material";
 
-  useEffect(() => {
-    const pages = Math.ceil(itineraryCount / 8);
-    setPageCount(pages);
-    window.scrollTo(0, 0);
-  }, [page, itineraryCount, itineraries]);
+function Itineraries() {
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [destination, setDestination] = useState("");
+  const [peopleGroup, setPeopleGroup] = useState("");
+  const [budget, setBudget] = useState("");
+
+  const peopleOptions = ["Solo", "Family", "Couple", "Group"];
+  const budgetOptions = ["Economy", "Standard", "Luxury"];
+  const { user } = useContext(AuthContext);
+  console.log(user)
+  console.log("asfdg")
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const formData = {
+      userId: user.id,
+      destination,
+      dateRange,
+      peopleGroup,
+      budget,
+    };
+    console.log(formData);
+
+    fetch(`${BASE_URL}/new-itinerary`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("Response from server:", data);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+  };
 
   return (
-    <>
-      <CommonSection title={"All Itineraries"} />
-      <section className="itineraries__section">
-        <Container>
-          <Row>
-            {/* You can add a search bar here if needed */}
-          </Row>
-        </Container>
-      </section>
-      <section className="pt-0">
-        <Container>
-          {loading && <h4 className="text-center pt-5">Loading...</h4>}
-          {error && <h4 className="text-center pt-5">{error}</h4>}
-          {!loading && !error && (
-            <Row>
-              {itineraries?.map((itinerary) => (
-                <Col lg="3" md='6' sm='6' className="mb-4" key={itinerary._id}>
-                  <ItineraryCard itinerary={itinerary} />
-                </Col>
+    <div className="trip-form-container">
+      <h2>Get your personalized itinerary</h2>
+      <form onSubmit={handleSubmit}>
+        <TextField
+          label="Where do you want to go?"
+          value={destination}
+          onChange={(e) => setDestination(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <Box mt={2}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateRangePicker
+              startText="Start Date"
+              endText="End Date"
+              value={dateRange}
+              onChange={(newValue) => setDateRange(newValue)}
+              renderInput={(startProps, endProps) => (
+                <React.Fragment>
+                  <TextField {...startProps} />
+                  <Box sx={{ mx: 2 }}>to</Box>
+                  <TextField {...endProps} />
+                </React.Fragment>
+              )}
+            />
+          </LocalizationProvider>
+        </Box>
+        <Box mt={2}>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>How many people are going?</InputLabel>
+            <Select
+              value={peopleGroup}
+              onChange={(e) => setPeopleGroup(e.target.value)}
+              input={<OutlinedInput label="How many people are going?" />}
+            >
+              {peopleOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
               ))}
-              <Col lg="12">
-                <div className="pagination d-flex align-items-center justify-content-center mt-4 gap-3">
-                  {[...Array(pageCount).keys()].map((number) => (
-                    <span
-                      key={number}
-                      onClick={() => setPage(number)}
-                      className={page === number ? "active__page" : ""}
-                    >
-                      {number + 1}
-                    </span>
-                  ))}
-                </div>
-              </Col>
-            </Row>
-          )}
-        </Container>
-      </section>
-      <Newsletter />
-    </>
+            </Select>
+          </FormControl>
+        </Box>
+        <Box mt={2}>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>What is your ideal budget?</InputLabel>
+            <Select
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              input={<OutlinedInput label="What is your ideal budget?" />}
+            >
+              {budgetOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            className="submit-button"
+            style={{ width: "170px" }}
+          >
+            Create my trip
+          </Button>
+        </div>
+      </form>
+    </div>
   );
-};
+}
 
 export default Itineraries;
