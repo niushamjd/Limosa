@@ -15,13 +15,13 @@ const nav__links = [
     display: "About",
   },
   {
-    path: "/itineraries",
-    display: "Itineraries",
+    path: "/new-itinerary",
+    display: "New Itinerary",
   },
   {
-    path: "/profile",
-    display: "Profile",
-  },
+    path:"/profile",
+    display:"Profile"
+  }
 ];
 
 const Header = () => {
@@ -69,18 +69,22 @@ const toggleMenu = () => {
             </div>
             <div className="navigation" ref={menuRef} onClick={toggleMenu}>
               <ul className="menu d-flex align-items-center gap-5">
-                {nav__links.map((item, index) => (
-                  <li className="nav__item">
-                    <NavLink
-                      to={item.path}
-                      className={(navClass) =>
-                        navClass.isActive ? "active__link" : ""
-                      }
-                    >
-                      {item.display}
-                    </NavLink>
-                  </li>
-                ))}
+              {nav__links.map((item, index) => (
+  // Check if the user exists and if the item is "profile"
+  !(!user && item.path === "/profile") && (
+    <li className="nav__item" key={index}>
+      <NavLink
+        to={item.path}
+        className={(navClass) =>
+          navClass.isActive ? "active__link" : ""
+        }
+      >
+        {item.display}
+      </NavLink>
+    </li>
+  )
+))}
+
               </ul>
             </div>
             <div className="nav__right d-flex align-items-center gap-4">

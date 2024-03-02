@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useContext } from "react";
 import CommonSection from "../shared/CommonSection";
 import "../styles/profile.css";
 import SearchBar from "../shared/SearchBar";
@@ -8,16 +8,21 @@ import { Container, Row, Col } from "reactstrap";
 
 import useFetch from "../hooks/useFetch";
 import { BASE_URL } from "../utils/config";
+import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 
 const Itineraries = () => {
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [pageCount, setPageCount] = useState(0);
   const [page, setPage] = useState(0);
   const {
     data: itineraries,
     loading,
     error,
-  } = useFetch(`${BASE_URL}/itineraries?page=${page}`);
-  const { data: itineraryCount } = useFetch(`${BASE_URL}/itineraries/search/getItineraryCount`);
+  } = useFetch(`${BASE_URL}/new-itinerary?page=${page}`);
+  const { data: itineraryCount } = useFetch(`${BASE_URL}/new-itinerary/search/getItineraryCount`);
 
   useEffect(() => {
     const pages = Math.ceil(itineraryCount / 8);
@@ -25,6 +30,12 @@ const Itineraries = () => {
     window.scrollTo(0, 0);
   }, [page, itineraryCount, itineraries]);
 
+  useEffect(() => {
+    // Redirect to login if no user
+    if (!user) {
+      navigate("/login");
+    }
+  }, []); 
   return (
     <>
       <CommonSection title={"All Itineraries"} />
