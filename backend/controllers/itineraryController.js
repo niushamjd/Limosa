@@ -3,8 +3,9 @@ import Itinerary from "../models/Itinerary.js";
 // Create Itinerary
 export const createItinerary = async (req, res) => {
   const newItinerary = new Itinerary(req.body);
+  console.log(req.body); // Add this line to log the incoming request data
+
   try {
-    const savedItinerary = await newItinerary.save();
     res.status(200).json({ success: true, message: "Successfully created a new itinerary", data: savedItinerary });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to create a new itinerary", data: error });

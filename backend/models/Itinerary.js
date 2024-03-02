@@ -1,45 +1,12 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
-const transferSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-     
-      unique: true,
-    },
-    origin: {
-      type: String,
-      required: true,
-    },
-    destination: {
-      type: String,
-      required: true,
-    },
-    price: {
-        type: Number,
-        required: true,
-      },
-      passengers: {
-        type: Number,
-        required: true,
-      },
-  
-      featured: {
-        type: Boolean,
-        default: false,
-      },
-    photo: {
-      type: String,
-      required: true,
-    },
-    departureDate: {
-      type: String,
-      required: true,
-    },
+const itinerarySchema = new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  itineraryId: { type: Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId(), index: { unique: true } },
+  itineraryEvents: [{ type: Schema.Types.ObjectId, ref: 'ItineraryEvent' }],
+  dateRange: { start: Date, end: Date },
+  photo: String,
+}, { timestamps: true });
 
-
-  },
-  { timestamps: true }
-);
-
-export default mongoose.model("Transfer", transferSchema);
+export default mongoose.model('Itinerary', itinerarySchema);

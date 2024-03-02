@@ -9,12 +9,12 @@ import {
   getItineraryCount,
   getFeaturedItinerary
 } from "../controllers/itineraryController.js";
-import { verifyAdmin } from "../utils/verifyToken.js";
+import { verifyAdmin, verifyUser } from "../utils/verifyToken.js";
 
 const router = express.Router();
 
 // Create new itinerary
-router.post("/", verifyAdmin, createItinerary);
+router.post("/", verifyUser,createItinerary);
 // Update itinerary
 router.put("/:id", verifyAdmin, updateItinerary);
 // Delete itinerary
