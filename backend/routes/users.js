@@ -5,7 +5,7 @@ import { verifyAdmin, verifyUser } from '../utils/verifyToken.js';
 const router = express.Router();
 
 // Existing user routes
-router.put("/:id", verifyUser, updateUser);
+router.put("/:id", updateUser);
 router.delete("/:id", verifyUser, deleteUser);
 router.get("/:id", verifyUser, getSingleUser);
 router.get("/", verifyAdmin, getAllUser);

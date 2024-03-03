@@ -32,14 +32,13 @@ const Profile = () => {
   
   return (
     <>
-      <CommonSection title={"Edit your Profile"} />
+      <CommonSection title={"Welcome "+user.username} />
       <section className="profile__section">
         <Container>
           <Row>
             <Col>
               {user ? (
                 <>
-                  <h2>Welcome  {user.username}</h2>
                   {/* <p>Email: {user.email}</p> */}
 
                   <div className="profile-container">

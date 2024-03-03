@@ -11,6 +11,7 @@ import Interest from '../pages/Interest'
 import SearhResultList from '../pages/SearchResultList'
 import Register from '../pages/Register'
 import ThankYou from '../pages/ThankYou'
+import EditProfile from '../pages/EditProfile'
 
 const Routers = () => {
   return (
@@ -27,6 +28,7 @@ const Routers = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/resetpassword/:token" element={<UpdatePassword />} />
         <Route path='/interest' element={<Interest />}></Route>
+        <Route path='/editprofile' element={<EditProfile />}></Route>
 
     </Routes>
   )
