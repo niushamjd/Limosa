@@ -60,7 +60,7 @@ const formatDate = (dateString) => {
       // Handle the response
       if (response.ok) {
         console.log('User information updated successfully');
-        dispatch({ type: "UPDATE_SUCCESS", payload: response.data });
+        dispatch({ payload: response.data });
       } else {
         console.error('Failed to update user information');
       }
