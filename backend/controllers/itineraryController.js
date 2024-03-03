@@ -3,33 +3,60 @@ import { itineraryData, itineraryEventsData } from "./aiResponse.js";
 import ItineraryEvent from "../models/ItineraryEvent.js";
 // Create Itinerary
 export const createItinerary = async (req, res) => {
+  // Assuming itineraryData comes from your aiResponse.js or similar
   const newItinerary = new Itinerary(itineraryData);
-  console.log(req.body);
   try {
     const savedItinerary = await newItinerary.save();
-    console.log(savedItinerary); // Log the saved itinerary
 
-    // After saving the itinerary, save associated events and collect their IDs
-    let eventIds = [];
+    // Save associated events and collect detailed data
+    let eventsDetails = [];
     for (const eventData of itineraryEventsData) {
       const newEvent = new ItineraryEvent({
         ...eventData,
-        itineraryId: savedItinerary._id // Ensure the event is linked to the newly created itinerary
+        itineraryId: savedItinerary._id
       });
       const savedEvent = await newEvent.save();
-      eventIds.push(savedEvent._id);
+      eventsDetails.push(savedEvent); // Push the whole event document instead of just the ID
     }
 
-    // Update the itinerary with event IDs
-    savedItinerary.itineraryEvents = eventIds;
-    await savedItinerary.save();
+   // After saving the events, update the itinerary with the event IDs
+await Itinerary.findByIdAndUpdate(savedItinerary._id, {
+  $set: { itineraryEvents: eventsDetails.map(event => event._id) }
+});
 
-    res.status(200).json({ success: true, message: "Successfully created a new itinerary and events", data: { itinerary: savedItinerary, events: eventIds } });
+// Fetch the updated itinerary to include in the response
+const updatedItinerary = await Itinerary.findById(savedItinerary._id).populate('itineraryEvents');
+
+res.status(200).json({
+  success: true, 
+  message: "Successfully created a new itinerary and events", 
+  data: {
+    itinerary: updatedItinerary,
+    events: eventsDetails
+  }
+});
+
   } catch (error) {
-    console.error(error); // Log the error
+    console.error(error);
     res.status(500).json({ success: false, message: "Failed to create a new itinerary and events", data: error });
   }
 };
+
+
+export const getDummyItinerary = async (req, res) => {
+  try {
+    // Directly return the dummy data imported from aiResponse.js
+    res.status(200).json({
+      success: true,
+      message: "Dummy data fetched successfully",
+      data: { itinerary: itineraryData, events: itineraryEventsData }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Failed to fetch dummy data", data: error });
+  }
+};
+
 
 // Update Itinerary
 export const updateItinerary = async (req, res) => {

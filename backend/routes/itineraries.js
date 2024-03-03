@@ -7,7 +7,8 @@ import {
   getAllItinerary,
   getItineraryBySearch,
   getItineraryCount,
-  getFeaturedItinerary
+  getFeaturedItinerary,
+  getDummyItinerary
 } from "../controllers/itineraryController.js";
 import { verifyAdmin, verifyUser } from "../utils/verifyToken.js";
 
@@ -23,6 +24,9 @@ router.delete("/:id", verifyAdmin, deleteItinerary);
 router.get("/:id", getSingleItinerary);
 // Get all itineraries
 router.get("/", getAllItinerary);
+
+router.get('/dummy', getDummyItinerary);
+
 
  router.get("/search/getItineraryBySearch", getItineraryBySearch);
  router.get("/search/getFeaturedItinerarys", getFeaturedItinerary);
