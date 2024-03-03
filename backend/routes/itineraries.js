@@ -14,7 +14,7 @@ import { verifyAdmin, verifyUser } from "../utils/verifyToken.js";
 const router = express.Router();
 
 // Create new itinerary
-router.post("/", verifyUser,createItinerary);
+router.post("/",createItinerary);
 // Update itinerary
 router.put("/:id", verifyAdmin, updateItinerary);
 // Delete itinerary

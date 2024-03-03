@@ -1,14 +1,33 @@
 import Itinerary from "../models/Itinerary.js";
-
+import { itineraryData, itineraryEventsData } from "./aiResponse.js";
+import ItineraryEvent from "../models/ItineraryEvent.js";
 // Create Itinerary
 export const createItinerary = async (req, res) => {
-  const newItinerary = new Itinerary(req.body);
-  console.log(req.body); // Add this line to log the incoming request data
-
+  const newItinerary = new Itinerary(itineraryData);
+  console.log(req.body);
   try {
-    res.status(200).json({ success: true, message: "Successfully created a new itinerary", data: savedItinerary });
+    const savedItinerary = await newItinerary.save();
+    console.log(savedItinerary); // Log the saved itinerary
+
+    // After saving the itinerary, save associated events and collect their IDs
+    let eventIds = [];
+    for (const eventData of itineraryEventsData) {
+      const newEvent = new ItineraryEvent({
+        ...eventData,
+        itineraryId: savedItinerary._id // Ensure the event is linked to the newly created itinerary
+      });
+      const savedEvent = await newEvent.save();
+      eventIds.push(savedEvent._id);
+    }
+
+    // Update the itinerary with event IDs
+    savedItinerary.itineraryEvents = eventIds;
+    await savedItinerary.save();
+
+    res.status(200).json({ success: true, message: "Successfully created a new itinerary and events", data: { itinerary: savedItinerary, events: eventIds } });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to create a new itinerary", data: error });
+    console.error(error); // Log the error
+    res.status(500).json({ success: false, message: "Failed to create a new itinerary and events", data: error });
   }
 };
 
