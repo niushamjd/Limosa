@@ -60,7 +60,7 @@ const formatDate = (dateString) => {
       // Handle the response
       if (response.ok) {
         console.log('User information updated successfully');
-        dispatch({ type: "UPDATE_SUCCESS", payload: response.data });
+        dispatch({ payload: response.data });
       } else {
         console.error('Failed to update user information');
       }
@@ -118,7 +118,7 @@ const formatDate = (dateString) => {
                 <Input type="text" name="country" id="country" value={country} onChange={(e) => setCountry(e.target.value)} />
               </FormGroup>
               <Button className="btn primary__btn mr-3" type="submit">Update Edited Information</Button>
-              <Button className="btn secondary__btn"><Link to="/reset-password">Reset Password</Link></Button>
+              <Button className="btn secondary__btn"><Link to="/forgot-password">Reset Password</Link></Button>
             </Form>
           </Col>
         </Row>
