@@ -55,6 +55,38 @@ h2 {
   margin-top: 30px;
   position: relative; /* Added to position the pseudo-element */
 }
+.message-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 1050; /* Yeterince yüksek bir değer, diğer içeriklerin üstünde görünmesini sağlar */
+}
+
+.message-content {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #FAA935; /* Mesaj kutusu için arka plan rengi */
+  color: #721c24; /* Metin rengi */
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: auto;
+  max-width: 80%; /* Kutunun maksimum genişliği */
+}
+
+.close-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: #721c24;
+  font-weight: bold;
+}
+
 
 h2::before {
   content: ""; /* Required for the pseudo-element to work */

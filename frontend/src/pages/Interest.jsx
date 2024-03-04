@@ -1,21 +1,32 @@
 import React, { useState, useEffect, useContext } from 'react';
-import '../styles/ınterest.css';
-import { useNavigate } from 'react-router-dom';
+import '../styles/ınterest.css'; // Stil dosyasının adı doğru olmalı
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
+
+function Message({ message, onClose }) {
+  return (
+    <div className="message-container">
+      <div className="message-content">
+        {message}
+        <button onClick={onClose} className="close-button">  X</button>
+      </div>
+    </div>
+  );
+}
+
 
 function Interest() {
   const [interests, setInterests] = useState([]);
   const [selectedInterests, setSelectedInterests] = useState([]);
-  const navigate = useNavigate();
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showMessage, setShowMessage] = useState(false);
   const { user } = useContext(AuthContext);
 
-  // Function to handle interest selection
   const toggleInterest = (interest) => {
     setSelectedInterests(prevSelectedInterests =>
       prevSelectedInterests.includes(interest)
-        ? prevSelectedInterests.filter(i => i !== interest) // Unselect
-        : [...prevSelectedInterests, interest] // Select
+        ? prevSelectedInterests.filter(i => i !== interest)
+        : [...prevSelectedInterests, interest]
     );
   };
 
@@ -24,7 +35,6 @@ function Interest() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Send selected interests to the backend
       const response = await fetch(`${BASE_URL}/users/${user._id}`, {
         method: 'PUT',
         headers: {
@@ -33,9 +43,9 @@ function Interest() {
         body: JSON.stringify({ interests: selectedInterests }),
       });
       if (response.ok) {
-        console.log('Interests updated successfully');
-        // Redirect to profile page or perform any other action after saving
-        navigate('/profile');
+        setSuccessMessage("Interests updated successfully ");
+        setShowMessage(true);
+        window.scrollTo(0, 0); // Sayfanın en üstüne kaydır
       } else {
         console.error('Failed to update interests');
       }
@@ -43,9 +53,13 @@ function Interest() {
       console.error('Error updating interests:', error);
     }
   };
+  
+
+  const handleCloseMessage = () => {
+    setShowMessage(false);
+  };
 
   useEffect(() => {
-    // Fetch interests from the backend
     const fetchInterests = async () => {
       try {
         const response = await fetch(`${BASE_URL}/interests`, {
@@ -70,8 +84,8 @@ function Interest() {
 
   return (
     <>
+      {showMessage && <Message message={successMessage} onClose={handleCloseMessage} />}
       <h2>Select Your Interests</h2>
-      {user.interests}
       <form onSubmit={handleSubmit}>
         <div className="image-grid">
           {interests.map(interest => (
@@ -81,7 +95,7 @@ function Interest() {
               onClick={() => toggleInterest(interest.interestName)}
             >
               <img
-                src={`../assets/images/${interest.interestPhoto}`}
+                src={`/interest-images/${interest.interestPhoto}`}
                 alt={interest.interestName}
                 className={isInterestSelected(interest.interestName) ? 'selected-image' : ''}
               />

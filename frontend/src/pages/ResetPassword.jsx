@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { Container, Row, Col, Form, FormGroup, Button } from "reactstrap";
 import { Link } from "react-router-dom";
 import { BASE_URL } from "../utils/config";
+import "../styles/reset-password.css";
+import loginImg from "../assets/images/login.png";
+import userIcon from "../assets/images/user.png";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -33,6 +36,9 @@ const ForgotPassword = () => {
         <Row>
           <Col lg="8" className="m-auto">
             <div className="auth__container d-flex justify-content-between">
+            <div className="login__img">
+                <img src={loginImg} alt="login" />
+              </div>
               <div className="auth__form">
                 <h2>Reset Password</h2>
                 <Form onSubmit={handleSubmit}>
