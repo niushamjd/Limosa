@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 import crypto from 'crypto';
+import itinerarySchema from "./Itinerary.js";
 
-const userSchema = new mongoose.Schema(
+const { Schema } = mongoose;
+
+const userSchema = new Schema(
   {
     username: {
       type: String,
@@ -52,13 +55,16 @@ const userSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    pastItineraries: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Itinerary', // Reference to the Itinerary model
+    }],
     resetPasswordToken: {
-    type: String,
-  },
+      type: String,
+    },
     resetPasswordExpire: {
-    type: Date,
-    
-  },
+      type: Date,
+    },
   },
   { timestamps: true }
 );
@@ -68,7 +74,6 @@ userSchema.methods.getResetPasswordToken = function() {
 
   // Hash token (private key) and save to database
   this.resetPasswordToken = resetToken;
-
 
   // Set token expire time (10 minutes from now)
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
