@@ -4,6 +4,9 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from 'react-router-dom';
+
+
 
 import {
   Box,
@@ -21,6 +24,7 @@ function Itineraries() {
   const [destination, setDestination] = useState("");
   const [peopleGroup, setPeopleGroup] = useState("");
   const [budget, setBudget] = useState("");
+  const navigate = useNavigate();
 
   const peopleOptions = ["Solo", "Family", "Couple", "Group"];
   const budgetOptions = ["Economy", "Standard", "Luxury"];
@@ -30,7 +34,7 @@ function Itineraries() {
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = {
-      userId: user.id,
+      userId: user._id,
       destination,
       dateRange,
       peopleGroup,
@@ -47,6 +51,7 @@ function Itineraries() {
     })
     .then(response => response.json())
     .then(data => {
+      navigate('/viewItinerary', { state: { itineraryData: data.data } });
       console.log("Response from server:", data);
     })
     .catch((error) => {
