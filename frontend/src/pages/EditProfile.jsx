@@ -1,3 +1,4 @@
+/*
 import React, { useState, useContext, useEffect } from 'react';
 import { Container, Row, Col, Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import { Link } from 'react-router-dom';
@@ -128,3 +129,151 @@ const formatDate = (dateString) => {
 };
 
 export default EditProfile;
+
+*/
+
+import React, { useState, useEffect, useContext } from 'react';
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
+import { BASE_URL } from "../utils/config";
+import { AuthContext } from "../context/AuthContext";
+import Select from 'react-select';
+import { getNameList } from 'country-list';
+import { City } from 'country-state-city';
+import {
+  Box,
+  TextField,
+  Button,
+  InputLabel,
+  MenuItem,
+  FormControl,
+  OutlinedInput,
+  Select as MuiSelect,
+} from "@mui/material";
+
+ // Get today's date in YYYY-MM-DD format
+ const today = new Date().toISOString().split('T')[0];
+ const cities = City.getCitiesOfCountry('US');
+ console.log(cities);
+
+function EditProfile() {
+
+  const [name, setName] = useState('');
+  const [surname, setSurname] = useState('');
+  const [username, setUsername] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [country, setCountry] = useState('');
+  const [occupation, setOccupation] = useState('');
+  const [city, setCity] = useState('');
+  const { user, dispatch } = useContext(AuthContext);
+
+// getNameList'den dönen nesneyi al
+const countriesObject = getNameList();
+
+// Nesnenin anahtarlarını (ülke isimlerini) bir diziye çevir
+const countryNames = Object.keys(countriesObject);
+
+ 
+  const handleSubmit = (event) => {
+
+    event.preventDefault();
+    const formData = {
+      userId: user.id,
+      name,
+      surname,
+      username,
+      dateOfBirth,
+      occupation, 
+      city,
+      country
+    };
+
+    fetch(`${BASE_URL}/edit-profile`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("Response from server:", data);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });  
+
+    
+
+};
+
+return(
+  <div className="edit-profile-container">
+      <h2>Edit Your Profile</h2>
+      <form onSubmit={handleSubmit}>
+      <TextField
+          label="Name"
+          value= {name}
+          onChange={(e) => setName(e.target.value)}
+          fullWidth
+          margin="normal"
+          color="warning"
+        />
+         <TextField
+          label="Surname"
+          value={surname}
+          onChange={(e) => setSurname(e.target.value)}
+          fullWidth
+          margin="normal"
+          color="warning"
+        />
+         <TextField
+          label="Date of Birth"
+          type="date"
+          value={dateOfBirth}
+          onChange={(e) => setDateOfBirth(e.target.value)}
+          fullWidth
+          margin="normal"
+          color="warning"
+           // Material-UI uses the InputLabelProps prop to control the label behavior
+          InputLabelProps={{
+            // This ensures the label doesn't overlap with the selected date
+            shrink: true,
+          }}
+          inputProps={{
+            max: today, // Restrict future dates
+          }}  
+        />
+        
+        <Box sx={{ minWidth: 120 }}>
+          <TextField
+            label="Country"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            select
+            fullWidth
+            margin="normal"
+            color="warning"
+            SelectProps={{native: true}}
+        >
+          {countryNames.map(countryName => (
+            <option key={countryName} value={countryName}> {countryName} </option>
+           
+          ))}
+        </TextField>
+      </Box>  
+       
+        <Button type="submit" style={{ marginTop: '20px' }}>Submit</Button>
+     
+  
+      </form>
+  </div>
+
+)
+
+}
+export default EditProfile;
+
+
+
