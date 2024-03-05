@@ -140,7 +140,7 @@ import { BASE_URL } from "../utils/config";
 import { AuthContext } from "../context/AuthContext";
 import Select from 'react-select';
 import { getNameList } from 'country-list';
-import { City } from 'country-state-city';
+import { Country, State, City } from 'country-state-city';
 import {
   Box,
   TextField,
@@ -154,8 +154,8 @@ import {
 
  // Get today's date in YYYY-MM-DD format
  const today = new Date().toISOString().split('T')[0];
- const cities = City.getCitiesOfCountry('US');
- console.log(cities);
+
+ 
 
 function EditProfile() {
 
@@ -167,13 +167,16 @@ function EditProfile() {
   const [occupation, setOccupation] = useState('');
   const [city, setCity] = useState('');
   const { user, dispatch } = useContext(AuthContext);
+  const [cities, setCities] = useState([]);
+  const [countryCode, setCountryCode] = useState('');
 
 // getNameList'den dönen nesneyi al
 const countriesObject = getNameList();
 
 // Nesnenin anahtarlarını (ülke isimlerini) bir diziye çevir
 const countryNames = Object.keys(countriesObject);
-
+//const countryCodes = Object.values(countriesObject);
+//console.log(State.getAllStates())
  
   const handleSubmit = (event) => {
 
@@ -204,9 +207,29 @@ const countryNames = Object.keys(countriesObject);
       console.error("Error:", error);
     });  
 
-    
-
 };
+
+ // Ülke seçimi değiştiğinde çalışacak fonksiyon
+ const handleCountryChange = (e) => {
+  const selectedCountryName = e.target.value;
+  setCountry(selectedCountryName);
+  
+  // Seçilen ülkenin kodunu bul
+  const selectedCountryCode = countriesObject[selectedCountryName];
+  setCountryCode(selectedCountryCode); // Ülke kodunu state'e kaydet
+
+  // Seçilen ülkeye ait şehirleri bul
+  const citiesOfSelectedCountry = State.getStatesOfCountry(selectedCountryCode);
+  setCities(citiesOfSelectedCountry); // Şehir listesini state'e kaydet
+};
+
+//console.log(State.getAllStates())
+
+// Şehir seçimi değiştiğinde çalışacak fonksiyon
+const handleCityChange = (e) => {
+  setCity(e.target.value);
+};
+
 
 return(
   <div className="edit-profile-container">
@@ -244,13 +267,12 @@ return(
           inputProps={{
             max: today, // Restrict future dates
           }}  
-        />
-        
+        />       
         <Box sx={{ minWidth: 120 }}>
           <TextField
             label="Country"
             value={country}
-            onChange={(e) => setCountry(e.target.value)}
+            onChange= {handleCountryChange}
             select
             fullWidth
             margin="normal"
@@ -258,9 +280,27 @@ return(
             SelectProps={{native: true}}
         >
           {countryNames.map(countryName => (
-            <option key={countryName} value={countryName}> {countryName} </option>
+
+            <option key={countryName} value={countryName}>{countryName} </option>
            
           ))}
+        </TextField>
+      </Box>  
+      <Box sx={{ minWidth: 120 }}>
+          <TextField
+            label="City"
+            value={city}
+            onChange={handleCityChange}
+            select
+            fullWidth
+            margin="normal"
+            color="warning"
+            SelectProps={{native: true}}
+        >
+           {cities.map((city) => (
+              <option key={city.name} value={city.name}>{city.name}</option>
+            ))}
+        
         </TextField>
       </Box>  
        
