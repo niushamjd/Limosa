@@ -132,7 +132,7 @@ export default EditProfile;
 
 */
 
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from "../context/AuthContext";
@@ -184,6 +184,58 @@ function EditProfile() {
     "Environmental Scientist",
   ];
 
+
+  // Function to handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Prepare the form data
+    const formData = {
+      name,
+      surname,
+      username,
+      dateOfBirth,
+      occupation,
+      city,
+      country
+    };
+
+    try {
+      // Make a PUT request to update user information
+      const response = await fetch(`${BASE_URL}/users/${user._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      // Handle the response
+      if (response.ok) {
+        console.log('User information updated successfully');
+        dispatch({ payload: response.data });
+      } else {
+        console.error('Failed to update user information');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  // Effect to set the form fields with user's information when the component mounts
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setSurname(user.surname || '');
+      setUsername(user.username || '');
+      setDateOfBirth(user.dateOfBirth || '');
+      setOccupation(user.occupation || '');
+      setCity(user.city || '');
+      setCountry(user.country || '');
+    }
+  }, [user]);
+
+  /*
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = {
@@ -212,7 +264,7 @@ function EditProfile() {
         console.error("Error:", error);
       });
   };
-
+*/
   // Ülke seçimi değiştiğinde çalışacak fonksiyon
   const handleCountryChange = (e) => {
     const selectedCountryName = e.target.value;
