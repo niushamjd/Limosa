@@ -235,36 +235,6 @@ function EditProfile() {
     }
   }, [user]);
 
-  /*
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const formData = {
-      userId: user.id,
-      name,
-      surname,
-      username,
-      dateOfBirth,
-      occupation,
-      city,
-      country,
-    };
-
-    fetch(`${BASE_URL}/edit-profile`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Response from server:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
-*/
   // Ülke seçimi değiştiğinde çalışacak fonksiyon
   const handleCountryChange = (e) => {
     const selectedCountryName = e.target.value;
