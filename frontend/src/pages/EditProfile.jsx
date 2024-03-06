@@ -132,45 +132,59 @@ export default EditProfile;
 
 */
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext } from "react";
+import { Link } from "react-router-dom";
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from "../context/AuthContext";
-import { getNameList } from 'country-list';
-import { State } from 'country-state-city';
+import { getNameList } from "country-list";
+import { State } from "country-state-city";
 import {
+  FormControl,
+  InputLabel,
+  Select,
   Box,
   TextField,
   Button,
+  MenuItem,
 } from "@mui/material";
 
- // Get today's date in YYYY-MM-DD format
- const today = new Date().toISOString().split('T')[0];
-
- 
+// Get today's date in YYYY-MM-DD format
+const today = new Date().toISOString().split("T")[0];
 
 function EditProfile() {
-
-  const [name, setName] = useState('');
-  const [surname, setSurname] = useState('');
-  const [username, setUsername] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [country, setCountry] = useState('');
-  const [occupation, setOccupation] = useState('');
-  const [city, setCity] = useState('');
+  const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [username, setUsername] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [country, setCountry] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [city, setCity] = useState("");
   const { user, dispatch } = useContext(AuthContext);
   const [cities, setCities] = useState([]);
-  const [countryCode, setCountryCode] = useState('');
+  const [countryCode, setCountryCode] = useState("");
 
-// getNameList'den dönen nesneyi al
-const countriesObject = getNameList();
+  // getNameList'den dönen nesneyi al
+  const countriesObject = getNameList();
 
-// Nesnenin anahtarlarını (ülke isimlerini) bir diziye çevir
-const countryNames = Object.keys(countriesObject);
-//const countryCodes = Object.values(countriesObject);
-//console.log(State.getAllStates())
- 
+  // Nesnenin anahtarlarını (ülke isimlerini) bir diziye çevir
+  const countryNames = Object.keys(countriesObject);
+  //const countryCodes = Object.values(countriesObject);
+  //console.log(State.getAllStates())
+
+  const occupations = [
+    "Engineer",
+    "Student",
+    "Businessman/Businesswoman",
+    "Healthcare Professional",
+    "Artist",
+    "Educator",
+    "Retiree",
+    "IT Professional",
+    "Chef/Culinary Enthusiast",
+    "Environmental Scientist",
+  ];
+
   const handleSubmit = (event) => {
-
     event.preventDefault();
     const formData = {
       userId: user.id,
@@ -178,63 +192,60 @@ const countryNames = Object.keys(countriesObject);
       surname,
       username,
       dateOfBirth,
-      occupation, 
+      occupation,
       city,
-      country
+      country,
     };
 
     fetch(`${BASE_URL}/edit-profile`, {
       method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(formData),
     })
-    .then(response => response.json())
-    .then(data => {
-      console.log("Response from server:", data);
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });  
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Response from server:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
 
-};
+  // Ülke seçimi değiştiğinde çalışacak fonksiyon
+  const handleCountryChange = (e) => {
+    const selectedCountryName = e.target.value;
+    setCountry(selectedCountryName);
 
- // Ülke seçimi değiştiğinde çalışacak fonksiyon
- const handleCountryChange = (e) => {
-  const selectedCountryName = e.target.value;
-  setCountry(selectedCountryName);
-  
-  // Seçilen ülkenin kodunu bul
-  const selectedCountryCode = countriesObject[selectedCountryName];
-  setCountryCode(selectedCountryCode); // Ülke kodunu state'e kaydet
+    // Seçilen ülkenin kodunu bul
+    const selectedCountryCode = countriesObject[selectedCountryName];
+    setCountryCode(selectedCountryCode); // Ülke kodunu state'e kaydet
 
-  // Seçilen ülkeye ait şehirleri bul
-  const citiesOfSelectedCountry = State.getStatesOfCountry(selectedCountryCode);
-  setCities(citiesOfSelectedCountry); // Şehir listesini state'e kaydet
-};
+    // Seçilen ülkeye ait şehirleri bul
+    const citiesOfSelectedCountry =
+      State.getStatesOfCountry(selectedCountryCode);
+    setCities(citiesOfSelectedCountry); // Şehir listesini state'e kaydet
+  };
 
-//console.log(State.getAllStates())
+  // Şehir seçimi değiştiğinde çalışacak fonksiyon
+  const handleCityChange = (e) => {
+    setCity(e.target.value);
+  };
 
-// Şehir seçimi değiştiğinde çalışacak fonksiyon
-const handleCityChange = (e) => {
-  setCity(e.target.value);
-};
-
-
-return(
-  <div className="edit-profile-container">
+  return (
+    <div className="edit-profile-container">
       <h2>Edit Your Profile</h2>
       <form onSubmit={handleSubmit}>
-      <TextField
+        <TextField
           label="Name"
-          value= {name}
+          value={name}
           onChange={(e) => setName(e.target.value)}
           fullWidth
           margin="normal"
           color="warning"
         />
-         <TextField
+        <TextField
           label="Surname"
           value={surname}
           onChange={(e) => setSurname(e.target.value)}
@@ -242,7 +253,7 @@ return(
           margin="normal"
           color="warning"
         />
-         <TextField
+        <TextField
           label="Date of Birth"
           type="date"
           value={dateOfBirth}
@@ -250,34 +261,49 @@ return(
           fullWidth
           margin="normal"
           color="warning"
-           // Material-UI uses the InputLabelProps prop to control the label behavior
+          // Material-UI uses the InputLabelProps prop to control the label behavior
           InputLabelProps={{
             // This ensures the label doesn't overlap with the selected date
             shrink: true,
           }}
           inputProps={{
             max: today, // Restrict future dates
-          }}  
-        />       
+          }}
+        />
+        <FormControl fullWidth margin="normal" color="warning">
+          <InputLabel>Occupation</InputLabel>
+          <Select
+            label="Occupation"
+            value={occupation}
+            onChange={(e) => setOccupation(e.target.value)}
+          >
+            {occupations.map((occupationOption, index) => (
+              <MenuItem key={index} value={occupationOption}>
+                {occupationOption}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
         <Box sx={{ minWidth: 120 }}>
           <TextField
-            label="Country"
+            //label="Country"
             value={country}
-            onChange= {handleCountryChange}
+            onChange={handleCountryChange}
             select
             fullWidth
             margin="normal"
             color="warning"
-            SelectProps={{native: true}}
-        >
-          {countryNames.map(countryName => (
-
-            <option key={countryName} value={countryName}>{countryName} </option>
-           
-          ))}
-        </TextField>
-      </Box>  
-      <Box sx={{ minWidth: 120 }}>
+            SelectProps={{ native: true }}
+          >
+            {countryNames.map((countryName) => (
+              <option key={countryName} value={countryName}>
+                {countryName}{" "}
+              </option>
+            ))}
+          </TextField>
+        </Box>
+        <Box sx={{ minWidth: 120 }}>
           <TextField
             label="City"
             value={city}
@@ -286,25 +312,25 @@ return(
             fullWidth
             margin="normal"
             color="warning"
-            SelectProps={{native: true}}
-        >
-           {cities.map((city) => (
-              <option key={city.name} value={city.name}>{city.name}</option>
+            SelectProps={{ native: true }}
+          >
+            {cities.map((city) => (
+              <option key={city.name} value={city.name}>
+                {city.name}
+              </option>
             ))}
-        
-        </TextField>
-      </Box>  
-       
-        <Button type="submit" style={{ marginTop: '20px' }}>Submit</Button>
-     
-  
+          </TextField>
+        </Box>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+        <Button className="btn primary__btn mr-3" type="submit">
+          Update Edited Information
+        </Button>
+        <Button className="btn secondary__btn">
+          <Link to="/forgot-password">Reset Password</Link>
+        </Button>
+        </div>
       </form>
-  </div>
-
-)
-
+    </div>
+  );
 }
 export default EditProfile;
-
-
-
