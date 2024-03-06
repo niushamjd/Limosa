@@ -132,24 +132,15 @@ export default EditProfile;
 
 */
 
-import React, { useState, useEffect, useContext } from 'react';
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
+import React, { useState, useContext } from 'react';
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from "../context/AuthContext";
-import Select from 'react-select';
 import { getNameList } from 'country-list';
-import { Country, State, City } from 'country-state-city';
+import { State } from 'country-state-city';
 import {
   Box,
   TextField,
   Button,
-  InputLabel,
-  MenuItem,
-  FormControl,
-  OutlinedInput,
-  Select as MuiSelect,
 } from "@mui/material";
 
  // Get today's date in YYYY-MM-DD format

@@ -3,24 +3,35 @@ import { useLocation } from 'react-router-dom';
 
 function ViewItinerary() {
   const location = useLocation();
-  const itineraryData = location.state.itineraryData; // Assuming this is how you've structured the state
+  const itineraryData = location.state.itineraryData;
+
+  // Inline CSS for centering
+  const centerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    minHeight: '50vh', // This ensures that the flex container takes at least the full height of the viewport
+  };
 
   return (
-    <div>
-      <h1>Itinerary Details</h1>
-      <p>Title: {itineraryData.itinerary.title}</p>
-      {/* Display other itinerary details as needed */}
+    <div style={centerStyle}>
+      <div className="hero__content">
+        <h1 className="services__title">Itinerary <span className="highlight">Details</span></h1>
 
-      <h2>Events:</h2>
-      {itineraryData.events.map((event, index) => (
-        <div key={index}>
-          <h3>{event.eventName}</h3>
-          <p>Date: {new Date(event.date).toLocaleDateString()}</p>
-          <p>Location: {event.location}</p>
-          <p>Description: {event.description}</p>
-          {/* Display other event details as needed */}
-        </div>
-      ))}
+        {itineraryData.events.map((event, index) => (
+          <div key={index} className="experience__content" style={{ marginTop: '2rem' }}>
+            <h2 className="featured__tour-title">{event.eventName}</h2>
+            <p>Date: {new Date(event.date).toLocaleDateString()}</p>
+            <p>Location: {event.location}</p>
+            <p>Time: {new Date(event.timeRange.start).toLocaleTimeString()} - {new Date(event.timeRange.end).toLocaleTimeString()}</p>
+            <p>Description: {event.description}</p>
+            <p>Tips: {event.tips}</p>
+            {/* Additional event details can be displayed here */}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
