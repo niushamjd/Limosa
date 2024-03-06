@@ -5,6 +5,7 @@ import Newsletter from "../shared/Newsletter";
 import { Container, Row, Col } from "reactstrap";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from 'react-router-dom'; 
+import { BASE_URL } from "../utils/config";
 
 const Profile = () => {
   const { user } = useContext(AuthContext);
@@ -14,8 +15,23 @@ const Profile = () => {
 
   // Function to handle navigation to the past itinerary
   const goToPastItinerary = () => {
-    navigate('/travelplan');
+    fetch(`${BASE_URL}/new-itinerary`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(),
+    })
+    .then(response => response.json())
+    .then(data => {
+      navigate('/viewItinerary', { state: { itineraryData: data.data } });
+      console.log("Response from server:", data);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
   };
+    
 
   // Function to handle navigation to edit profile
   const goToEditProfile = () => {
