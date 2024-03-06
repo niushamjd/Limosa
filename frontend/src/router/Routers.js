@@ -13,6 +13,7 @@ import Register from '../pages/Register'
 import ThankYou from '../pages/ThankYou'
 import EditProfile from '../pages/EditProfile'
 import ViewItinerary from '../pages/ViewItinerary'
+import ViewPastItinerary from '../pages/ViewPastItinerary'
 
 const Routers = () => {
   return (
@@ -31,6 +32,7 @@ const Routers = () => {
         <Route path='/interest' element={<Interest />}></Route>
         <Route path='/editprofile' element={<EditProfile />}></Route>
         <Route path="/viewItinerary" element={<ViewItinerary />}></Route>
+        <Route path="/travelplan" element={<ViewPastItinerary />}></Route>
 
     </Routes>
   )
