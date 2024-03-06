@@ -148,6 +148,17 @@ import {
   MenuItem,
 } from "@mui/material";
 
+function Message({ message, onClose }) {
+  return (
+    <div className="message-container">
+      <div className="message-content">
+        {message}
+        <button onClick={onClose} className="close-button">  X</button>
+      </div>
+    </div>
+  );
+}
+
 // Get today's date in YYYY-MM-DD format
 const today = new Date().toISOString().split("T")[0];
 
@@ -162,6 +173,8 @@ function EditProfile() {
   const { user, dispatch } = useContext(AuthContext);
   const [cities, setCities] = useState([]);
   const [countryCode, setCountryCode] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showMessage, setShowMessage] = useState(false);
 
   // getNameList'den dönen nesneyi al
   const countriesObject = getNameList();
@@ -212,6 +225,9 @@ function EditProfile() {
 
       // Handle the response
       if (response.ok) {
+        setSuccessMessage("Profile is edited successfully");
+        setShowMessage(true);
+        window.scrollTo(0, 0);
         console.log('User information updated successfully');
         dispatch({ payload: response.data });
       } else {
@@ -220,6 +236,10 @@ function EditProfile() {
     } catch (error) {
       console.error('Error:', error);
     }
+  };
+
+  const handleCloseMessage = () => {
+    setShowMessage(false);
   };
 
   // Effect to set the form fields with user's information when the component mounts
@@ -256,6 +276,8 @@ function EditProfile() {
   };
 
   return (
+    <>
+    {showMessage && <Message message={successMessage} onClose={handleCloseMessage} />}
     <div className="edit-profile-container">
       <h2>Edit Your Profile</h2>
       <form onSubmit={handleSubmit}>
@@ -353,6 +375,8 @@ function EditProfile() {
         </div>
       </form>
     </div>
+  </>
   );
 }
+
 export default EditProfile;
