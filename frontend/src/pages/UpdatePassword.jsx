@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BASE_URL } from "../utils/config";
+import "../styles/update-password.css";
+
 const UpdatePassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const { token } = useParams(); // Assuming you're using react-router-dom
+  const { token } = useParams();
   const navigate = useNavigate();
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,7 +21,6 @@ const UpdatePassword = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newPassword: password }),
       });
-      console.log(response);
       if (!response.ok) throw new Error('Failed to reset password');
       alert('Password reset successfully');
       navigate('/login');
@@ -30,7 +30,9 @@ const UpdatePassword = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <div className="login__container">
+    <form onSubmit={handleSubmit} className="login__form">
+      <h2>Reset Password</h2>
       <input
         type="password"
         placeholder="New Password"
@@ -45,8 +47,9 @@ const UpdatePassword = () => {
         onChange={(e) => setConfirmPassword(e.target.value)}
         required
       />
-      <button type="submit">Reset Password</button>
+      <button type="submit" className="auth__btn">Reset Password</button>
     </form>
+  </div>
   );
 };
 

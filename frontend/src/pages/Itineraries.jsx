@@ -5,6 +5,8 @@ import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from 'react-router-dom';
+import "../styles/itineraries.css";
+
 
 
 
@@ -62,7 +64,7 @@ function Itineraries() {
   return (
     <div className="trip-form-container">
       <h2>Get your personalized itinerary</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="form-content">
         <TextField
           label="Where do you want to go?"
           value={destination}
@@ -119,13 +121,11 @@ function Itineraries() {
             </Select>
           </FormControl>
         </Box>
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            className="submit-button"
-            style={{ width: "170px" }}
+        <div className="centered-button-container">
+  <Button
+    type="submit"
+    variant="contained"
+    className="btn primary__btn"// Use the correct CSS class for styling
           >
             Create my trip
           </Button>
