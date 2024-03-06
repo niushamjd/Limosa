@@ -1,0 +1,54 @@
+:root {
+  --primary-color: #ff7e01;
+  --secondary-color: #faa935;
+  --heading-color: #0b2727;
+  --text-color: #6e7074;
+  --font-name: "Montserrat", sans-serif;
+}
+.trip-form-container h2 {
+  font-family: 'Playfair Display', serif; /* Applies Playfair Display font to h2 headings */
+  color: var(--heading-color); /* Sets the color of the heading to your specified heading color */
+  font-size: 2rem; /* Adjust the size as needed */
+  text-align: center; /* Ensures the heading is centered */
+  margin: 20px 0; /* Adds top and bottom margin for spacing */
+}
+
+
+/* Ensures the container and all child elements are centered and have a consistent width */
+.trip-form-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* This centers the children */
+  font-family: var(--font-name);
+}
+
+/* Applies to all form elements to ensure they take up the full width of the container */
+.trip-form-container form {
+  width: 100%; /* Ensures the form uses the full width of its container */
+}
+
+/* Styles for TextField components to ensure they match the container's width */
+.trip-form-container .MuiTextField-root {
+  width: 100%; /* Adjust this as necessary to match your design goals */
+  margin: 8px 0; /* Provides consistent vertical spacing */
+  color: var(--text-color); /* Applies text color */
+}
+
+/* Select components might need additional styling to match the width */
+.trip-form-container .MuiFormControl-root {
+  width: 100%; /* Ensures select elements match the width of text fields */
+  margin: 8px 0; /* Consistent spacing */
+}
+
+/* Button styling, ensuring it's centered and optionally matches the width of other elements */
+.centered-button-container {
+  margin-top: 20px;
+  width: 100%; /* Full width to center the button; adjust if the button should have specific width */
+  display: flex;
+  justify-content: center;
+}
+
+
