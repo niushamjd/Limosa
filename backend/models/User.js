@@ -59,6 +59,20 @@ const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Itinerary', // Reference to the Itinerary model
     }],
+    groups: {
+      type: [{
+          groupName: {
+              type: String,
+          },
+          numberOfPeople: {
+              type: Number,
+          },
+          commonInterests: {
+              type: [String],
+          },
+      }],
+      default: [],
+    },
     resetPasswordToken: {
       type: String,
     },
