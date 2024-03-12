@@ -137,6 +137,7 @@ import { Link } from "react-router-dom";
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from "../context/AuthContext";
 import { getNameList } from "country-list";
+import "../styles/edit-profile.css";
 import { State } from "country-state-city";
 import {
   FormControl,

@@ -35,12 +35,16 @@
   width: 100%; /* Adjust this as necessary to match your design goals */
   margin: 8px 0; /* Provides consistent vertical spacing */
   color: var(--text-color); /* Applies text color */
+  --primary-color: #ff7e01;
 }
 
 /* Select components might need additional styling to match the width */
 .trip-form-container .MuiFormControl-root {
   width: 100%; /* Ensures select elements match the width of text fields */
   margin: 8px 0; /* Consistent spacing */
+  width: 100%;
+  --primary-color: #ff7e01;
+  color: var(--text-color);
 }
 
 /* Button styling, ensuring it's centered and optionally matches the width of other elements */

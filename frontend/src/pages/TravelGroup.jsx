@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
+import "../styles/travel-group.css";
 
 function Message({ message, onClose }) {
     return (
@@ -102,7 +103,7 @@ function TravelGroup() {
     <>
       {showMessage && <Message message={successMessage} onClose={handleCloseMessage} />}
       <h2>Create a Travel Group</h2>
-      <form onSubmit={handleSubmit}>
+      <form className='group' onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="groupName">Group Name:</label>
           <input type="text" id="groupName" name="groupName" value={groupData.groupName} onChange={handleChange} />
