@@ -1,4 +1,4 @@
-import React, { useState,useContext } from "react";
+import React, { useState, useContext } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
@@ -6,10 +6,6 @@ import { BASE_URL } from "../utils/config";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from 'react-router-dom';
 import "../styles/itineraries.css";
-
-
-
-
 import {
   Box,
   TextField,
@@ -20,6 +16,7 @@ import {
   FormControl,
   OutlinedInput,
 } from "@mui/material";
+import OpenAI from "openai";
 
 function Itineraries() {
   const [dateRange, setDateRange] = useState([null, null]);
@@ -27,39 +24,51 @@ function Itineraries() {
   const [peopleGroup, setPeopleGroup] = useState("");
   const [budget, setBudget] = useState("");
   const navigate = useNavigate();
-
+  const { user } = useContext(AuthContext);
   const peopleOptions = ["Solo", "Family", "Couple", "Group"];
   const budgetOptions = ["Economy", "Standard", "Luxury"];
-  const { user } = useContext(AuthContext);
-  console.log(user)
-  console.log("asfdg")
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const formData = {
-      userId: user._id,
-      destination,
-      dateRange,
-      peopleGroup,
-      budget,
-    };
-    console.log(formData);
+  const openai = new OpenAI({ apiKey: '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', dangerouslyAllowBrowser: true  });
 
-    fetch(`${BASE_URL}/new-itinerary`, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    })
-    .then(response => response.json())
-    .then(data => {
-      navigate('/viewItinerary', { state: { itineraryData: data.data } });
-      console.log("Response from server:", data);
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    
+    const prompt = `Plan a trip to ${destination} for ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget from ${dateRange[0]} to ${dateRange[1]}.`;
+
+    try {
+      const completion = await openai.chat.completions.create({
+        messages: [{ role: "system", content: prompt }],
+        model: "gpt-3.5-turbo",
+      });
+    
+      console.log(completion.choices[0]);
+      
+      const formData = {
+        userId: user._id,
+        destination,
+        dateRange,
+        peopleGroup,
+        budget
+      };
+
+      fetch(`${BASE_URL}/new-itinerary`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+      .then(response => response.json())
+      .then(data => {
+        navigate('/viewItinerary', { state: { itineraryData: data.data } });
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    } catch (error) {
+      console.error("Error generating trip plan:", error);
+    }
   };
+
 
   return (
     <div className="trip-form-container">
