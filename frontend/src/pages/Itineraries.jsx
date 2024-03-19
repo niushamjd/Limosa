@@ -2,9 +2,7 @@ import React, { useState, useContext } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
-import { BASE_URL } from "../utils/config";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from 'react-router-dom';
 import "../styles/itineraries.css";
 import {
   Box,
@@ -15,61 +13,69 @@ import {
   MenuItem,
   FormControl,
   OutlinedInput,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography
 } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenAI from "openai";
 
 function Itineraries() {
+  // State and context setup
   const [dateRange, setDateRange] = useState([null, null]);
   const [destination, setDestination] = useState("");
   const [peopleGroup, setPeopleGroup] = useState("");
   const [budget, setBudget] = useState("");
-  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
+  const [itinerary, setItinerary] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  // Options for select inputs
   const peopleOptions = ["Solo", "Family", "Couple", "Group"];
   const budgetOptions = ["Economy", "Standard", "Luxury"];
-  const openai = new OpenAI({ apiKey: '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', dangerouslyAllowBrowser: true  });
 
+  // Instantiate OpenAI with the API key
+  
+  const openai = new OpenAI({ apiKey: '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', dangerouslyAllowBrowser: true  });
+  // Function to parse the itinerary response from ChatGPT
+  const parseItineraryResponse = (itineraryResponse) => {
+    const days = itineraryResponse.split('Day ');
+    const itineraryObj = {};
+    days.forEach(day => {
+      if (day.trim()) {
+        const dateMatch = day.match(/(\d+.*?2024)/); // Regex to find dates, adjust as necessary
+        if (dateMatch) {
+          const date = dateMatch[0];
+          itineraryObj[date] = day.substring(date.length); // Rest of the day's plan
+        }
+      }
+    });
+    return itineraryObj;
+  };
+
+  // Form submission handler
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
-    const prompt = `Plan a trip to ${destination} for ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget from ${dateRange[0]} to ${dateRange[1]}.`;
+    setIsLoading(true); 
+    const prompt = `Plan a trip to ${destination} for ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget from ${dateRange[0]} to ${dateRange[1]}.indicate each date`;
 
     try {
+      // Call to OpenAI's API
       const completion = await openai.chat.completions.create({
         messages: [{ role: "system", content: prompt }],
         model: "gpt-3.5-turbo",
-      });
-    
-      console.log(completion.choices[0]);
-      
-      const formData = {
-        userId: user._id,
-        destination,
-        dateRange,
-        peopleGroup,
-        budget
-      };
+      })
+      setIsLoading(false); ;
 
-      fetch(`${BASE_URL}/new-itinerary`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-      .then(response => response.json())
-      .then(data => {
-        navigate('/viewItinerary', { state: { itineraryData: data.data } });
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+      // Parse the response and set the itinerary state
+      setItinerary(parseItineraryResponse(completion.choices[0].message.content));
     } catch (error) {
+      setIsLoading(false);
       console.error("Error generating trip plan:", error);
     }
   };
 
-
+  // Render the component
   return (
     <div className="trip-form-container">
       <h2>Get your personalized itinerary</h2>
@@ -131,15 +137,41 @@ function Itineraries() {
           </FormControl>
         </Box>
         <div className="centered-button-container">
-  <Button
-    type="submit"
-    variant="contained"
-    className="btn primary__btn"// Use the correct CSS class for styling
-          >
-            Create my trip
-          </Button>
+        <Button
+          type="submit"
+          variant="contained"
+          className="btn primary__btn"
+          sx={{ mt: 2 }}
+        >
+          Create my trip
+        </Button>
         </div>
       </form>
+      <br />
+      {isLoading && (
+        <div className="loading-indicator">
+          <p>Loading your trip plan...</p>
+          {/* Replace with an image or emoji if you prefer */}
+        </div>
+      )}
+<br />
+      {/* Itinerary accordion display */}
+      {Object.keys(itinerary).length > 0 && (
+        <div className="itinerary-accordion">
+          {Object.keys(itinerary).map(date => (
+            <Accordion key={date}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography>{date}</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography>
+                  {itinerary[date]}
+                </Typography>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
