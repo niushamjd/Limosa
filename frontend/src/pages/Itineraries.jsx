@@ -50,6 +50,7 @@ function Itineraries() {
         }
       }
     });
+    console.log(itineraryObj);
     return itineraryObj;
   };
 
@@ -57,7 +58,7 @@ function Itineraries() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsLoading(true); 
-    const prompt = `Plan a trip to ${destination} for ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget from ${dateRange[0]} to ${dateRange[1]}.indicate each date`;
+    const prompt = `Plan a trip to ${destination} for ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget from ${dateRange[0]} to ${dateRange[1]}.indicate each date (for example: Day 1: Tuesday, 19 Mar 2024) and give exact restaurant recommendations. add Tips section at the end for ${peopleGroup.toLowerCase()} travelers with a ${budget.toLowerCase()} budget`;
 
     try {
       // Call to OpenAI's API
@@ -69,6 +70,7 @@ function Itineraries() {
 
       // Parse the response and set the itinerary state
       setItinerary(parseItineraryResponse(completion.choices[0].message.content));
+      console.log(completion.choices[0].message.content);
     } catch (error) {
       setIsLoading(false);
       console.error("Error generating trip plan:", error);
@@ -165,7 +167,7 @@ function Itineraries() {
               </AccordionSummary>
               <AccordionDetails>
                 <Typography>
-                  {itinerary[date]}
+                <pre>{itinerary[date]}</pre>
                 </Typography>
               </AccordionDetails>
             </Accordion>
