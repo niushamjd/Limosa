@@ -12,6 +12,7 @@ import ServiceList from "../services/ServiceList";
 import MasonryImagesGallery from "../components/Images-gallery/MasonryImagesGallery";
 import Testimonials from "../components/Testimonial/Testimonials";
 import Newsletter from "../shared/Newsletter";
+import ItineraryMap from "./ItineraryMap";
 
 const Home = () => {
   return (
@@ -54,6 +55,7 @@ const Home = () => {
           </Row>
         </Container>
       </section>
+      <ItineraryMap />
       <section>
         <Container>
           <Row>
