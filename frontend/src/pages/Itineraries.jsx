@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext,useRef, useEffect } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenAI from "openai";
+import { useLoadScript } from '@react-google-maps/api';
 
 function Itineraries() {
   // State and context setup
@@ -35,9 +36,47 @@ function Itineraries() {
   const budgetOptions = ["Economy", "Standard", "Luxury"];
 
   // Instantiate OpenAI with the API key
-  
+
   const openai = new OpenAI({ apiKey: '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', dangerouslyAllowBrowser: true  });
   // Function to parse the itinerary response from ChatGPT
+  const libraries = ['places'];
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: "AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8", // Replace with your actual Google Maps API key
+    libraries,
+  });
+
+  const mapRef = useRef(null); // You'll use this ref to instantiate a map object without rendering it
+
+  // Make sure the Google Maps script has loaded before trying to use the PlacesService
+  useEffect(() => {
+    if (isLoaded && !mapRef.current) {
+      // This creates a new map instance without attaching it to any DOM element
+      mapRef.current = new window.google.maps.Map(document.createElement('div'));
+    }
+  }, [isLoaded]);
+
+  const fetchRestaurants = (location) => {
+    if (!mapRef.current) {
+      console.log('Google Maps JavaScript API has not been loaded yet.');
+      return;
+    }
+
+    const service = new window.google.maps.places.PlacesService(mapRef.current);
+    const request = {
+      query: `restaurants in ${location}`, // Using the location parameter in your query
+      fields: ['name', 'formatted_address', 'geometry'],
+    };
+
+    service.textSearch(request, (results, status) => {
+      if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+        console.log('Restaurants:', results);
+        // Process the results as needed...
+      } else {
+        console.error('Error fetching restaurants:', status);
+      }
+    });
+  };
+
   const parseItineraryResponse = (itineraryResponse) => {
     const days = itineraryResponse.split('Day ');
     const itineraryObj = {};
@@ -59,6 +98,8 @@ function Itineraries() {
     event.preventDefault();
     setIsLoading(true); 
     const prompt = `Plan a trip to ${destination} for ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget from ${dateRange[0]} to ${dateRange[1]}.indicate each date (for example: Day 1: Tuesday, 19 Mar 2024) and give exact restaurant recommendations. add Tips section at the end for ${peopleGroup.toLowerCase()} travelers with a ${budget.toLowerCase()} budget`;
+    const restaurantData = fetchRestaurants(destination);
+    console.log('Restaurant Data:', restaurantData); // Log the restaurant data
 
     try {
       // Call to OpenAI's API
@@ -66,6 +107,7 @@ function Itineraries() {
         messages: [{ role: "system", content: prompt }],
         model: "gpt-3.5-turbo",
       })
+
       setIsLoading(false); ;
 
       // Parse the response and set the itinerary state
