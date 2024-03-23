@@ -3,16 +3,16 @@ import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
 import "../styles/travel-group.css";
 
-function Message({ message }) {
+function Message({ message, onClose }) {
     return (
       <div className="message-container">
         <div className="message-content">
           {message}
+        
         </div>
       </div>
     );
-}
-
+  }
 function TravelGroup() {
   const [groupData, setGroupData] = useState({
     groupName: "",
@@ -21,8 +21,9 @@ function TravelGroup() {
   });
   const [interests, setInterests] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // New state for error message
   const [showMessage, setShowMessage] = useState(false);
+  const [error, setError] = useState(""); // State to store the error message
+  const [validationErrors, setValidationErrors] = useState({}); // New state to track validation errors for each field
   const { user } = useContext(AuthContext);
 
   const handleChange = (e) => {
@@ -32,60 +33,80 @@ function TravelGroup() {
       [name]: value
     }));
   };
-
+  const validateForm = () => {
+    const errors = {};
+    if (!groupData.groupName) errors.groupName = true;
+    if (!groupData.numberOfPeople) errors.numberOfPeople = true;
+    if (groupData.commonInterests.length === 0) errors.commonInterests = true;
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
   const handleInterestChange = (e) => {
     const options = e.target.options;
-    let selectedOptions = [];
+    const commonInterests = [];
     for (let i = 0; i < options.length; i++) {
       if (options[i].selected) {
-        selectedOptions.push(options[i].value);
+        commonInterests.push(options[i].value);
       }
     }
     setGroupData(prevState => ({
       ...prevState,
-      commonInterests: selectedOptions
+      commonInterests: [...prevState.commonInterests, ...commonInterests]
     }));
   };
+  
+  
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Reset error message
-    setErrorMessage("");
-    // Validation
-    if (!groupData.groupName || !groupData.numberOfPeople || groupData.commonInterests.length === 0) {
-      setErrorMessage("Please fill in all fields: Group Name, Number of People, and Mutual Interests.");
-      setShowMessage(true);
-      return; // Prevent form submission
+    if (!validateForm()) {
+      setError("All fields are required. Please fill out the entire form.");
+      return;
     }
-
     try {
-      const response = await fetch(`${BASE_URL}/users/${user._id}/groups`, { // Adjusted endpoint for clarity
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ groups: groupData }),
-      });
+        const response = await fetch(`${BASE_URL}/users/${user._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ groups: groupData }),
+        });
       if (response.ok) {
         setSuccessMessage("Travel group created successfully");
         setShowMessage(true);
         window.scrollTo(0, 0);
+        console.log(groupData)
       } else {
-        setErrorMessage("Failed to create travel group");
-        setShowMessage(true);
+        console.error('Failed to create travel group');
       }
     } catch (error) {
-      setErrorMessage("Error creating travel group");
-      setShowMessage(true);
+      console.error('Error creating travel group:', error);
     }
   };
 
-  // Automatically close the message
+  const handleCloseMessage = () => {
+    setError(""); 
+    setShowMessage(false);
+  };
+  useEffect(() => {
+    let timer;
+    if (error) {
+      timer = setTimeout(() => {
+        setError("");
+      }, 2000); // Clears the error message after 3 seconds
+    }
+  
+    return () => clearTimeout(timer); // Cleanup function to clear the timer if the component unmounts or the error changes
+  }, [error]); 
+
   useEffect(() => {
     if (showMessage) {
       const timer = setTimeout(() => {
         setShowMessage(false);
-      }, 3000);
+      }, 1500);
+      
       return () => clearTimeout(timer);
     }
   }, [showMessage]);
@@ -97,7 +118,7 @@ function TravelGroup() {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-          },
+          }
         });
         if (response.ok) {
           const data = await response.json();
@@ -115,20 +136,21 @@ function TravelGroup() {
 
   return (
     <>
-      {showMessage && <Message message={errorMessage || successMessage} />}
+     {error && <Message message={error} />}
+      {showMessage && <Message message={successMessage} onClose={handleCloseMessage} />}
       <h2>Create a Travel Group</h2>
       <form className='group' onSubmit={handleSubmit}>
-      <div className="form-group">
+        <div className="form-group">
           <label htmlFor="groupName">Group Name:</label>
-          <input type="text" id="groupName" name="groupName" value={groupData.groupName} onChange={handleChange} />
+          <input type="text" id="groupName" name="groupName" value={groupData.groupName} onChange={handleChange} className={validationErrors.groupName ? 'input-error' : ''} />
         </div>
         <div className="form-group">
           <label htmlFor="numberOfPeople">Number of People:</label>
-          <input type="number" id="numberOfPeople" name="numberOfPeople" value={groupData.numberOfPeople} onChange={handleChange} />
+          <input type="number" id="numberOfPeople" name="numberOfPeople" value={groupData.numberOfPeople} onChange={handleChange} className={validationErrors.numberOfPeople ? 'input-error' : ''}/>
         </div>
         <div className="form-group">
           <label htmlFor="interests">Select Mutual Interests:</label>
-          <select id="commonInterest" name="commonInterest" multiple value={groupData.commonInterests} onChange={handleInterestChange}>
+          <select id="commonInterest" name="commonInterest" multiple value={groupData.commonInterests} onChange={handleInterestChange} className={validationErrors.commonInterests ? 'input-error' : ''}>
             {interests.map(interest => (
               <option key={interest.interestName} value={interest.interestName}>{interest.interestName}</option>
             ))}
