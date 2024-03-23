@@ -31,6 +31,8 @@ function Itineraries() {
   const { user } = useContext(AuthContext);
   const [itinerary, setItinerary] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const [formError, setFormError] = useState(""); // State for managing form validation error
   // Options for select inputs
   const peopleOptions = ["Solo", "Family", "Couple", "Group"];
   const budgetOptions = ["Economy", "Standard", "Luxury"];
@@ -53,7 +55,18 @@ function Itineraries() {
       // This creates a new map instance without attaching it to any DOM element
       mapRef.current = new window.google.maps.Map(document.createElement('div'));
     }
+
   }, [isLoaded]);
+  useEffect(() => {
+    let timer;
+    if (formError) {
+      timer = setTimeout(() => {
+        setFormError("");
+      }, 3000); // Clears the error message after 3 seconds
+    }
+  
+    return () => clearTimeout(timer); // Cleanup function to clear the timer
+  }, [formError]);
 
   const fetchRestaurants = (location) => {
     if (!mapRef.current) {
@@ -96,6 +109,12 @@ function Itineraries() {
   // Form submission handler
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!destination || !dateRange[0] || !dateRange[1] || !peopleGroup || !budget) {
+      setFormError("All fields are required. Please fill out the entire form.");
+      return;
+    }
+
+    setFormError(""); // Clear any existing error messages
     setIsLoading(true); 
     const prompt = `Plan a trip to ${destination} for ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget from ${dateRange[0]} to ${dateRange[1]}.indicate each date (for example: Day 1: Tuesday, 19 Mar 2024) and give exact restaurant recommendations. add Tips section at the end for ${peopleGroup.toLowerCase()} travelers with a ${budget.toLowerCase()} budget`;
     const restaurantData = fetchRestaurants(destination);
@@ -123,6 +142,13 @@ function Itineraries() {
   return (
     <div className="trip-form-container">
       <h2>Get your personalized itinerary</h2>
+      {formError && (
+  <div className="message-container">
+    <div className="message-content">
+      {formError}
+    </div>
+  </div>
+)}
       <form onSubmit={handleSubmit} className="form-content">
         <TextField
           label="Where do you want to go?"
@@ -130,6 +156,7 @@ function Itineraries() {
           onChange={(e) => setDestination(e.target.value)}
           fullWidth
           margin="normal"
+          error={!!formError && !destination}
         />
         <Box mt={2}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -140,16 +167,16 @@ function Itineraries() {
               onChange={(newValue) => setDateRange(newValue)}
               renderInput={(startProps, endProps) => (
                 <React.Fragment>
-                  <TextField {...startProps} />
+                  <TextField {...startProps} error={!!formError && !dateRange[0]}/>
                   <Box sx={{ mx: 2 }}>to</Box>
-                  <TextField {...endProps} />
+                  <TextField {...endProps} error={!!formError && !dateRange[1]} />
                 </React.Fragment>
               )}
             />
           </LocalizationProvider>
         </Box>
         <Box mt={2}>
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" error={!!formError && !peopleGroup}>
             <InputLabel>How many people are going?</InputLabel>
             <Select
               value={peopleGroup}
@@ -165,7 +192,7 @@ function Itineraries() {
           </FormControl>
         </Box>
         <Box mt={2}>
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" error={!!formError && !budget}>
             <InputLabel>What is your ideal budget?</InputLabel>
             <Select
               value={budget}

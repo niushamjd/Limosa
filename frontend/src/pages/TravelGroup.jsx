@@ -3,16 +3,16 @@ import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
 import "../styles/travel-group.css";
 
-function Message({ message, onClose }) {
+function Message({ message }) {
     return (
       <div className="message-container">
         <div className="message-content">
           {message}
-          <button onClick={onClose} className="close-button">  X</button>
         </div>
       </div>
     );
-  }
+}
+
 function TravelGroup() {
   const [groupData, setGroupData] = useState({
     groupName: "",
@@ -21,6 +21,7 @@ function TravelGroup() {
   });
   const [interests, setInterests] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // New state for error message
   const [showMessage, setShowMessage] = useState(false);
   const { user } = useContext(AuthContext);
 
@@ -34,47 +35,60 @@ function TravelGroup() {
 
   const handleInterestChange = (e) => {
     const options = e.target.options;
-    const commonInterests = [];
+    let selectedOptions = [];
     for (let i = 0; i < options.length; i++) {
       if (options[i].selected) {
-        commonInterests.push(options[i].value);
+        selectedOptions.push(options[i].value);
       }
     }
     setGroupData(prevState => ({
       ...prevState,
-      commonInterests: [...prevState.commonInterests, ...commonInterests]
+      commonInterests: selectedOptions
     }));
   };
-  
-  
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Reset error message
+    setErrorMessage("");
+    // Validation
+    if (!groupData.groupName || !groupData.numberOfPeople || groupData.commonInterests.length === 0) {
+      setErrorMessage("Please fill in all fields: Group Name, Number of People, and Mutual Interests.");
+      setShowMessage(true);
+      return; // Prevent form submission
+    }
+
     try {
-        const response = await fetch(`${BASE_URL}/users/${user._id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ groups: groupData }),
-        });
+      const response = await fetch(`${BASE_URL}/users/${user._id}/groups`, { // Adjusted endpoint for clarity
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ groups: groupData }),
+      });
       if (response.ok) {
         setSuccessMessage("Travel group created successfully");
         setShowMessage(true);
         window.scrollTo(0, 0);
-        console.log(groupData)
       } else {
-        console.error('Failed to create travel group');
+        setErrorMessage("Failed to create travel group");
+        setShowMessage(true);
       }
     } catch (error) {
-      console.error('Error creating travel group:', error);
+      setErrorMessage("Error creating travel group");
+      setShowMessage(true);
     }
   };
 
-  const handleCloseMessage = () => {
-    setShowMessage(false);
-  };
+  // Automatically close the message
+  useEffect(() => {
+    if (showMessage) {
+      const timer = setTimeout(() => {
+        setShowMessage(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showMessage]);
 
   useEffect(() => {
     const fetchInterests = async () => {
@@ -83,7 +97,7 @@ function TravelGroup() {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-          }
+          },
         });
         if (response.ok) {
           const data = await response.json();
@@ -101,10 +115,10 @@ function TravelGroup() {
 
   return (
     <>
-      {showMessage && <Message message={successMessage} onClose={handleCloseMessage} />}
+      {showMessage && <Message message={errorMessage || successMessage} />}
       <h2>Create a Travel Group</h2>
       <form className='group' onSubmit={handleSubmit}>
-        <div className="form-group">
+      <div className="form-group">
           <label htmlFor="groupName">Group Name:</label>
           <input type="text" id="groupName" name="groupName" value={groupData.groupName} onChange={handleChange} />
         </div>

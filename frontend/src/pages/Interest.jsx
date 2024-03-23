@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useContext } from 'react';
-import '../styles/ınterest.css'; // Stil dosyasının adı doğru olmalı
+import '../styles/ınterest.css'; // Ensure the file name is correctly spelled
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
 
-function Message({ message, onClose }) {
+function Message({ message }) {
+  // Remove the close button's onClick event
   return (
     <div className="message-container">
       <div className="message-content">
         {message}
-        <button onClick={onClose} className="close-button">  X</button>
+       
       </div>
     </div>
   );
 }
-
 
 function Interest() {
   const [interests, setInterests] = useState([]);
@@ -43,9 +43,9 @@ function Interest() {
         body: JSON.stringify({ interests: selectedInterests }),
       });
       if (response.ok) {
-        setSuccessMessage("Interests updated successfully ");
+        setSuccessMessage("Interests updated successfully");
         setShowMessage(true);
-        window.scrollTo(0, 0); // Sayfanın en üstüne kaydır
+        window.scrollTo(0, 0); // Scroll to the top of the page
       } else {
         console.error('Failed to update interests');
       }
@@ -53,11 +53,16 @@ function Interest() {
       console.error('Error updating interests:', error);
     }
   };
-  
 
-  const handleCloseMessage = () => {
-    setShowMessage(false);
-  };
+  useEffect(() => {
+    if (showMessage) {
+      const timer = setTimeout(() => {
+        setShowMessage(false);
+      }, 1500); // Hide the message after 3 seconds
+
+      return () => clearTimeout(timer); // Cleanup the timer when the component unmounts or showMessage changes
+    }
+  }, [showMessage]);
 
   useEffect(() => {
     const fetchInterests = async () => {
@@ -84,7 +89,7 @@ function Interest() {
 
   return (
     <>
-      {showMessage && <Message message={successMessage} onClose={handleCloseMessage} />}
+      {showMessage && <Message message={successMessage} />}
       <h2>Select Your Interests</h2>
       <form onSubmit={handleSubmit}>
         <div className="image-grid">
@@ -109,6 +114,6 @@ function Interest() {
       </form>
     </>
   );
-};
+}
 
 export default Interest;

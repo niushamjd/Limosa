@@ -154,7 +154,7 @@ function Message({ message, onClose }) {
     <div className="message-container">
       <div className="message-content">
         {message}
-        <button onClick={onClose} className="close-button">  X</button>
+        
       </div>
     </div>
   );
@@ -255,6 +255,16 @@ function EditProfile() {
       setCountry(user.country || '');
     }
   }, [user]);
+
+  useEffect(() => {
+    let timer;
+    if (showMessage) {
+      timer = setTimeout(() => {
+        setShowMessage(false);
+      }, 1500);
+    }
+    return () => clearTimeout(timer); // Cleanup timer
+  }, [showMessage]);
 
   // Ülke seçimi değiştiğinde çalışacak fonksiyon
   const handleCountryChange = (e) => {
