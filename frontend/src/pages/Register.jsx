@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import "../styles/login.css";
 import { Container, Row, Col, Form, FormGroup, Button } from "reactstrap";
 import { Link,useNavigate } from "react-router-dom";
@@ -15,16 +15,44 @@ const Register = () => {
     email: undefined,
     password: undefined,
   });
-
+  const [validationMessage, setValidationMessage] = useState(""); // State for the validation message
   const { dispatch } = useContext(AuthContext);
   const navigate = useNavigate();
+  let timerId;
+  useEffect(() => {
+    // Cleanup function to clear the timeout when the component unmounts
+    
+    return () => clearTimeout(timerId);
+  }, []);
 
   const handleChange = (e) => {
     setCredentials((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
+  // Password validation function
+  const validatePassword = (password) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    return regex.test(password);
+  };
+ 
+
   const handleClick = async (e) => {
     e.preventDefault();
+// Check if the password is valid
+if (!validatePassword(credentials.password)) {
+  setValidationMessage("Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, and one number.");
+
+  // Clear the message after 3 seconds
+  timerId = setTimeout(() => {
+    setValidationMessage("");
+  }, 3000);
+
+  return; // Prevent form submission if validation fails
+}
+
+setValidationMessage(""); // Clear validation message on successful validation
+
+
     try {
       const res = await fetch(`${BASE_URL}/auth/register`, {
         method: "post",
@@ -45,6 +73,14 @@ const Register = () => {
   return (
     <section>
       <Container>
+         {/* Display validation message */}
+         {validationMessage && (
+          <div className="message-container">
+            <div className="message-content">
+              {validationMessage}
+            </div>
+          </div>
+        )}
         <Row>
           <Col lg="8" className="m-auto">
             <div className="login__container d-flex justify-content-between">

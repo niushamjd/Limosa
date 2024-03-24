@@ -3,6 +3,8 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from 'react-router-dom';
+
 import "../styles/itineraries.css";
 import {
   Box,
@@ -36,7 +38,7 @@ function Itineraries() {
   // Options for select inputs
   const peopleOptions = ["Solo", "Family", "Couple", "Group"];
   const budgetOptions = ["Economy", "Standard", "Luxury"];
-
+  const navigate = useNavigate(); // Add this if not already imported
   // Instantiate OpenAI with the API key
 
   const openai = new OpenAI({ apiKey: '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', dangerouslyAllowBrowser: true  });
@@ -109,6 +111,10 @@ function Itineraries() {
   // Form submission handler
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!user) {
+      navigate("/login"); // Redirects to login page if user is not logged in
+      return; // Prevents further execution of the function
+    }
     if (!destination || !dateRange[0] || !dateRange[1] || !peopleGroup || !budget) {
       setFormError("All fields are required. Please fill out the entire form.");
       return;
