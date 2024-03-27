@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "../styles/home.css";
 import { Container, Row, Col } from "reactstrap";
 import heroImg from "../assets/images/hero-img01.jpg";
@@ -13,6 +14,9 @@ import MasonryImagesGallery from "../components/Images-gallery/MasonryImagesGall
 import Testimonials from "../components/Testimonial/Testimonials";
 import Newsletter from "../shared/Newsletter";
 import ItineraryMap from "./ItineraryMap";
+import {
+  Button,
+} from "@mui/material";
 
 const Home = () => {
   return (
@@ -51,7 +55,18 @@ const Home = () => {
                 <img src={heroImg02} alt="" />
               </div>
             </Col>
-            <SearchBar />
+            <div className="left-aligned-button-container">
+              <Link to="/new-itinerary">
+                <Button
+                  type="submit"
+                  variant="contained"
+                  className="btn primary__btn"
+                  sx={{ mt: 2 }}
+                >
+                  Create my trip
+                </Button>
+              </Link>
+            </div>
           </Row>
         </Container>
       </section>

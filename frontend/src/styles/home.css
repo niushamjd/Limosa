@@ -100,6 +100,18 @@
     font-size: 2.3rem;
     margin-top: 1rem;
 }
+
+.left-aligned-button-container {
+    margin-top: 40px;
+    width: 100%; /* Full width to center the button; adjust if the button should have specific width */
+    display: flex;
+    justify-content: left;
+  }
+
+  .left-aligned-button-container button {
+    font-size: 1.5rem; /* Adjust the font size as needed */
+    padding: 12px 24px; /* Adjust the padding as needed */
+  }
 @media only screen and (max-width: 992px) {
     .hero__content h1{
         font-size: 2.5rem;
