@@ -176,10 +176,9 @@ function Itineraries() {
       setFormError("All fields are required. Please fill out the entire form.");
       return;
     }
-
     setFormError(""); // Clear any existing error messages
     setIsLoading(true);
-    const prompt = `Generate a travel itinerary for ${destination} for a ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget from ${
+    const prompt = `Generate a travel itinerary for ${destination} for a ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget considering user interests in ${user.interests} from ${
       dateRange[0]
     } to ${
       dateRange[1]
