@@ -17,7 +17,7 @@ export const createBooking = async (req, res) => {
 
         const params = {
             Destination: {
-                ToAddresses: ['prosmarttravel@gmail.com'],
+                ToAddresses: ['limosaprojects@gmail.com'],
             },
             Message: {
                 Body: {
@@ -25,7 +25,7 @@ export const createBooking = async (req, res) => {
                 },
                 Subject: { Data: 'New Tour Booking' },
             },
-            Source: 'prosmarttravel@gmail.com',
+            Source: 'limosaprojects@gmail.com',
         };
     
         try {

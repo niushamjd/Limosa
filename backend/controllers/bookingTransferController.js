@@ -11,11 +11,11 @@ const SES_CONFIG = {
   
   const sendEmail = async (recipientEmail, subject, htmlContent) => {
     let params = {
-        Source: "prosmarttravel@gmail.com",
+        Source: "limosaprojects@gmail.com",
         Destination: {
-            ToAddresses: ["prosmarttravel@gmail.com"]
+            ToAddresses: ["limosaprojects@gmail.com"]
         },
-        ReplyToAddresses: ["prosmarttravel@gmail.com"],
+        ReplyToAddresses: ["limosaprojects@gmail.com"],
         Message: {
             Body: {
                 Html: {
