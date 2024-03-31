@@ -41,6 +41,7 @@ function Itineraries() {
   const peopleOptions = ["Solo", "Family", "Couple", "Group"];
   const budgetOptions = ["Economy", "Standard", "Luxury"];
   const navigate = useNavigate(); // Add this if not already imported
+  const cityOptions = ["İstanbul", "İzmir", "Ankara", "Antalya"];
   // Instantiate OpenAI with the API key
 
   const openai = new OpenAI({
@@ -282,14 +283,23 @@ function Itineraries() {
         </div>
       )}
       <form onSubmit={handleSubmit} className="form-content">
-        <TextField
-          label="Where do you want to go?"
-          value={destination}
-          onChange={(e) => setDestination(e.target.value)}
-          fullWidth
-          margin="normal"
-          error={!!formError && !destination}
-        />
+        {/* Dropdown for selecting destination */}
+        <Box mt={2}>
+          <FormControl fullWidth margin="normal" error={!!formError && !destination}>
+            <InputLabel id="destination-select-label">Where do you want to go?</InputLabel>
+            <Select
+              labelId="destination-select-label"
+              id="destination-select"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              label="Where do you want to go?"
+            >
+              {cityOptions.map((city) => (
+                <MenuItem key={city} value={city}>{city}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
         <Box mt={2}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DateRangePicker
