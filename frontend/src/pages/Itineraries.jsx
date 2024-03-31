@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-loop-func */
 import React, { useState, useContext, useRef, useEffect } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -22,7 +24,7 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import OpenAI from "openai";
-import { useLoadScript } from "@react-google-maps/api";
+import { useLoadScript, GoogleMap } from "@react-google-maps/api";
 
 function Itineraries() {
   // State and context setup
@@ -75,56 +77,57 @@ function Itineraries() {
     return () => clearTimeout(timer); // Cleanup function to clear the timer
   }, [formError]);
 
-  const fetchPlacesInfoAndNearbyRestaurant = async (placeNames) => {
+  const fetchNearbyRestaurantForLastPlaces = async (itinerary) => {
     if (!mapRef.current) {
-      console.log("Google Maps JavaScript API has not been loaded yet.");
+      console.error("Google Maps JavaScript API has not been loaded yet.");
       return;
     }
-
+  
     const service = new window.google.maps.places.PlacesService(mapRef.current);
-
-    placeNames.forEach((placeName) => {
-      // Step 1: Fetch place details to get the location
-      const requestForPlace = {
-        query: placeName,
-        fields: ["name", "geometry"],
-      };
-
-      service.textSearch(requestForPlace, (results, status) => {
-        if (
-          status === window.google.maps.places.PlacesServiceStatus.OK &&
-          results[0]
-        ) {
-          console.log(`Details for ${placeName}:`, results[0]);
-
-          const location = results[0].geometry.location;
-
-          // Step 2: Find a nearby restaurant using the location of the place
-          const requestForRestaurant = {
-            location: location,
-            radius: "500", // Search within a 500m radius
-            type: ["restaurant"],
+  
+    for (const [date, periods] of Object.entries(itinerary)) {
+      for (const [period, activities] of Object.entries(periods)) {
+        // Filter for "Place" activities and get the last one
+        const lastPlace = activities.filter(activity => activity.type === 'Place').pop();
+        
+        if (lastPlace) {
+          // Construct the request for the Google Places API
+          const request = {
+            query: lastPlace.name,
+            fields: ['name', 'geometry.location'],
           };
-
-          service.nearbySearch(requestForRestaurant, (results, status) => {
-            if (
-              status === window.google.maps.places.PlacesServiceStatus.OK &&
-              results[0]
-            ) {
-              console.log(`Nearby restaurant for ${placeName}:`, results[0]);
+  
+          // Use the Google Places API to find the place details
+          service.textSearch(request, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+              const location = results[0].geometry.location;
+              // Now find a nearby restaurant
+              const restaurantRequest = {
+                location: location,
+                radius: '500', // Adjust radius as needed
+                type: ['restaurant'],
+              };
+  
+              service.nearbySearch(restaurantRequest, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+                  console.log(`Nearby restaurant for ${lastPlace.name}:`, results[0]);
+                  // Here you might want to do something with the restaurant data,
+                  // like updating your itinerary object or state.
+                } else {
+                  console.error(`No nearby restaurant found for ${lastPlace.name}`);
+                }
+              });
             } else {
-              console.error(
-                `Error finding nearby restaurant for ${placeName}:`,
-                status
-              );
+              console.error(`Place details not found for ${lastPlace.name}`);
             }
           });
-        } else {
-          console.error(`Error fetching details for ${placeName}:`, status);
         }
-      });
-    });
+      }
+    }
   };
+  
+  
+  
 
   const extractPlacesFromItinerary = (itineraryResponse) => {
     const places = [];
@@ -145,20 +148,40 @@ function Itineraries() {
   };
 
   const parseItineraryResponse = (itineraryResponse) => {
-    const days = itineraryResponse.split("Day ");
     const itineraryObj = {};
-    days.forEach((day) => {
-      if (day.trim()) {
-        const dateMatch = day.match(/(\d+.*?2024)/); // Regex to find dates, adjust as necessary
-        if (dateMatch) {
-          const date = dateMatch[0];
-          itineraryObj[date] = day.substring(date.length); // Rest of the day's plan
+    const days = itineraryResponse.split("Day ").slice(1); // Split response by "Day" and ignore the first empty split
+  
+    days.forEach(day => {
+      const lines = day.split("\n");
+      const dateLine = lines.shift(); // The first line contains the date
+      const date = dateLine.match(/\d+.*2024/)[0]; // Extract the date
+  
+      itineraryObj[date] = { morning: [], afternoon: [], evening: [] };
+      let currentPeriod = 'morning';
+  
+      lines.forEach(line => {
+        if (line.includes("Morning:")) currentPeriod = 'morning';
+        else if (line.includes("Afternoon:")) currentPeriod = 'afternoon';
+        else if (line.includes("Evening:")) currentPeriod = 'evening';
+        else if (line.startsWith("- Place:") || line.startsWith("- Restaurant:")) {
+          itineraryObj[date][currentPeriod].push({
+            type: line.startsWith("- Place:") ? "Place" : "Restaurant",
+            name: line.split(":")[1].trim(),
+            activity: line.split(":")[2]?.trim() || ""
+          });
         }
-      }
+      });
     });
-    console.log(itineraryObj);
+  
     return itineraryObj;
   };
+  useEffect(() => {
+    if (Object.keys(itinerary).length > 0) {
+      fetchNearbyRestaurantForLastPlaces(itinerary);
+    }
+  }, [itinerary]); // Dependency array ensures this effect runs only when `itinerary` changes
+  
+  
 
   // Form submission handler
   const handleSubmit = async (event) => {
@@ -179,21 +202,54 @@ function Itineraries() {
     }
     setFormError(""); // Clear any existing error messages
     setIsLoading(true);
-    const prompt = `Generate a travel itinerary for ${destination} for a ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget considering user interests in ${user.interests} from ${
-      dateRange[0]
-    } to ${
-      dateRange[1]
-    }. For each day, present the itinerary in a structured format with explicit headings for each day (e.g., "Day 1: Tuesday, 19 Mar 2024"), followed by the names of places to visit, each accompanied by a brief activity description. List each place and activity on separate lines, starting with "Place:" for the place name and "Activity:" for the description. Conclude the itinerary with general travel tips for the city, prefaced by "**Tips:**".
+    const prompt = `Generate a structured travel itinerary for ${destination} for a ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget considering user interests in ${user.interests} from ${dateRange[0]} to ${dateRange[1]}. Divide the itinerary into morning, afternoon, and evening sections for each day. For each period, suggest two places to visit. Present the itinerary with explicit headings for each day and period, followed by the names of places to visit, each accompanied by a brief description.
 
     Example format:
     Day 1: Tuesday, 19 Mar 2024
-    Place: Hagia Sophia
-    Activity: Explore the iconic Hagia Sophia museum, admiring its stunning architecture and historical significance.
-    Place: Topkapi Palace
-    Activity: Visit the Topkapi Palace to learn about the rich history of the Ottoman Empire and enjoy the beautiful gardens.
+    Morning:
+    - Place: Hagia Sophia
+      Activity: Explore the iconic museum's stunning architecture and delve into its history as a church, mosque, and museum.
+    - Place: Topkapi Palace
+      Activity: Discover the luxurious residence of the Ottoman sultans, its exquisite architecture, and the historical artifacts within.
+    
+    Afternoon:
+    - Place: Blue Mosque
+      Activity: Visit the Blue Mosque to marvel at its striking blue tiles and majestic domes.
+    - Place: Basilica Cistern
+      Activity: Explore the ancient underground waterway with its mystical atmosphere and Medusa head pillars.
+    
+    Evening:
+    - Place: Galata Tower
+      Activity: Climb the Galata Tower for breathtaking panoramic views of Istanbul, especially beautiful at sunset.
+    - Place: Istiklal Street
+      Activity: Stroll down Istiklal Street, enjoying the vibrant nightlife, shopping, and dining options available.
+    
+    Day 2: Wednesday, 20 Mar 2024
+    Morning:
+    - Place: Dolmabahce Palace
+      Activity: Tour the opulent Dolmabahce Palace, admiring its lavish decor and the beautiful Bosphorus views.
+    - Place: Istanbul Modern
+      Activity: Visit Istanbul Modern to see contemporary art exhibitions showcasing Turkish and international artists.
+    
+    Afternoon:
+    - Place: Spice Bazaar
+      Activity: Experience the scents and colors of the Spice Bazaar, where you can find a variety of spices, teas, and Turkish delights.
+    - Place: Suleymaniye Mosque
+      Activity: Visit the Suleymaniye Mosque, a masterpiece of Ottoman architecture, to appreciate its beauty and serene atmosphere.
+    
+    Evening:
+    - Place: Bosphorus Cruise
+      Activity: Take a Bosphorus cruise to see Istanbul's skyline from the water, including historical sites along the European and Asian shores.
+    - Place: Dinner at a rooftop restaurant
+      Activity: Enjoy dinner at a rooftop restaurant, offering spectacular views of the city and delicious Turkish cuisine.
+    
     **Tips:**
     - Use public transportation such as trams and buses for cost-effective travel.
-    - Stay in centrally located accommodations to explore major sites on foot.`;
+    - Stay in centrally located accommodations to explore major sites on foot.
+    - Try local foods like kebabs, baklava, and Turkish tea to immerse yourself in Turkish culture.
+    - Respect local customs and dress modestly when visiting religious sites.`;
+    
+    
 
     try {
       // Call to OpenAI's API
@@ -204,16 +260,13 @@ function Itineraries() {
 
       setIsLoading(false);
 
-      // Parse the response and set the itinerary state
-      setItinerary(
-        parseItineraryResponse(completion.choices[0].message.content)
-      );
       const places = extractPlacesFromItinerary(
         completion.choices[0].message.content
       );
       console.log("Extracted Places:", places); // Lo
-      fetchPlacesInfoAndNearbyRestaurant(places);
-      console.log(completion.choices[0].message.content);
+      const parsedItinerary = parseItineraryResponse(completion.choices[0].message.content);
+      setItinerary(parsedItinerary);
+            console.log(completion.choices[0].message.content);
     } catch (error) {
       setIsLoading(false);
       console.error("Error generating trip plan:", error);
@@ -326,22 +379,33 @@ function Itineraries() {
       )}
       <br />
       {/* Itinerary accordion display */}
-      {Object.keys(itinerary).length > 0 && (
-        <div className="itinerary-accordion">
-          {Object.keys(itinerary).map((date) => (
-            <Accordion key={date}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography>{date}</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Typography>
-                  <pre>{itinerary[date]}</pre>
-                </Typography>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </div>
-      )}
+{Object.keys(itinerary).length > 0 && (
+  <div className="itinerary-accordion">
+  {Object.entries(itinerary).map(([date, periods]) => (
+    <Accordion key={date}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>{`Day ${date}`}</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        {Object.entries(periods).map(([period, activities]) => (
+          <div key={period}>
+            <Typography variant="h6" component="h2">{`${period.charAt(0).toUpperCase() + period.slice(1)}`}</Typography>
+            <ul>
+              {activities.map((activity, index) => (
+                <li key={index}>
+                  <strong>{activity.type === 'Place' ? 'Visit' : 'Eat at'}:</strong> {activity.name} - <em>{activity.activity}</em>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </AccordionDetails>
+    </Accordion>
+  ))}
+</div>
+
+)}
+
     </div>
   );
 }
