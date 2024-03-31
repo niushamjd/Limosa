@@ -1,88 +1,195 @@
+/* Base styling for better spacing and readability */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-.pagination span{
-    width: 2rem;
-    height: 2rem;
-    padding: 5px;
-    border-radius: 50px;
-    display :flex;
-    align-items: center;
-    justify-content: center;
-    border : 1px solid var(--secondary-color);
-    color: var(--heading-color);
-    font-size: 1.1rem;
-    cursor: pointer;
-    font-weight: 700;
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f4f4f4;
+  padding: 20px;
 }
-.active__page{
-    background: var(--secondary-color);
-    color: #fff !important;
+
+/* Utility classes for text alignment */
+.text-center {
+  text-align: center;
 }
+
+/* Improved pagination styling */
+.pagination span {
+  width: 2.5rem;
+  height: 2.5rem;
+  line-height: 2.5rem; /* Center text vertically */
+  display: inline-block;
+  margin: 0 5px;
+  border-radius: 50%;
+  border: 2px solid var(--secondary-color);
+  transition: background-color 0.3s, color 0.3s; /* Smooth transition for hover effect */
+}
+
+.pagination span:hover,
+.active__page {
+  background: var(--secondary-color);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Profile settings with refined look */
 .profile-settings {
-    width: 100%;
-    max-width: 600px; /* Adjust the width as needed */
-    margin: 100px 100px; /* Centering the settings */
-   
-  }
-  
-  .settings-item {
-    display: flex;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 3px solid #FAA935 ; /* Slight border for separation */
-    background-color: #fbfbec;
-    margin-bottom: 10px;
-    border-radius: 6px;
-  }
-  
-  .icon {
-    padding-right: 16px; /* Space between icon and text */
-    /* Style your icon here */
-  }
-  
-  .text-content {
-    flex-grow: 1;
-  }
-  
-  .text-content h3 {
-    margin: 0;
-    color: #333333; /* Title color */
-    font-size: 18px; /* Title font size */
-  }
-  
-  .text-content p {
-    margin: 4px 0 0;
-    color: #666666; /* Subtitle color */
-    font-size: 14px; /* Subtitle font size */
-  }
-  
-  .arrow-icon {
-    font-size: 24px; /* Icon size */
-    color: #CCCCCC; /* Icon color */
+  margin: 2rem auto;
+  padding: 1rem;
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  border-radius: 8px;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  margin: 10px 0;
+  transition: all 0.3s ease-in-out; /* Smooth transition for hover effect */
+  cursor: pointer;
+  border-radius: 8px; /* Rounded corners for a softer look */
+}
+
+.settings-item:hover {
+  background-color: #f9f9f9; /* Light background on hover */
+  transform: scale(1.02); /* Slight increase in size */
+}
+
+/* Text and icon styling */
+.icon {
+  margin-right: 16px;
+  font-size: 24px; /* Icon size */
+}
+
+.text-content h3 {
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.text-content p {
+  color: #666;
+}
+
+/* Enhancing profile container for better layout and spacing */
+.profile-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-bottom: #666;
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    flex-direction: column;
+    align-items: center; /* Center align items on smaller screens */
   }
 
-  .profile-container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; /* Align items to the top if they have different heights */
-    gap: 20px; /* Space between profile details and the image */
-    background-color: white;
+  .profile-settings {
+    max-width: 90%; /* Adjust width for smaller screens */
   }
-  
-  .profile-image img {
-    max-width: 70%; /* Make image responsive */
-    height: auto; /* Maintain aspect ratio */
-    margin: 110px 40px;
+}
+
+/* Additional effects and responsive adjustments */
+.profile-image img {
+  width: 100%; /* Responsive image width */
+  border-radius: 8px; /* Rounded corners for the image */
+}
+
+/* Hover effects for interactive elements */
+.settings-item div {
+  transition: transform 0.3s ease; /* Smooth scaling effect */
+}
+
+.settings-item:hover div {
+  transform: translateY(-2px); /* Slight raise effect on hover */
+}
+
+/* Responsive adjustments for a better mobile experience */
+@media (max-width: 576px) {
+  .profile-settings {
+    margin: 1rem auto;
   }
-  
-  /* Media query for smaller screens */
-  @media (max-width: 768px) {
-    .profile-container {
-      flex-direction: column;
-    }
-  
-    .profile-image img {
-      max-width: 80%;
-      margin: 0 auto; /* Center image on smaller screens */
-    }
+
+  .settings-item {
+    flex-direction: column; /* Stack icon and text vertically on smaller screens */
+    text-align: center;
   }
-  
+
+  .icon {
+    margin-bottom: 10px; /* Space between icon and text on mobile */
+  }
+}
+/* Base and utility styles remain the same */
+
+/* Primary color variable for easy theme management */
+:root {
+  --primary-color: #ff7e01; /* Accent color */
+  --text-dark: #333; /* Dark text for high contrast */
+  --text-light: #fff; /* Light text for dark backgrounds */
+}
+
+/* Enhanced pagination with primary color accent */
+.pagination span {
+  border: 2px solid var(--primary-color);
+}
+
+.pagination span:hover,
+.active__page {
+  background: var(--primary-color);
+  color: var(--text-light);
+}
+
+/* Profile settings adjustments using primary color */
+.profile-settings {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.settings-item:hover {
+  background-color: rgba(255, 126, 1, 0.1); /* Lighter shade of primary color on hover */
+}
+
+/* Text content adjustments for emphasis */
+.text-content h3 {
+  color: var(--primary-color); /* Use primary color for headings */
+}
+
+/* Settings item hover and focus effects */
+.settings-item {
+  transition: all 0.3s ease-in-out;
+  border-left: 4px solid transparent; /* Preparation for hover effect */
+}
+
+.settings-item:hover {
+  border-left: 4px solid var(--primary-color); /* Solid line accent on hover */
+  background-color: #fff7ec; /* Very light background for subtle hover effect */
+}
+
+/* Profile container and image adjustments */
+.profile-container {
+  border: 1px solid #ffeedb; /* Light border using primary color palette */
+}
+
+/* Responsive and additional effects adjustments */
+@media (max-width: 768px) {
+  /* Responsive adjustments */
+}
+
+.settings-item:hover div {
+  transform: translateY(-2px);
+  color: var(--primary-color); /* Highlight text on hover for better visibility */
+}
+
+/* Responsive adjustments for mobile devices */
+@media (max-width: 576px) {
+  /* Adjustments for smaller screens */
+}
