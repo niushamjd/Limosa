@@ -1,52 +1,56 @@
-import React, { useState } from 'react';
-import { GoogleMap, Marker, useLoadScript } from '@react-google-maps/api';
+import React, { useEffect, useRef } from 'react';
 
-function ItineraryMap() {
-  const libraries = ["places"];
-  const mapContainerStyle = {
-    width: "100%",
-    height: "100vh",
-  };
-  const center = {
-    lat: 39.9334, // Updated to Turkey's center coordinates
-    lng: 32.8597, // Updated to Turkey's center coordinates
-  };
+const ItineraryMap = () => {
+  const googleMapRef = useRef(null);
+  const googleMap = useRef(null);
 
+  // Define an array of city objects with name and coordinates
   const cities = [
-    { name: "Izmir", position: { lat: 38.4192, lng: 27.1287 } },
-    { name: "Istanbul", position: { lat: 41.0082, lng: 28.9784 } },
-    { name: "Antalya", position: { lat: 36.8969, lng: 30.7133 } },
-    { name: "Ankara", position: { lat: 39.9334, lng: 32.8597 } }
+    { name: 'Istanbul', lat: 41.0082, lng: 28.9784 },
+    { name: 'Izmir', lat: 38.4192, lng: 27.1287 },
+    { name: 'Ankara', lat: 39.9334, lng: 32.8597 },
+    { name: 'Antalya', lat: 36.8969, lng: 30.7133 },
   ];
 
+  const initGoogleMap = () => {
+    googleMap.current = new window.google.maps.Map(googleMapRef.current, {
+      zoom: 6, // Adjusted zoom level to better fit all cities within the viewport
+      center: { lat: 39.0, lng: 35.0 }, // Centrally located coordinates for a view that includes all of Turkey
+      mapId: "75614eb06537871e", // Use your Map ID here
+    });
 
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: 'AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8',
-    libraries,
-  });
+    // Loop through the cities array and create a marker for each city
+    cities.forEach(city => {
+      new window.google.maps.Marker({
+        position: { lat: city.lat, lng: city.lng },
+        map: googleMap.current,
+        title: city.name,
+      });
+    });
+  };
 
- 
+  useEffect(() => {
+    if (!window.google) {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      // Note: Removed the &callback=initMap parameter
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8`;
+      document.head.appendChild(script);
+  
+      script.onload = () => {
+        initGoogleMap(); // Call the init function directly once the script is loaded
+      };
+  
+      return () => {
+        document.head.removeChild(script);
+      };
+    } else {
+      initGoogleMap();
+    }
+  }, []);
+  
 
-  if (loadError) return "Error loading maps";
-  if (!isLoaded) return "Loading Maps";
-
-  return (
-    <div>
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        zoom={6} // Adjust the initial zoom level as needed
-        center={center}
-      >
-        {cities.map((city) => (
-          <Marker
-            key={city.name}
-            position={city.position}
-            title={city.name}
-          />
-        ))}
-      </GoogleMap>
-    </div>
-  );
-}
+  return <div ref={googleMapRef} style={{ width: "100%", height: "100vh" }} />;
+};
 
 export default ItineraryMap;
