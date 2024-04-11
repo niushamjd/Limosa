@@ -33,6 +33,13 @@
     justify-content: center;
     z-index: 1050; /* Yeterince yüksek bir değer, diğer içeriklerin üstünde görünmesini sağlar */
   }
+  .message-container.success {
+    color: green;
+  }
+  
+  .message-container.error {
+    color: red;
+  }
   
   .message-content {
     margin: 10px 0;

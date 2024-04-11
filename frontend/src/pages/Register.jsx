@@ -16,6 +16,9 @@ const Register = () => {
     password: undefined,
   });
   const [validationMessage, setValidationMessage] = useState(""); // State for the validation message
+  const [successMessage, setSuccessMessage] = useState("");
+const [errorMessage, setErrorMessage] = useState("");
+
   const { dispatch } = useContext(AuthContext);
   const navigate = useNavigate();
   let timerId;
@@ -31,7 +34,9 @@ const Register = () => {
 
   // Password validation function
   const validatePassword = (password) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    //const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
     return regex.test(password);
   };
  
@@ -40,7 +45,7 @@ const Register = () => {
     e.preventDefault();
 // Check if the password is valid
 if (!validatePassword(credentials.password)) {
-  setValidationMessage("Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, and one number.");
+  setValidationMessage("Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, and one number. Not include special character");
 
   // Clear the message after 3 seconds
   timerId = setTimeout(() => {
@@ -61,12 +66,17 @@ setValidationMessage(""); // Clear validation message on successful validation
       });
       const result = await res.json();
 
-      if (!res.ok) alert(result.message);
-
-      dispatch({ type: "REGISTER_SUCCESS" });
-      navigate("/login")
+      if (!res.ok) {
+        // Here, handle different types of errors based on the response
+        setErrorMessage(result.message || "An error occurred during registration.");
+      } else {
+        // Registration was successful
+        setSuccessMessage("Registered successfully!");
+        dispatch({ type: "REGISTER_SUCCESS" });
+        setTimeout(() => navigate("/login"), 3000); // Redirect after showing success message
+      }
     } catch (err) {
-      alert(err.message);
+      setErrorMessage(err.message || "An unexpected error occurred.");
     }
   };
 
@@ -81,6 +91,19 @@ setValidationMessage(""); // Clear validation message on successful validation
             </div>
           </div>
         )}
+        {/* Success Message Display */}
+{successMessage && (
+  <div className="message-container success">
+    <div className="message-content">{successMessage}</div>
+  </div>
+)}
+
+{/* Error Message Display */}
+{errorMessage && (
+  <div className="message-container error">
+    <div className="message-content">{errorMessage}</div>
+  </div>
+)}
         <Row>
           <Col lg="8" className="m-auto">
             <div className="login__container d-flex justify-content-between">

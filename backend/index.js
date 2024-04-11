@@ -16,10 +16,15 @@ import interestRoute from "./routes/interests.js";
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 8000;
+
+
 const corsOptions = {
-    origin:true,
-    credentials:true,
-}
+    origin: 'http://localhost:3000',
+    credentials: true,
+};
+
+// Use CORS with the options you've defined
+app.use(cors(corsOptions));
 
 // Connect to MongoDB
 mongoose.set('strictQuery', false);

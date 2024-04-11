@@ -54,51 +54,70 @@ export const register = async (req, res) => {
 
 // user login
 export const login = async (req, res) => {
-  const email = req.body.email;
+  const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
 
     // if user does not exist
     if (!user) {
-      res.status(404).json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // if user exists
-    const checkCorrectPassword = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
-
-    //if password is incorrect
-    if (!checkCorrectPassword) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Incorrect email or password" });
+    // Check if account is currently locked
+    const now = Date.now();
+    if (user.lockUntil && user.lockUntil > now) {
+      return res.status(403).json({ success: false, message: "Account is temporarily locked due to multiple unsuccessful login attempts. Please try again later." });
     }
 
-    const { password, role, ...rest } = user._doc;
+    // Check if password is correct
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
-    //create jwt token
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET_KEY,
-      { expiresIn: "15d" }
-    );
+    // if password is incorrect
+    if (!isPasswordCorrect) {
+      user.failedLoginAttempts += 1; // Increment failed attempts
 
-    //set token in the browser cookies and send response to client
-    res
-      .cookie("accessToken", token, {
+      if (user.failedLoginAttempts >= 10) {
+        // Lock the account for 1 hour and reset failed login attempts
+        user.lockUntil = now + 60 * 60 * 1000; // 1 hour in milliseconds
+        user.failedLoginAttempts = 0; // Reset attempts immediately upon lock
+        await user.save();
+        return res.status(403).json({ success: false, message: "Account is temporarily locked due to multiple unsuccessful login attempts. Please try again later." });
+      } else {
+        await user.save();
+        return res.status(401).json({ success: false, message: "Incorrect email or password" });
+      }
+    }
+
+    // If password is correct
+    if (isPasswordCorrect) {
+      user.failedLoginAttempts = 0;
+      user.lockUntil = undefined;
+      await user.save();
+
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        process.env.JWT_SECRET_KEY,
+        { expiresIn: "15d" }
+      );
+
+      // Set token in the browser cookies and send response to client
+      res.cookie("accessToken", token, {
         httpOnly: true,
-        expires: token.expiresIn,
-      })
-      .status(200)
-      .json({
-        token,
-        data: { ...rest },
-        role,
+        expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) // 15 days from now
       });
+
+      const { password, ...rest } = user._doc;
+
+      return res.status(200).json({
+        success: true,
+        token,
+        data: rest,
+        role: user.role,
+      });
+    }
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to login" });
+    console.error("Login error:", error);
+    return res.status(500).json({ success: false, message: "Failed to login. Error: " + error.message });
   }
 };
 
