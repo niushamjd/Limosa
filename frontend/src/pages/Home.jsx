@@ -84,20 +84,18 @@ const Home = () => {
       </section>
       <section>
         <Container>
-          <Row>
-            <Col lg="6" className="experience__content">
-              <div>
-                <Subtitle subtitle={"Experience"} />
-
+        <Subtitle subtitle={"Experience"} />
+          <Row className="d-flex justify-content-center align-items-center">
+            <Col lg="6">
+              <div>               
                 <h2>
-                  With our all experience
-                  <br />
-                  we will serve you
+                  With our all experience we will serve you
                 </h2>
                 <p>
                   We are a team of professionals always ready to help you
-                  <br />
-                  with your travel needs. We believe in creating memorable
+                  with your travel needs. 
+                  <br/>
+                  We believe in creating memorable
                   travel.
                 </p>
               </div>

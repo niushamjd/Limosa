@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import "../styles/ItineraryGrid.css";
-import funImage from '../assets/images/rome, italy.jpg';
+
 
 
 function ViewPastItinerary() {
@@ -22,21 +22,23 @@ function ViewPastItinerary() {
 
   return (
     <div className="itinerary-grid">
-       {itineraryData.events.map((event, index) => (
-       <div key={index} className="itinerary-card">
-       <div className="itinerary-card__image">
-       <img src={funImage} alt={event.eventName} />
-       </div>
-       <div className="itinerary-card__info">
-         <h2 className="itinerary-card__title">{event.location}</h2>
-         <p className="itinerary-card__date">
-           {formatEventDate(event.date)} · {formatDuration(event.timeRange.start, event.timeRange.end)}
-         </p>
-       </div>
-     </div>
-    ))}
+      {itineraryData.events.map((event, index) => {
+        const cityImage = require(`../assets/images/${event.location.toLowerCase()}.jpg`);
+        return (
+          <div key={index} className="itinerary-card">
+            <div className="itinerary-card__image">
+              <img src={cityImage} alt={event.eventName} />
+            </div>
+            <div className="itinerary-card__info">
+              <h2 className="itinerary-card__title">{event.location}</h2>
+              <p className="itinerary-card__date">
+                {formatEventDate(event.date)} · {formatDuration(event.timeRange.start, event.timeRange.end)}
+              </p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
-
 export default ViewPastItinerary;
