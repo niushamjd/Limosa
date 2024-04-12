@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import "../styles/login.css";
 import { Container, Row, Col, Form, FormGroup, Button } from "reactstrap";
 import { Link, useNavigate } from "react-router-dom";
@@ -13,6 +13,11 @@ const Login = () => {
     email: undefined,
     password: undefined,
   });
+  const [lockoutInfo, setLockoutInfo] = useState({
+    isLocked: false,
+    unlockTime: null,
+  });
+  const [errorMessage, setErrorMessage] = useState('');
 
   const { dispatch } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -20,7 +25,16 @@ const Login = () => {
   const handleChange = (e) => {
     setCredentials((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
-
+  useEffect(() => {
+    let timer;
+    if (errorMessage) {
+      timer = setTimeout(() => {
+        setErrorMessage('');
+      }, 2000); // Clears the errorMessage after 2 seconds
+    }
+    return () => clearTimeout(timer); // Cleanup function to clear the timer
+  }, [errorMessage]); 
+  
   const handleClick = async (e) => {
     e.preventDefault();
 
@@ -33,18 +47,33 @@ const Login = () => {
         body: JSON.stringify(credentials),
       });
       const result = await res.json();
-      if (!res.ok) alert(result.message);
-      console.log(result.data);
-      dispatch({ type: "LOGIN_SUCCESS", payload: result.data });
-      navigate("/");
+
+      if (!res.ok) {
+        if (res.status === 403) { // Assuming 403 status code for account lock
+          setLockoutInfo({
+            isLocked: true,
+            unlockTime: result.unlockTime, // Adjust based on your backend response
+          });
+        }
+        setErrorMessage(result.message);
+      } else {
+        dispatch({ type: "LOGIN_SUCCESS", payload: result.data });
+        navigate("/");
+      }
     } catch (error) {
-      dispatch({ type: "LOGIN_FAILURE", payload: error.message });
+      setErrorMessage("Failed to connect. Please try again later.");
     }
   };
 
   return (
     <section>
       <Container>
+        {/* Error Message Display */}
+{errorMessage && (
+  <div className="message-container error">
+    <div className="message-content">{errorMessage}</div>
+  </div>
+)}
         <Row>
           <Col lg="8" className="m-auto">
             <div className="login__container d-flex justify-content-between">

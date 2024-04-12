@@ -44,6 +44,15 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    failedLoginAttempts: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    lockUntil: {
+      type: Number,
+    },
+    
     photo: {
       type: String,
     },
