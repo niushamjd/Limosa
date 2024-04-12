@@ -9,6 +9,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { BrowserRouter } from "react-router-dom";
 import { AuthContextProvider } from "./context/AuthContext";
 import {disableReactDevTools} from '@fvilers/disable-react-devtools';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 if (process.env.NODE_ENV === 'production') {
   disableReactDevTools();
@@ -19,7 +20,9 @@ root.render(
   <React.StrictMode>
     <AuthContextProvider>
     <BrowserRouter>
+  <GoogleOAuthProvider clientId="720893402951-pvu4j8eoqsrlb8620ihm36llmu81up31.apps.googleusercontent.com">
     <App />
+    </GoogleOAuthProvider>
     </BrowserRouter>
     </AuthContextProvider>
   </React.StrictMode>
