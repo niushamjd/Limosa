@@ -16,6 +16,7 @@ function ViewItinerary() {
   };
 
   return (
+    
     <div style={centerStyle}>
       <div className="hero__content">
         <h1 className="services__title">Itinerary <span className="highlight">Details</span></h1>
@@ -33,7 +34,10 @@ function ViewItinerary() {
         ))}
       </div>
     </div>
+    
   );
 }
 
 export default ViewItinerary;
+
+

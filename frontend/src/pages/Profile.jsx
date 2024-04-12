@@ -24,7 +24,7 @@ const Profile = () => {
     })
     .then(response => response.json())
     .then(data => {
-      navigate('/viewItinerary', { state: { itineraryData: data.data } });
+      navigate('/viewPastItinerary', { state: { itineraryData: data.data } });
       console.log("Response from server:", data);
     })
     .catch((error) => {

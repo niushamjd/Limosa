@@ -1,39 +1,42 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
+import "../styles/ItineraryGrid.css";
+import funImage from '../assets/images/rome, italy.jpg';
 
-function ViewItinerary() {
+
+function ViewPastItinerary() {
   const location = useLocation();
   const itineraryData = location.state.itineraryData;
 
-  // Inline CSS for centering
-  const centerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center',
-    minHeight: '50vh', // This ensures that the flex container takes at least the full height of the viewport
+
+  const formatEventDate = (isoDateString) => {
+    return new Date(isoDateString).toLocaleDateString();
+  };
+  
+
+  const formatDuration = (start, end) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    return `${Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))} Days`;
   };
 
   return (
-    <div style={centerStyle}>
-      <div className="hero__content">
-        <h1 className="services__title">Itinerary <span className="highlight">Details</span></h1>
-
-        {itineraryData.events.map((event, index) => (
-          <div key={index} className="experience__content" style={{ marginTop: '2rem' }}>
-            <h2 className="featured__tour-title">{event.eventName}</h2>
-            <p>Date: {new Date(event.date).toLocaleDateString()}</p>
-            <p>Location: {event.location}</p>
-            <p>Time: {new Date(event.timeRange.start).toLocaleTimeString()} - {new Date(event.timeRange.end).toLocaleTimeString()}</p>
-            <p>Description: {event.description}</p>
-            <p>Tips: {event.tips}</p>
-            {/* Additional event details can be displayed here */}
-          </div>
-        ))}
-      </div>
+    <div className="itinerary-grid">
+       {itineraryData.events.map((event, index) => (
+       <div key={index} className="itinerary-card">
+       <div className="itinerary-card__image">
+       <img src={funImage} alt={event.eventName} />
+       </div>
+       <div className="itinerary-card__info">
+         <h2 className="itinerary-card__title">{event.location}</h2>
+         <p className="itinerary-card__date">
+           {formatEventDate(event.date)} · {formatDuration(event.timeRange.start, event.timeRange.end)}
+         </p>
+       </div>
+     </div>
+    ))}
     </div>
   );
 }
 
-export default ViewItinerary;
+export default ViewPastItinerary;
