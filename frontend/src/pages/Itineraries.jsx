@@ -29,6 +29,10 @@ import { useLoadScript, GoogleMap } from "@react-google-maps/api";
 
 function Itineraries() {
   // State and context setup
+  const minDate = dayjs(); // Today's date as the minimum date
+const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum date
+
+  const [isFormValid, setIsFormValid] = useState(true);
   const [dateRange, setDateRange] = useState([null, null]);
   const [destination, setDestination] = useState("");
   const [peopleGroup, setPeopleGroup] = useState("");
@@ -36,7 +40,6 @@ function Itineraries() {
   const { user } = useContext(AuthContext);
   const [itinerary, setItinerary] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-
   const [formError, setFormError] = useState(""); // State for managing form validation error
   // Options for select inputs
   const peopleOptions = ["Solo", "Family", "Couple", "Group"];
@@ -127,8 +130,6 @@ function Itineraries() {
     }
   };
   
-  
-  
 
   const extractPlacesFromItinerary = (itineraryResponse) => {
     const places = [];
@@ -187,6 +188,13 @@ function Itineraries() {
   // Form submission handler
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+     // Additional check before proceeding with form submission
+  if (formError) {
+    console.error("Form submission halted due to errors.");
+    return; // Stop the form submission if there is an error
+  }
+
     if (!user) {
       navigate("/login"); // Redirects to login page if user is not logged in
       return; // Prevents further execution of the function
@@ -303,26 +311,36 @@ function Itineraries() {
         </Box>
         <Box mt={2}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateRangePicker
-              startText="Start Date"
-              endText="End Date"
-              value={dateRange}
-              onChange={(newValue) => setDateRange(newValue)}
-              minDate={dayjs()}
-              renderInput={(startProps, endProps) => (
-                <React.Fragment>
-                  <TextField
-                    {...startProps}
-                    error={!!formError && !dateRange[0]}
-                  />
-                  <Box sx={{ mx: 2 }}>to</Box>
-                  <TextField
-                    {...endProps}
-                    error={!!formError && !dateRange[1]}
-                  />
-                </React.Fragment>
-              )}
-            />
+          <DateRangePicker
+  startText="Start Date"
+  endText="End Date"
+  value={dateRange}
+  onChange={(newValue) => {
+    setDateRange(newValue);
+    if (newValue[0] && newValue[1]) {
+      const start = dayjs(newValue[0]);
+      const end = dayjs(newValue[1]);
+      const daysDiff = end.diff(start, 'day');
+
+      if (daysDiff > 14) {
+        setFormError("The selected date range should not exceed 14 days.");
+        setIsFormValid(false);
+      } else {
+        setFormError("");
+        setIsFormValid(true);
+      }
+    }
+  }}
+  minDate={minDate}
+  maxDate={maxDate}
+  renderInput={(startProps, endProps) => (
+    <React.Fragment>
+      <TextField {...startProps} error={!!formError && !dateRange[0]} />
+      <Box sx={{ mx: 2 }}>to</Box>
+      <TextField {...endProps} error={!!formError && !dateRange[1]} />
+    </React.Fragment>
+  )}
+/>
           </LocalizationProvider>
         </Box>
         <Box mt={2}>
@@ -362,14 +380,15 @@ function Itineraries() {
           </FormControl>
         </Box>
         <div className="centered-button-container">
-          <Button
-            type="submit"
-            variant="contained"
-            className="btn primary__btn"
-            sx={{ mt: 2 }}
-          >
-            Create my trip
-          </Button>
+        <Button
+  type="submit"
+  variant="contained"
+  className="btn primary__btn"
+  sx={{ mt: 2 }}
+  disabled={!isFormValid} // Use the isFormValid state to enable/disable the button
+>
+  Create my trip
+</Button>
         </div>
       </form>
       <br />
