@@ -6,6 +6,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import dayjs from 'dayjs';
 
 import "../styles/itineraries.css";
 import {
@@ -307,6 +308,7 @@ function Itineraries() {
               endText="End Date"
               value={dateRange}
               onChange={(newValue) => setDateRange(newValue)}
+              minDate={dayjs()}
               renderInput={(startProps, endProps) => (
                 <React.Fragment>
                   <TextField
