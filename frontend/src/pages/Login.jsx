@@ -65,10 +65,22 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLoginSuccess = async (credentialResponse) => {
-    console.log(credentialResponse); // Log the credential response
+  const handleGoogleSuccess = async (res) => {
+    console.log("Login Success", res); // Log the credential response
+  
+    const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      method: "get",
+      headers: { Authorization: `Bearer ${res.clientId}` },
+    }).then((res) => res.json());
+
+
+  console.log(userInfo);
   
   };
+  const handleGoogleFailure = (res) => {
+    console.error("Login Failed", res); // Log the error
+  }
+
   
   
 
@@ -117,7 +129,7 @@ const Login = () => {
                     Login
                   </Button>
                 </Form>
-                <GoogleLogin onSuccess={handleGoogleLoginSuccess} onError={()=>console.log("Login failed")} />
+                <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleFailure} />
                 <p>
                   Don't have an account? <Link to="/register">Create</Link>
                 </p>
