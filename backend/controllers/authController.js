@@ -160,16 +160,12 @@ export const googleLogin = async (req, res) => {
           httpOnly: true,
           expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)  // 15 days
       });
-
+      const { password, ...rest } = user._doc;
       res.status(200).json({
           success: true,
           token: userToken,
-          data: {
-              id: user._id,
-              username: user.username,
-              email: user.email,
-              photo: user.photo
-          }
+          data: rest,
+        role: user.role,
       });
 
   } catch (error) {

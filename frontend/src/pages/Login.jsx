@@ -68,11 +68,9 @@ const Login = () => {
   };
 
   const handleGoogleSuccess = async (res) => {
-    console.log("Login Success", res); // Log the credential response
   
     const { credential } = res; // Extract the credential from the response
     const decodedToken = jwtDecode(credential); // Decode the JWT to check the content on the client-side
-    console.log("Decoded JWT:", decodedToken);
 
     sendTokenToBackend(credential); // Send the JWT token to the backend
 };
@@ -90,8 +88,7 @@ const sendTokenToBackend = async (token) => {
         try {
           const data = JSON.parse(text);  // Try to parse it as JSON
           if (response.ok) {
-            dispatch({ type: "LOGIN_SUCCESS", payload: data });
-              console.log("Authentication successful", data);
+            dispatch({ type: "LOGIN_SUCCESS", payload: data.data });
               navigate("/");
           } else {
               console.error("Failed to authenticate:", data.message);
