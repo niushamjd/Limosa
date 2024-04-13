@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
+import { OAuth2Client } from 'google-auth-library';
 // Assuming the sendEmail function is exported from mailer.js
 import { sendEmail } from "../utils/mailer.js"; // Ensure this path is correct
 
@@ -121,6 +121,62 @@ export const login = async (req, res) => {
   }
 };
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+export const googleLogin = async (req, res) => {
+  const { token } = req.body;  // This is the JWT token sent from the frontend
+
+  try {
+      const ticket = await client.verifyIdToken({
+          idToken: token,
+          audience: process.env.GOOGLE_CLIENT_ID,  // Ensure this matches your Google client ID
+      });
+
+      const payload = ticket.getPayload();
+      const { sub, email, name, picture } = payload;  // Extract information from the payload
+
+      let user = await User.findOne({ email });
+
+      if (!user) {
+          // If user does not exist, create a new user
+          user = new User({
+              username: name,
+              email: email,
+              password: '',  // Consider a way to handle password for Google authenticated users
+              photo: picture
+          });
+
+          await user.save();
+      }
+
+      // Generate a token for the user
+      const userToken = jwt.sign(
+          { id: user._id, role: user.role },
+          process.env.JWT_SECRET_KEY,
+          { expiresIn: "15d" }
+      );
+
+      // Optionally set the token in a cookie
+      res.cookie("accessToken", userToken, {
+          httpOnly: true,
+          expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)  // 15 days
+      });
+
+      res.status(200).json({
+          success: true,
+          token: userToken,
+          data: {
+              id: user._id,
+              username: user.username,
+              email: user.email,
+              photo: user.photo
+          }
+      });
+
+  } catch (error) {
+      console.error("Error authenticating Google token: ", error);
+      res.status(401).json({ success: false, message: "Invalid authentication token" });
+  }
+};
 // In authController.js or a similar controller file
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;

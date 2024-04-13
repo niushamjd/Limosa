@@ -8,6 +8,8 @@ import { GoogleLogin } from '@react-oauth/google';
 import { AuthContext } from "./../context/AuthContext";
 import { BASE_URL } from "../utils/config";
 
+import { jwtDecode } from 'jwt-decode';
+ // Import jwt-decode to decode the JWT
 const Login = () => {
   const [credentials, setCredentials] = useState({
     email: undefined,
@@ -68,15 +70,39 @@ const Login = () => {
   const handleGoogleSuccess = async (res) => {
     console.log("Login Success", res); // Log the credential response
   
-    const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      method: "get",
-      headers: { Authorization: `Bearer ${res.clientId}` },
-    }).then((res) => res.json());
+    const { credential } = res; // Extract the credential from the response
+    const decodedToken = jwtDecode(credential); // Decode the JWT to check the content on the client-side
+    console.log("Decoded JWT:", decodedToken);
 
+    sendTokenToBackend(credential); // Send the JWT token to the backend
+};
 
-  console.log(userInfo);
-  
-  };
+const sendTokenToBackend = async (token) => {
+    try {
+        const response = await fetch(`${BASE_URL}/auth/google-login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ token }) // Send the JWT token to the backend
+        });
+        const text = await response.text();  // Get the raw response text
+        try {
+          const data = JSON.parse(text);  // Try to parse it as JSON
+          if (response.ok) {
+            dispatch({ type: "LOGIN_SUCCESS", payload: data });
+              console.log("Authentication successful", data);
+              navigate("/");
+          } else {
+              console.error("Failed to authenticate:", data.message);
+          }
+      } catch (e) {
+          console.error("Failed to parse JSON!", text);
+      }
+  } catch (error) {
+      console.error("Error connecting to the backend:", error);
+  }
+};
   const handleGoogleFailure = (res) => {
     console.error("Login Failed", res); // Log the error
   }
