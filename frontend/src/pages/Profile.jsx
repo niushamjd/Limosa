@@ -45,6 +45,10 @@ const Profile = () => {
   const goToGroup = () => {
     navigate('/travelgroup');
   };
+
+  const goToConnect = () => {
+    navigate('/connect');
+  }
   
   return (
     <>
@@ -81,6 +85,12 @@ const Profile = () => {
           <div className="text-content">
             <h3>Travel Group</h3>
             <p>Plan a travel for your special group</p>
+          </div>
+        </div>
+        <div className="settings-item" onClick={goToConnect}>
+          <div className="text-content">
+            <h3>Connect with Friends</h3>
+            <p>Connect with your friends to form travel groups</p>
           </div>
         </div>
       </div>

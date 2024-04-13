@@ -1,3 +1,4 @@
+import { connect } from "mongoose";
 import User from "../models/User.js";
 import bcrypt from 'bcryptjs';
 
@@ -95,19 +96,22 @@ export const deleteUser = async (req, res) => {
   }
 };
 // getSingle User
-export const getSingleUser = async (req, res) => {
-  const id = req.params.id;
+export const getAllExceptSingleUser = async (req, res) => {
+  const currentUserId = req.params._id; 
+
   try {
-    const user = await User.findById(id);
+    // Find all users except the current user
+    const users = await User.find({ _id: { $ne: currentUserId } });
     res.status(200).json({
       success: true,
-      message: "Succesful",
-      data: user,
+      message: "Successful",
+      data: users,
     });
   } catch (error) {
     res.status(404).json({
       success: false,
-      message: "not found",
+      message: "Not found",
+      error: error.message
     });
   }
 };
@@ -128,3 +132,93 @@ export const getAllUser = async (req, res) => {
     });
   }
 };
+export const connectUser = async (req, res) => {
+  const { friendId } = req.body; // ID of the friend to add
+  const userId = req.params.id; // ID of the user making the request
+
+  if (!friendId) {
+    return res.status(400).json({
+      success: false,
+      message: "Friend ID is required",
+    });
+  }
+
+  // Check if the user is trying to add themselves as a friend
+  if (userId === friendId) {
+    return res.status(400).json({
+      success: false,
+      message: "Cannot add yourself as a friend",
+    });
+  }
+
+  try {
+    // Retrieve the user to ensure they exist and to check the friends list
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check if the friend ID is already in the user's friends list
+    if (user.friends.includes(friendId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Friend already added",
+      });
+    }
+
+    // Add the friend's ID to the user's friends array
+    user.friends.push(friendId);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Friend added successfully",
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+
+// Assuming User schema has 'friends' as references to other User documents
+export const getUserFriends = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const userWithFriends = await User.findById(userId).populate({
+      path: 'friends',
+      // Selecting additional fields to include in the result
+      select: 'name surname username email photo interests pastItineraries groups',
+      populate: {
+        path: 'interests groups', // Assuming interests and groups are references
+      }
+    });
+
+    if (!userWithFriends) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully retrieved friends",
+      data: userWithFriends.friends
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
