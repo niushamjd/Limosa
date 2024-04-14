@@ -133,8 +133,8 @@ export const getAllUser = async (req, res) => {
   }
 };
 export const connectUser = async (req, res) => {
-  const { friendId } = req.body; // ID of the friend to add
-  const userId = req.params.id; // ID of the user making the request
+  const { friendId, action } = req.body;
+  const userId = req.params.id;
 
   if (!friendId) {
     return res.status(400).json({
@@ -143,16 +143,14 @@ export const connectUser = async (req, res) => {
     });
   }
 
-  // Check if the user is trying to add themselves as a friend
   if (userId === friendId) {
     return res.status(400).json({
       success: false,
-      message: "Cannot add yourself as a friend",
+      message: "Cannot perform action on yourself",
     });
   }
 
   try {
-    // Retrieve the user to ensure they exist and to check the friends list
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
@@ -161,23 +159,44 @@ export const connectUser = async (req, res) => {
       });
     }
 
-    // Check if the friend ID is already in the user's friends list
-    if (user.friends.includes(friendId)) {
+    const isAlreadyFriend = user.friends.includes(friendId);
+
+    if (action === 'follow') {
+      if (!isAlreadyFriend) {
+        user.friends.push(friendId);
+        await user.save();
+        return res.status(200).json({
+          success: true,
+          message: "Friend added successfully",
+          data: user,
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Already friends",
+        });
+      }
+    } else if (action === 'unfollow') {
+      if (isAlreadyFriend) {
+        user.friends = user.friends.filter(id => id.toString() !== friendId);
+        await user.save();
+        return res.status(200).json({
+          success: true,
+          message: "Friend removed successfully",
+          data: user,
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Not friends to begin with",
+        });
+      }
+    } else {
       return res.status(400).json({
         success: false,
-        message: "Friend already added",
+        message: "Invalid action specified",
       });
     }
-
-    // Add the friend's ID to the user's friends array
-    user.friends.push(friendId);
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Friend added successfully",
-      data: user,
-    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -186,6 +205,7 @@ export const connectUser = async (req, res) => {
     });
   }
 };
+
 
 
 // Assuming User schema has 'friends' as references to other User documents
@@ -221,4 +241,3 @@ export const getUserFriends = async (req, res) => {
     });
   }
 };
-

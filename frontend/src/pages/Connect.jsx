@@ -18,8 +18,8 @@ function Connect() {
   const [friends, setFriends] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-// Fetch connected friends details
-const fetchFriends = useCallback(async () => {
+
+  const fetchFriends = useCallback(async () => {
     try {
       const response = await fetch(`${BASE_URL}/users/${user._id}/friends`, {
         method: 'GET',
@@ -30,7 +30,7 @@ const fetchFriends = useCallback(async () => {
       if (response.ok) {
         const jsonResponse = await response.json();
         if (jsonResponse.success) {
-          setFriends(jsonResponse.data);
+          setFriends(jsonResponse.data); // Store the full friend objects
         } else {
           throw new Error(jsonResponse.message);
         }
@@ -40,69 +40,68 @@ const fetchFriends = useCallback(async () => {
     } catch (error) {
       setErrorMessage('Error fetching friends: ' + error.message);
     }
-  }, [user._id]); // Dependency on user._id
+  }, [user._id]);
+  
 
-  // Effect to fetch friends once or on user._id change
   useEffect(() => {
-    if (user._id) {
-      fetchFriends();
-    }
+    fetchFriends();
   }, [user._id, fetchFriends]);
-    if (user._id) {
-      fetchFriends();
-    }
-
-  // Function to handle user connection
-  const connectUser = async (connectUserId) => {
+  const handleUserInteraction = async (connectUserId) => {
+    const isFriend = friends.some(friend => friend._id === connectUserId);
+    const endpoint = `${BASE_URL}/users/${user._id}/connect`; // Always use /connect for both follow and unfollow
+  
     try {
-      const response = await fetch(`${BASE_URL}/users/${user._id}/connect`, {
-        method: 'PUT',
+      const response = await fetch(endpoint, {
+        method: 'PUT', // Always use PUT
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ friendId: connectUserId })
+        body: JSON.stringify({
+          friendId: connectUserId,
+          action: isFriend ? 'unfollow' : 'follow' // Specify the action in the body
+        })
       });
+  
       if (response.ok) {
-        setSuccessMessage("Connected successfully!");
+        setSuccessMessage(isFriend ? "Unfollowed successfully!" : "Followed successfully!");
         setTimeout(() => {
           setSuccessMessage("");
-          fetchFriends(); // Refresh the friends list after a successful connection
+          fetchFriends(); // Refresh the friends list after a successful interaction
         }, 1500);
       } else {
-        throw new Error('Failed to connect with user');
+        const result = await response.json();
+        throw new Error(result.message || `Failed to ${isFriend ? 'unfollow' : 'follow'} user`);
       }
     } catch (error) {
-      setErrorMessage('Error connecting user: ' + error.message);
+      setErrorMessage(`Error ${isFriend ? 'unfollowing' : 'following'} user: ` + error.message);
     }
   };
-  // Fetch all users from the database
+  
   useEffect(() => {
     const fetchUsers = async () => {
-        try {
-          const response = await fetch(`${BASE_URL}/users/${user._id}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-          if (response.ok) {
-            const jsonResponse = await response.json();
-            if (jsonResponse.success && Array.isArray(jsonResponse.data)) {
-              setUsers(jsonResponse.data);
-            } else {
-              throw new Error('Data is not an array or success flag is false');
-            }
-          } else {
-            throw new Error('Failed to fetch users');
+      try {
+        const response = await fetch(`${BASE_URL}/users`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
           }
-        } catch (error) {
-          setErrorMessage('Error fetching users: ' + error.message);
+        });
+        if (response.ok) {
+          const jsonResponse = await response.json();
+          if (jsonResponse.success && Array.isArray(jsonResponse.data)) {
+            setUsers(jsonResponse.data);
+          } else {
+            throw new Error('Data is not an array or success flag is false');
+          }
+        } else {
+          throw new Error('Failed to fetch users');
         }
-      };
+      } catch (error) {
+        setErrorMessage('Error fetching users: ' + error.message);
+      }
+    };
     fetchUsers();
   }, []);
-
-  
 
   return (
     <>
@@ -110,22 +109,26 @@ const fetchFriends = useCallback(async () => {
       {successMessage && <Message message={successMessage} />}
       <h2>Connect with Users</h2>
       <div>
-        {users.map((userItem) => (
-          <div key={userItem._id}>
-            {userItem.username} - <button onClick={() => connectUser(userItem._id)}>Connect</button>
-          </div>
-        ))}
+      {users.map((userItem) => (
+    <div key={userItem._id}>
+        {userItem.username} - <button onClick={() => handleUserInteraction(userItem._id)}>
+            {friends.some(friend => friend._id === userItem._id) ? 'Unfollow' : 'Follow'}
+        </button>
+    </div>
+))}
+
       </div>
       <h2>My Friends</h2>
-      <div>
-        {friends.map((friend) => (
-          <div key={friend._id}>
-            <h3>{friend.username}</h3>
-            <p>{friend.email}</p>
-            {/* Add more details such as photo, interests, etc., as needed */}
-          </div>
-        ))}
-      </div>
+<div>
+  {friends.map((friend) => (
+    <div key={friend._id}>
+      <h3>{friend.username}</h3>
+      <p>{friend.email}</p>
+      {/* Additional friend details can be added here */}
+    </div>
+  ))}
+</div>
+
     </>
   );
 }
