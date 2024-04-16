@@ -1,15 +1,24 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
+import "../styles/connect.css";
 
 function Message({ message, onClose }) {
-    return (
-      <div className="message-container">
-        <div className="message-content">
-          {message}
-        </div>
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(); // Call onClose after 2 seconds
+    }, 2000);
+
+    return () => clearTimeout(timer); // Cleanup function to clear the timer on unmount
+  }, [onClose]);
+
+  return (
+    <div className="message-container">
+      <div className="message-content">
+        {message}
       </div>
-    );
+    </div>
+  );
 }
 
 function Connect() {
@@ -41,11 +50,11 @@ function Connect() {
       setErrorMessage('Error fetching friends: ' + error.message);
     }
   }, [user._id]);
-  
 
   useEffect(() => {
     fetchFriends();
   }, [user._id, fetchFriends]);
+
   const handleUserInteraction = async (connectUserId) => {
     const isFriend = friends.some(friend => friend._id === connectUserId);
     const endpoint = `${BASE_URL}/users/${user._id}/connect`; // Always use /connect for both follow and unfollow
@@ -104,32 +113,37 @@ function Connect() {
   }, []);
 
   return (
-    <>
-      {errorMessage && <Message message={errorMessage} />}
-      {successMessage && <Message message={successMessage} />}
-      <h2>Connect with Users</h2>
+    <div className="connect-users-container">
+    {errorMessage && <Message message={errorMessage} onClose={() => setErrorMessage("")} />}
+{successMessage && <Message message={successMessage} onClose={() => setSuccessMessage("")} />}
+
+
+      <h2 className="connect-users-header">Connect with Users</h2>
       <div>
-      {users.map((userItem) => (
-    <div key={userItem._id}>
-        {userItem.username} - <button onClick={() => handleUserInteraction(userItem._id)}>
-            {friends.some(friend => friend._id === userItem._id) ? 'Unfollow' : 'Follow'}
-        </button>
-    </div>
-))}
-
+        {users.map((userItem) => (
+          <div key={userItem._id} className="user-card">
+            <div className="user-details">
+              <span className="user-name">{userItem.username}</span>
+            </div>
+            <button className="interaction-button" onClick={() => handleUserInteraction(userItem._id)}>
+              {friends.some(friend => friend._id === userItem._id) ? 'Unfollow' : 'Follow'}
+            </button>
+          </div>
+        ))}
       </div>
-      <h2>My Friends</h2>
-<div>
-  {friends.map((friend) => (
-    <div key={friend._id}>
-      <h3>{friend.username}</h3>
-      <p>{friend.email}</p>
-      {/* Additional friend details can be added here */}
+      <h2 className="friends-header">My Friends</h2>
+      <div className="friends-container">
+        {friends.map((friend) => (
+          <div key={friend._id} className="friend-card">
+            <div className="friend-details">
+              <h3 className="friend-name">{friend.username}</h3>
+              <p className="friend-email">{friend.email}</p>
+            </div>
+            {/* Additional friend details can be added here */}
+          </div>
+        ))}
+      </div>
     </div>
-  ))}
-</div>
-
-    </>
   );
 }
 

@@ -1,0 +1,111 @@
+/* ConnectUsers Styles */
+
+.message-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 1050; /* Yeterince yüksek bir değer, diğer içeriklerin üstünde görünmesini sağlar */
+  }
+  
+  .message-content {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #FAA935; /* Mesaj kutusu için arka plan rengi */
+    color: #721c24; /* Metin rengi */
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: auto;
+    max-width: 80%; /* Kutunun maksimum genişliği */
+  }
+  
+  .connect-users-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  
+  
+  
+  .user-card {
+    background-color: #1e1930;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    width: 400px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .user-details {
+    flex-grow: 1;
+    margin-right: 10px;
+  }
+  
+  .user-name {
+    font-weight: bold;
+    font-size: 18px;
+    color: #fff;
+  }
+  
+  .user-email {
+    color: #ccc;
+  }
+  
+  .interaction-button {
+    padding: 8px 16px;
+    background-color: #FAA935;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .interaction-button:hover {
+    background-color: #c37e00;
+  }
+  
+  .friends-container {
+    margin-top: 30px;
+  }
+  
+  .friend-card {
+    background-color: #1e1930;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .friend-details {
+    margin-left: 10px;
+  }
+  
+  .friend-name {
+    font-weight: bold;
+    font-size: 16px;
+    color: #fff;
+  }
+  
+  .friend-email {
+    color: #ccc;
+  }
+  
+  /* Media Query for smaller screens */
+  @media (max-width: 600px) {
+    .user-card,
+    .friend-card {
+      width: 100%;
+    }
+  }
+  
