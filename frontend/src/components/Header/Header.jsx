@@ -32,7 +32,8 @@ const Header = () => {
 
   const logout = () => {
     dispatch({ type: "LOGOUT" });
-    navigate("/home");
+    navigate('/home', { replace: true });  // Navigate to home page
+    window.location.reload();  // Force a full page reload
   };
 
   const stickyHeaderFunc = () => {
