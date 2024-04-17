@@ -32,7 +32,7 @@ const Header = () => {
 
   const logout = () => {
     dispatch({ type: "LOGOUT" });
-    navigate("/");
+    navigate("/home");
   };
 
   const stickyHeaderFunc = () => {
