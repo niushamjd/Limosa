@@ -1,5 +1,5 @@
 import express from 'express';
-import { deleteUser, getAllUser, getAllExceptSingleUser, updateUser, connectUser, getUserFriends} from '../controllers/userController.js';
+import { deleteUser, getAllUser, getAllExceptSingleUser, updateUser, connectUser, getUserFriends, getUserFriendRequests,modifyFriendRequest} from '../controllers/userController.js';
 import { verifyAdmin, verifyUser } from '../utils/verifyToken.js';
 import { connect } from 'mongoose';
 
@@ -12,6 +12,8 @@ router.get("/:id", getAllExceptSingleUser);
 router.get("/", getAllUser);
 router.put("/:id/connect", connectUser);
 router.get("/:id/friends", getUserFriends);
+router.get("/:id/friend-requests", getUserFriendRequests);
+router.put("/:id/friend-requests", modifyFriendRequest);
 
 
 

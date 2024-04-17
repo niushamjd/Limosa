@@ -135,7 +135,7 @@ export const getAllUser = async (req, res) => {
 export const connectUser = async (req, res) => {
   const { friendId, action } = req.body;
   const userId = req.params.id;
-
+  
   if (!friendId) {
     return res.status(400).json({
       success: false,
@@ -152,24 +152,41 @@ export const connectUser = async (req, res) => {
 
   try {
     const user = await User.findById(userId);
-    if (!user) {
+    const targetUser = await User.findById(friendId);
+
+    if (!targetUser || !user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
 
-    const isAlreadyFriend = user.friends.includes(friendId);
+    if (action === 'accept') {
+      // Check if the user has already been accepted as a friend
+      const alreadyFriend = user.friends.includes(friendId);
 
-    if (action === 'follow') {
-      if (!isAlreadyFriend) {
-        user.friends.push(friendId);
-        await user.save();
-        return res.status(200).json({
-          success: true,
-          message: "Friend added successfully",
-          data: user,
-        });
+      if (!alreadyFriend) {
+        // Check if there is a pending friend request
+        if (user.friendRequests.includes(friendId)) {
+          user.friends.push(friendId); // Add to friends
+          user.friendRequests = user.friendRequests.filter(id => id.toString() !== friendId); // Remove from friendRequests
+          await user.save();
+           // Mutual friendship if not already in friends
+           if (!targetUser.friends.includes(userId)) {
+            targetUser.friends.push(userId);
+           }
+          await targetUser.save();
+          return res.status(200).json({
+            success: true,
+            message: "Friend request accepted successfully",
+            data: user,
+          });
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: "No friend request to accept",
+          });
+        }
       } else {
         return res.status(400).json({
           success: false,
@@ -177,9 +194,12 @@ export const connectUser = async (req, res) => {
         });
       }
     } else if (action === 'unfollow') {
+      const isAlreadyFriend = user.friends.includes(friendId);
       if (isAlreadyFriend) {
-        user.friends = user.friends.filter(id => id.toString() !== friendId);
+        user.friends = user.friends.filter(id => id.toString() !== friendId); // Remove from friends
+        targetUser.friends = targetUser.friends.filter(id => id.toString() !== userId); // Mutual unfriend
         await user.save();
+        await targetUser.save();
         return res.status(200).json({
           success: true,
           message: "Friend removed successfully",
@@ -191,7 +211,28 @@ export const connectUser = async (req, res) => {
           message: "Not friends to begin with",
         });
       }
-    } else {
+    }
+    else if (action === 'follow') {
+      //add user Id to friends' frienRequests array
+      //check if same user already in friend requests array
+
+      if (targetUser.friendRequests.includes(userId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Friend request already sent",
+        });
+      } else {
+        targetUser.friendRequests.push(userId);
+        await targetUser.save();
+        return res.status(200).json({
+          success: true,
+          message: "Friend request sent successfully",
+          data: user,
+        });
+      }
+
+    }
+    else {
       return res.status(400).json({
         success: false,
         message: "Invalid action specified",
@@ -205,7 +246,6 @@ export const connectUser = async (req, res) => {
     });
   }
 };
-
 
 
 // Assuming User schema has 'friends' as references to other User documents
@@ -239,5 +279,62 @@ export const getUserFriends = async (req, res) => {
       message: "Server error",
       error: error.message
     });
+  }
+};
+
+export const getUserFriendRequests = async (req, res) => {
+  const userId = req.params.id; // Get the user ID from the request parameters
+  try {
+    const userWithFriendRequests = await User.findById(userId).populate({
+      path: 'friendRequests', // Assuming the User model has a field 'friendRequests'
+      select: 'name surname username email photo', // Only fetch needed fields
+      // If friendRequests need to populate other fields like interests or groups
+      populate: {
+        path: 'interests groups', // Assuming interests and groups are references
+        select: 'name description' // Fetch the name and description for each
+      }
+    });
+
+    if (!userWithFriendRequests) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully retrieved friend requests",
+      data: userWithFriendRequests.friendRequests // Send the populated friendRequests array
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+export const modifyFriendRequest = async (req, res) => {
+  const { action, requestId } = req.body;
+  const userId = req.params.id;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (action === 'remove') {
+      // Remove requestId from the user's friendRequests array
+      user.friendRequests = user.friendRequests.filter(id => id.toString() !== requestId);
+      await user.save();
+      res.status(200).json({ message: 'Friend request declined' });
+    } else {
+      res.status(400).json({ message: 'Invalid action specified' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

@@ -27,6 +27,8 @@ function Connect() {
   const [friends, setFriends] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [friendRequests, setFriendRequests] = useState([]);
+
 
   const fetchFriends = useCallback(async () => {
     try {
@@ -51,9 +53,37 @@ function Connect() {
     }
   }, [user._id]);
 
+  const fetchFriendRequests = useCallback(async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/users/${user._id}/friend-requests`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response.ok) {
+        const jsonResponse = await response.json();
+        if (jsonResponse.success) {
+          setFriendRequests(jsonResponse.data); // Store the friend requests data
+        } else {
+          throw new Error(jsonResponse.message);
+        }
+      } else {
+        throw new Error('Failed to fetch friend requests');
+      }
+    } catch (error) {
+      setErrorMessage('Error fetching friend requests: ' + error.message);
+    }
+  }, [user._id]);
+  
+
   useEffect(() => {
     fetchFriends();
   }, [user._id, fetchFriends]);
+  useEffect(() => {
+    fetchFriendRequests();
+  }, [user._id, fetchFriendRequests]);
+  
 
   const handleUserInteraction = async (connectUserId) => {
     const isFriend = friends.some(friend => friend._id === connectUserId);
@@ -72,7 +102,7 @@ function Connect() {
       });
   
       if (response.ok) {
-        setSuccessMessage(isFriend ? "Unfollowed successfully!" : "Followed successfully!");
+        setSuccessMessage(isFriend ? "Unfollowed successfully!" : "Follow request sent successfully!");
         setTimeout(() => {
           setSuccessMessage("");
           fetchFriends(); // Refresh the friends list after a successful interaction
@@ -85,6 +115,74 @@ function Connect() {
       setErrorMessage(`Error ${isFriend ? 'unfollowing' : 'following'} user: ` + error.message);
     }
   };
+  const handleUserRequest = async (requestId, action) => {
+    if (action === 'accept') {
+      // Accepting the friend request
+      try {
+        const response = await fetch(`${BASE_URL}/users/${user._id}/connect`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            friendId: requestId,
+            action: 'accept'
+          })
+        });
+  
+        if (response.ok) {
+          setSuccessMessage("Follow request accepted successfully!");
+  
+          // Update friends and friendRequests state
+          const updatedFriendRequests = friendRequests.filter(request => request._id !== requestId);
+          setFriendRequests(updatedFriendRequests);
+  
+          // Optionally, add the user to friends if needed
+          const friendData = friendRequests.find(request => request._id === requestId);
+          if (friendData) {
+            setFriends([...friends, friendData]);
+          }
+          
+          fetchFriends(); // Optionally refresh friends list
+        } else {
+          const result = await response.json();
+          throw new Error(result.message);
+        }
+      } catch (error) {
+        setErrorMessage(`Error accepting friend request: ${error.message}`);
+      }
+    } else if (action === 'decline') {
+      // Declining the friend request
+      try {
+        const response = await fetch(`${BASE_URL}/users/${user._id}/friend-requests`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            requestId: requestId,
+            action: 'remove'
+          })
+        });
+  
+        if (response.ok) {
+          setSuccessMessage("Follow request declined successfully!");
+  
+          // Update friendRequests state to remove the declined request
+          const updatedFriendRequests = friendRequests.filter(request => request._id !== requestId);
+          setFriendRequests(updatedFriendRequests);
+          
+        } else {
+          const result = await response.json();
+          throw new Error(result.message);
+        }
+      } catch (error) {
+        setErrorMessage(`Error declining friend request: ${error.message}`);
+      }
+    }
+  };
+  
+  
   
   useEffect(() => {
     const fetchUsers = async () => {
@@ -115,35 +213,55 @@ function Connect() {
   return (
     <div className="connect-users-container">
     {errorMessage && <Message message={errorMessage} onClose={() => setErrorMessage("")} />}
-{successMessage && <Message message={successMessage} onClose={() => setSuccessMessage("")} />}
-
-
-      <h2 className="connect-users-header">Connect with Users</h2>
-      <div>
-        {users.map((userItem) => (
-          <div key={userItem._id} className="user-card">
-            <div className="user-details">
-              <span className="user-name">{userItem.username}</span>
-            </div>
-            <button className="interaction-button" onClick={() => handleUserInteraction(userItem._id)}>
-              {friends.some(friend => friend._id === userItem._id) ? 'Unfollow' : 'Follow'}
-            </button>
+    {successMessage && <Message message={successMessage} onClose={() => setSuccessMessage("")} />}
+  
+    <h2 className="connect-users-header">Connect with Users</h2>
+    <div>
+      {users.map((userItem) => (
+        <div key={userItem._id} className="user-card">
+          <div className="user-details">
+            <span className="user-name">{userItem.username}</span>
           </div>
-        ))}
-      </div>
-      <h2 className="friends-header">My Friends</h2>
-      <div className="friends-container">
-        {friends.map((friend) => (
-          <div key={friend._id} className="friend-card">
-            <div className="friend-details">
-              <h3 className="friend-name">{friend.username}</h3>
-              <p className="friend-email">{friend.email}</p>
-            </div>
-            {/* Additional friend details can be added here */}
+          <button className="interaction-button" onClick={() => handleUserInteraction(userItem._id)}>
+            {friends.some(friend => friend._id === userItem._id) ? 'Unfollow' : 'Follow'}
+          </button>
+        </div>
+      ))}
+    </div>
+  
+    <h2 className="friends-header">My Friends</h2>
+    <div className="friends-container">
+      {friends.map((friend) => (
+        <div key={friend._id} className="friend-card">
+          <div className="friend-details">
+            <h3 className="friend-name">{friend.username}</h3>
+            <p className="friend-email">{friend.email}</p>
+            <p className="friend-email">Interests: {friend.interests.join(", ")}</p>
           </div>
-        ))}
+        </div>
+      ))}
+    </div>
+  
+    <h2 className="friend-requests-header">Friend Requests</h2>
+<div className="friends-container">
+  {friendRequests.map((request) => (
+    <div key={request._id} className="friend-card">
+      <div className="friend-details">
+        <h3 className="friend-name">{request.username}</h3>
+        <p className="friend-email">{request.email}</p>
+        <button onClick={() => handleUserRequest(request._id, 'accept')} className="interaction-button accept">
+          Accept
+        </button>
+        <button onClick={() => handleUserRequest(request._id, 'decline')} className="interaction-button decline">
+          Decline
+        </button>
       </div>
     </div>
+  ))}
+</div>
+
+  </div>
+  
   );
 }
 

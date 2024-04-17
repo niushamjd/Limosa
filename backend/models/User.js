@@ -87,6 +87,11 @@ const userSchema = new Schema(
       ref: 'User',
       default: [],
     },
+    friendRequests: {
+      type: [Schema.Types.ObjectId],
+      ref: 'User',
+      default: [],
+    },
     resetPasswordToken: {
       type: String,
     },
