@@ -49,7 +49,7 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
   // Instantiate OpenAI with the API key
 
   const openai = new OpenAI({
-    apiKey: "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",
+    apiKey: "sk-proj-dkq2T69c4Jwp8J1BCnI6T3BlbkFJxp91LmBxZGkG8upGiR2O",
     dangerouslyAllowBrowser: true,
   });
   // Function to parse the itinerary response from ChatGPT
