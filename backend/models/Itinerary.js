@@ -5,7 +5,7 @@ const eventSchema = new Schema({
   name: { type: String, required: true },
   activity: { type: String, default: '' }, // default to empty string if not provided
   type: { type: String, required: true },
-  location: { type: String, required: true },
+  location: { type: String },
   photo: String,
 });
 
