@@ -15,21 +15,7 @@ const Profile = () => {
 
   // Function to handle navigation to the past itinerary
   const goToPastItinerary = () => {
-    fetch(`${BASE_URL}/new-itinerary`, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(),
-    })
-    .then(response => response.json())
-    .then(data => {
-      navigate('/viewPastItinerary', { state: { itineraryData: data.data } });
-      console.log("Response from server:", data);
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
+    navigate('/viewpastitinerary');
   };
     
 

@@ -156,8 +156,6 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
             }
         }
     }
-
-    console.log("Collected Restaurants:", restaurantsArray);
     return restaurantsArray;
 };
 
@@ -346,7 +344,6 @@ const restaurants = await fetchNearbyRestaurantForLastPlaces(parsedItinerary);
 
 const itineraryWithRestaurants = addRestaurantsToItinerary(parsedItinerary, restaurants);
 setItinerary(itineraryWithRestaurants);
-console.log("Itinerary with restaurants:", itineraryWithRestaurants);
 
   
     } catch (error) {

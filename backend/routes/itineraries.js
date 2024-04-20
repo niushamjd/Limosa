@@ -1,7 +1,8 @@
 import express from "express";
 import {
   createItinerary,
-  getItineraryById
+  getItineraryById,
+  getUSerItineraries
 } from "../controllers/itineraryController.js";
 import { verifyAdmin, verifyUser } from "../utils/verifyToken.js";
 
@@ -11,6 +12,8 @@ const router = express.Router();
 router.post("/",createItinerary);
 // Get single itinerary
 router.get("/:id", getItineraryById);
+// Get all itineraries of a user
+router.get("/user/:userId", getUSerItineraries);
 
 
 
