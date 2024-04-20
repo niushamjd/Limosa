@@ -84,63 +84,122 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
 
   const fetchNearbyRestaurantForLastPlaces = async (itinerary) => {
     if (!mapRef.current) {
-      console.error("Google Maps JavaScript API has not been loaded yet.");
-      return;
+        console.error("Google Maps JavaScript API has not been loaded yet.");
+        return [];
     }
-  
+
     const service = new window.google.maps.places.PlacesService(mapRef.current);
-  
+    let restaurantsArray = [];  // Array to hold all restaurant details
+
+    outerLoop:  // Label for the outer loop for easy break
     for (const [date, periods] of Object.entries(itinerary)) {
-      for (const [period, activities] of Object.entries(periods)) {
-        // Filter for "Place" activities and get the last one
-        const lastPlace = activities.filter(activity => activity.type === 'Place').pop();
-  
-        if (lastPlace) {
-          // Construct the request for the Google Places API
-          const request = {
-            query: lastPlace.name,
-            fields: ['name', 'geometry.location'],
-          };
-  
-          try {
-            const placeResults = await new Promise((resolve, reject) => {
-              service.textSearch(request, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-                  resolve(results);
-                } else {
-                  reject(`Place details not found for ${lastPlace.name}`);
+        for (const [period, activities] of Object.entries(periods)) {
+            const lastPlace = activities.filter(activity => activity.type === 'Place').pop();
+
+            if (lastPlace) {
+                const request = {
+                    query: lastPlace.name,
+                    fields: ['name', 'geometry.location'],
+                };
+
+                try {
+                    const placeResults = await new Promise((resolve, reject) => {
+                        service.textSearch(request, (results, status) => {
+                            if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+                                resolve(results);
+                            } else {
+                                reject(`Place details not found for ${lastPlace.name}`);
+                            }
+                        });
+                    });
+
+                    const location = placeResults[0].geometry.location;
+                    const restaurantRequest = {
+                        location: location,
+                        radius: '1000',  // Search within 1000 meters
+                        type: ['restaurant'],
+                    };
+
+                    const restaurantResults = await new Promise((resolve, reject) => {
+                        service.nearbySearch(restaurantRequest, (results, status) => {
+                            if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+                                resolve(results);
+                            } else {
+                                reject(`No nearby restaurant found for ${lastPlace.name}`);
+                            }
+                        });
+                    });
+
+                    // Only add the first restaurant result to the array, checking for duplicates
+                    for (const restaurant of restaurantResults) {
+                        const isDuplicate = restaurantsArray.some(r => r.name === restaurant.name && r.location === restaurant.vicinity);
+                        if (!isDuplicate) {
+                            restaurantsArray.push({
+                                name: restaurant.name,
+                                activity: "Dining",
+                                type: "Restaurant",
+                                location: restaurant.vicinity,
+                                photo: restaurant.photos && restaurant.photos.length > 0 ? restaurant.photos[0].getUrl() : ''
+                            });
+                            break; // Add only one unique restaurant per last place
+                        }
+                    }
+
+                    // Break out of the loop if 6 unique restaurants have been found
+                    if (restaurantsArray.length === 6) {
+                        break outerLoop;
+                    }
+
+                } catch (error) {
+                    console.error(error);
                 }
-              });
-            });
-  
-            const location = placeResults[0].geometry.location;
-            // Now find a nearby restaurant
-            const restaurantRequest = {
-              location: location,
-              radius: '1000', // Adjust radius as needed
-              type: ['restaurant'],
-            };
-  
-            const restaurantResults = await new Promise((resolve, reject) => {
-              service.nearbySearch(restaurantRequest, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-                  resolve(results);
-                } else {
-                  reject(`No nearby restaurant found for ${lastPlace.name}`);
-                }
-              });
-            });
-  
-           // console.log(`Nearby restaurant for ${lastPlace.name}:`, restaurantResults[0]);
-          } catch (error) {
-            console.error(error);
-          }
+            }
         }
-      }
     }
-  };
+
+    console.log("Collected Restaurants:", restaurantsArray);
+    return restaurantsArray;
+};
+
   
-  
+function addRestaurantsToItinerary(itinerary, restaurants) {
+  const updatedItinerary = {...itinerary};
+  let restaurantIndex = 0;  // To keep track of which restaurant to add next
+
+  // Iterate over each date in the itinerary
+  for (const date in updatedItinerary) {
+      if (!updatedItinerary.hasOwnProperty(date)) {
+          continue;
+      }
+
+      // Go through each period: morning, afternoon, evening
+      ['morning', 'afternoon', 'evening'].forEach(period => {
+          if (updatedItinerary[date][period] && restaurants[restaurantIndex]) {
+              // Add a restaurant to the current period
+              updatedItinerary[date][period].push({
+                  name: restaurants[restaurantIndex].name,
+                  activity: 'Dining at ' + restaurants[restaurantIndex].name,
+                  type: 'Restaurant',
+                  location: restaurants[restaurantIndex].location,
+                  photo: restaurants[restaurantIndex].photo
+              });
+
+              // Increment to use the next restaurant for the next period
+              restaurantIndex = (restaurantIndex + 1) % restaurants.length; // Loop back if end is reached
+          }
+      });
+
+      // Optional: Stop adding if you've cycled through all restaurants once
+      if (restaurantIndex >= restaurants.length) {
+          break; // Remove this if you want to cycle restaurants until all periods are filled
+      }
+  }
+
+  return updatedItinerary;
+}
+
+
+
 
   const extractPlacesFromItinerary = (itineraryResponse) => {
     const places = [];
@@ -261,8 +320,8 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
     Evening:
     - Place: Bosphorus Cruise
       Activity: Take a Bosphorus cruise to see Istanbul's skyline from the water, including historical sites along the European and Asian shores.
-    - Place: Dinner at a rooftop restaurant
-      Activity: Enjoy dinner at a rooftop restaurant, offering spectacular views of the city and delicious Turkish cuisine.
+    - Place: Balat Neighborhood
+      Activity: Wander through the colorful streets of Balat, known for its picturesque houses, trendy cafes, street art, and a mix of Jewish, Greek, and Armenian heritage.
     
     **Tips:**
     - Use public transportation such as trams and buses for cost-effective travel.
@@ -281,8 +340,14 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
      // console.log("Extracted Itinerary Response:", completion.choices[0].message.content);
   
       const places = extractPlacesFromItinerary(completion.choices[0].message.content);
-      const parsedItinerary = parseItineraryResponse(completion.choices[0].message.content);
-      setItinerary(parsedItinerary);
+     // After fetching or parsing your initial itinerary:
+const parsedItinerary = parseItineraryResponse(completion.choices[0].message.content);
+const restaurants = await fetchNearbyRestaurantForLastPlaces(parsedItinerary);
+
+const itineraryWithRestaurants = addRestaurantsToItinerary(parsedItinerary, restaurants);
+setItinerary(itineraryWithRestaurants);
+console.log("Itinerary with restaurants:", itineraryWithRestaurants);
+
   
     } catch (error) {
       console.error("Error generating trip plan:", error);
@@ -293,36 +358,34 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
     try {
       const itineraryPost = {
         userId: user._id,
-        itinerary: itinerary,
+        itineraryEvents: itinerary,
+        dateRange: {
+          start: dateRange[0].toISOString(),
+          end: dateRange[1].toISOString(),
+        },
+        tips: "Additional tips or comments here",
+        photo: "URL to a relevant photo if applicable"
       };
+    
       const response = await fetch(`${BASE_URL}/itinerary`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          userId: user._id,
-          itineraryEvents: itinerary,
-          dateRange: {
-            start: dateRange[0].toISOString(), // Ensure date is in ISO format
-            end: dateRange[1].toISOString(),
-          },
-          tips: "Additional tips or comments here", // Example, adjust as necessary
-          photo: "URL to a relevant photo if applicable" // Example
-        })
+        body: JSON.stringify(itineraryPost)
       });
     
       if (!response.ok) {
-        // If the HTTP status code is not 200-299, throw to go to the catch block
         throw new Error('Network response was not ok: ' + response.statusText);
       }
     
-      const data = await response.json(); // Assuming the server responds with JSON
+      const data = await response.json();
       console.log("Itinerary created successfully:", data);
     
     } catch (error) {
       console.error("Error:", error);
     }
+    
     
   };
 
