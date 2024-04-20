@@ -1,207 +1,45 @@
-import Itinerary from "../models/Itinerary.js";
-import { itineraryData, itineraryEventsData } from "./aiResponse.js";
-import ItineraryEvent from "../models/ItineraryEvent.js";
-// Create Itinerary
+import Itinerary from '../models/Itinerary.js';
+
+// Controller function to create an itinerary object
 export const createItinerary = async (req, res) => {
-  // Assuming itineraryData comes from your aiResponse.js or similar
-  const newItinerary = new Itinerary(itineraryData);
   try {
-    const savedItinerary = await newItinerary.save();
+      console.log('Received data:', req.body); // Log incoming data
 
-    // Save associated events and collect detailed data
-    let eventsDetails = [];
-    for (const eventData of itineraryEventsData) {
-      const newEvent = new ItineraryEvent({
-        ...eventData,
-        itineraryId: savedItinerary._id
+      const { userId, itineraryEvents, dateRange, photo, tips } = req.body;
+      console.log('Parsed data:', { userId, itineraryEvents, dateRange, photo, tips });
+
+      const newItinerary = new Itinerary({
+          userId,
+          itineraryEvents,
+          dateRange,
+          photo,
+          tips
       });
-      const savedEvent = await newEvent.save();
-      eventsDetails.push(savedEvent); // Push the whole event document instead of just the ID
-    }
 
-   // After saving the events, update the itinerary with the event IDs
-await Itinerary.findByIdAndUpdate(savedItinerary._id, {
-  $set: { itineraryEvents: eventsDetails.map(event => event._id) }
-});
-
-// Fetch the updated itinerary to include in the response
-const updatedItinerary = await Itinerary.findById(savedItinerary._id).populate('itineraryEvents');
-
-res.status(200).json({
-  success: true, 
-  message: "Successfully created a new itinerary and events", 
-  data: {
-    itinerary: updatedItinerary,
-    events: eventsDetails
-  }
-});
-
+      const savedItinerary = await newItinerary.save();
+      res.status(201).json({ success: true, message: 'Itinerary created successfully', data: savedItinerary });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Failed to create a new itinerary and events", data: error });
+      console.error('Error saving itinerary:', error); // Log detailed error
+      res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
 
 
-export const getDummyItinerary = async (req, res) => {
-  try {
-    // Directly return the dummy data imported from aiResponse.js
-    res.status(200).json({
-      success: true,
-      message: "Dummy data fetched successfully",
-      data: { itinerary: itineraryData, events: itineraryEventsData }
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Failed to fetch dummy data", data: error });
-  }
-};
-
-
-// Update Itinerary
-export const updateItinerary = async (req, res) => {
-    const id = req.params.id;
+// Controller function to get itinerary object by ID
+export const getItineraryById = async (req, res) => {
     try {
-      const updatedItinerary = await Itinerary.findByIdAndUpdate(
-        id,
-        {
-          $set: req.body,
-        },
-        { new: true }
-      );
-      res.status(200).json({
-        success: true,
-        message: "Successfully updated",
-        data: updatedItinerary,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Failed to update",
-      });
-    }
-};
+        // Extract itinerary ID from request parameters
+        const { id } = req.params;
 
-// Delete Itinerary
-export const deleteItinerary = async (req, res) => {
-    const id = req.params.id;
-    try {
-      await Itinerary.findByIdAndDelete(id);
-      res.status(200).json({
-        success: true,
-        message: "Successfully deleted",
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Failed to delete",
-      });
-    }
-};
+        // Find the itinerary object by ID
+        const itinerary = await Itinerary.findById(id);
 
-// Get Single Itinerary
-export const getSingleItinerary = async (req, res) => {
-    const id = req.params.id;
-    try {
-      const itinerary = await Itinerary.findById(id);
-      res.status(200).json({
-        success: true,
-        message: "Successful",
-        data: itinerary,
-      });
-    } catch (error) {
-      res.status(404).json({
-        success: false,
-        message: "Not found",
-      });
-    }
-};
+        if (!itinerary) {
+            return res.status(404).json({ success: false, message: 'Itinerary not found' });
+        }
 
-// Get All Itineraries
-export const getAllItinerary = async (req, res) => {
-    const page = parseInt(req.query.page);
-
-    try {
-      const itineraries = await Itinerary.find({})
-        .skip(page * 8)
-        .limit(8);
-      res.status(200).json({
-        success: true,
-        count: itineraries.length,
-        message: "Successful",
-        data: itineraries,
-      });
+        res.status(200).json({ success: true, message: 'Itinerary found', data: itinerary });
     } catch (error) {
-      res.status(404).json({
-        success: false,
-        message: "Not found",
-      });
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
-};
-
-// get itinerary by search
-export const getItineraryBySearch = async (req, res) => {
-    const origin = new RegExp(req.query.origin, "i"); // here i is for case insensitive
-  
-    try {
-      const itineraries = await Itinerary.find({
-        origin,
-      });
-      res.status(200).json({
-        success: true,
-        message: "Successful",
-        data: itineraries,
-      });
-    } catch (error) {
-      res.status(404).json({
-        success: false,
-        message: "Not found",
-      });
-    }
-  };
-  
-  // get featured itineraries
-  export const getFeaturedItinerary = async (req, res) => {
-    try {
-      const itineraries = await Itinerary.find({ featured: true })
-        .limit(8);
-      res.status(200).json({
-        success: true,
-        message: "Successful",
-        data: itineraries,
-      });
-    } catch (error) {
-      res.status(404).json({
-        success: false,
-        message: "Not found",
-      });
-    }
-  };
-  
-  // get itinerary counts
-  export const getItineraryCount = async (req, res) => {
-    try {
-      const itineraryCount = await Itinerary.estimatedDocumentCount();
-  
-      res.status(200).json({
-        success: true,
-        data: itineraryCount,
-      });
-    } catch (error) {
-      res.status(404).json({
-        success: false,
-        message: "Failed to fetch",
-      });
-    }
-  };
-  
-export default {
-  createItinerary,
-  updateItinerary,
-  deleteItinerary,
-  getSingleItinerary,
-  getAllItinerary,
-  getItineraryBySearch,
-  getItineraryCount,
-  getFeaturedItinerary
 };

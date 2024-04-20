@@ -1,12 +1,27 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
+const eventSchema = new Schema({
+  name: { type: String, required: true },
+  activity: { type: String, default: '' }, // default to empty string if not provided
+  type: { type: String, required: true }
+});
+
+const dailyEventsSchema = new Schema({
+  morning: [eventSchema],
+  afternoon: [eventSchema],
+  evening: [eventSchema]
+}, { _id: false }); // _id not necessary for this subdocument
+
 const itinerarySchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  itineraryId: { type: Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId(), index: { unique: true } },
-  itineraryEvents: [{ type: Schema.Types.ObjectId, ref: 'ItineraryEvent' }],
-  dateRange: { start: Date, end: Date },
+  itineraryEvents: { type: Map, of: dailyEventsSchema },
+  dateRange: {
+    start: { type: Date, required: true },
+    end: { type: Date, required: true }
+  },
   photo: String,
+  tips: String
 }, { timestamps: true });
 
 export default mongoose.model('Itinerary', itinerarySchema);

@@ -53,6 +53,7 @@ app.use('/api/v1/users',userRoute);
 app.use('/api/v1/review',reviewRoute);
 app.use('/api/v1/booking',bookingRoute);
 app.use('/api/v1/interests',interestRoute);
+app.use('/api/v1/itinerary',itineraryRoute);
 
 
 app.listen(port, () =>{

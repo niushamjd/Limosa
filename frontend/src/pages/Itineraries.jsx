@@ -7,6 +7,7 @@ import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import dayjs from 'dayjs';
+import { BASE_URL } from "../utils/config";
 
 import "../styles/itineraries.css";
 import {
@@ -130,7 +131,7 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
               });
             });
   
-            console.log(`Nearby restaurant for ${lastPlace.name}:`, restaurantResults[0]);
+           // console.log(`Nearby restaurant for ${lastPlace.name}:`, restaurantResults[0]);
           } catch (error) {
             console.error(error);
           }
@@ -164,29 +165,35 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
     const days = itineraryResponse.split("Day ").slice(1); // Split response by "Day" and ignore the first empty split
   
     days.forEach(day => {
-      const lines = day.split("\n");
+      const lines = day.split("\n").map(line => line.trim()); // Trim lines to remove any extraneous whitespace
       const dateLine = lines.shift(); // The first line contains the date
-      const date = dateLine.match(/\d+.*2024/)[0]; // Extract the date
+      const date = dateLine.match(/\d+ \w+ \d{4}/)[0]; // Extract the date with better regex
   
       itineraryObj[date] = { morning: [], afternoon: [], evening: [] };
       let currentPeriod = 'morning';
   
-      lines.forEach(line => {
+      lines.forEach((line, index) => {
         if (line.includes("Morning:")) currentPeriod = 'morning';
         else if (line.includes("Afternoon:")) currentPeriod = 'afternoon';
         else if (line.includes("Evening:")) currentPeriod = 'evening';
         else if (line.startsWith("- Place:") || line.startsWith("- Restaurant:")) {
+          // The next line is assumed to be the activity description
+          const activityLine = lines[index + 1]; // Get the next line for the activity
+          const name = line.split(":")[1].trim();
+          const activity = activityLine ? activityLine.split(":")[1].trim() : "";
+  
           itineraryObj[date][currentPeriod].push({
             type: line.startsWith("- Place:") ? "Place" : "Restaurant",
-            name: line.split(":")[1].trim(),
-            activity: line.split(":")[2]?.trim() || ""
+            name: name,
+            activity: activity
           });
         }
       });
     });
-  
     return itineraryObj;
   };
+  
+  
   useEffect(() => {
     if (Object.keys(itinerary).length > 0) {
       fetchNearbyRestaurantForLastPlaces(itinerary);
@@ -215,7 +222,6 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
     }
   
     setIsLoading(true);
-    console.log("Selected Dates:", dateRange[0].format('YYYY-MM-DD'), dateRange[1].format('YYYY-MM-DD'));
   
     const prompt = `Generate a structured travel itinerary for ${destination} for a ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget considering user interests in ${user.interests} from ${dateRange[0].format('YYYY-MM-DD')} to ${dateRange[1].format('YYYY-MM-DD')}, covering each day including last day . Divide the itinerary into morning, afternoon, and evening sections for each day. For each period, suggest two places to visit. Present the itinerary with explicit headings for each day and period, followed by the names of places to visit, each accompanied by a brief description.
 
@@ -272,11 +278,9 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
         model: "gpt-3.5-turbo",
       });
   
-      console.log("API Requested Dates:", `${dateRange[0].format('YYYY-MM-DD')} to ${dateRange[1].format('YYYY-MM-DD')}`);
-      console.log("Extracted Itinerary Response:", completion.choices[0].message.content);
+     // console.log("Extracted Itinerary Response:", completion.choices[0].message.content);
   
       const places = extractPlacesFromItinerary(completion.choices[0].message.content);
-      console.log("Extracted Places:", places);
       const parsedItinerary = parseItineraryResponse(completion.choices[0].message.content);
       setItinerary(parsedItinerary);
   
@@ -285,6 +289,41 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
     } finally {
       setIsLoading(false);
     }
+    //send post request to backend
+    try {
+      const itineraryPost = {
+        userId: user._id,
+        itinerary: itinerary,
+      };
+      const response = await fetch(`${BASE_URL}/itinerary`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user._id,
+          itineraryEvents: itinerary,
+          dateRange: {
+            start: dateRange[0].toISOString(), // Ensure date is in ISO format
+            end: dateRange[1].toISOString(),
+          },
+          tips: "Additional tips or comments here", // Example, adjust as necessary
+          photo: "URL to a relevant photo if applicable" // Example
+        })
+      });
+    
+      if (!response.ok) {
+        // If the HTTP status code is not 200-299, throw to go to the catch block
+        throw new Error('Network response was not ok: ' + response.statusText);
+      }
+    
+      const data = await response.json(); // Assuming the server responds with JSON
+      console.log("Itinerary created successfully:", data);
+    
+    } catch (error) {
+      console.error("Error:", error);
+    }
+    
   };
 
   // Render the component
