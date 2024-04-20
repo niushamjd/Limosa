@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-loop-func */
-import React, { useState, useContext, useRef, useEffect } from "react";
+import React, { useState, useContext, useRef, useEffect ,useMemo} from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
@@ -53,7 +53,7 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
     dangerouslyAllowBrowser: true,
   });
   // Function to parse the itinerary response from ChatGPT
-  const libraries = ["places"];
+  const libraries = useMemo(() => ["places"], []);
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: "AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8", // Replace with your actual Google Maps API key
     libraries,
@@ -93,7 +93,7 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
       for (const [period, activities] of Object.entries(periods)) {
         // Filter for "Place" activities and get the last one
         const lastPlace = activities.filter(activity => activity.type === 'Place').pop();
-        
+  
         if (lastPlace) {
           // Construct the request for the Google Places API
           const request = {
@@ -101,34 +101,44 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
             fields: ['name', 'geometry.location'],
           };
   
-          // Use the Google Places API to find the place details
-          service.textSearch(request, (results, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-              const location = results[0].geometry.location;
-              // Now find a nearby restaurant
-              const restaurantRequest = {
-                location: location,
-                radius: '500', // Adjust radius as needed
-                type: ['restaurant'],
-              };
-  
-              service.nearbySearch(restaurantRequest, (results, status) => {
+          try {
+            const placeResults = await new Promise((resolve, reject) => {
+              service.textSearch(request, (results, status) => {
                 if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-                  console.log(`Nearby restaurant for ${lastPlace.name}:`, results[0]);
-                  // Here you might want to do something with the restaurant data,
-                  // like updating your itinerary object or state.
+                  resolve(results);
                 } else {
-                  console.error(`No nearby restaurant found for ${lastPlace.name}`);
+                  reject(`Place details not found for ${lastPlace.name}`);
                 }
               });
-            } else {
-              console.error(`Place details not found for ${lastPlace.name}`);
-            }
-          });
+            });
+  
+            const location = placeResults[0].geometry.location;
+            // Now find a nearby restaurant
+            const restaurantRequest = {
+              location: location,
+              radius: '1000', // Adjust radius as needed
+              type: ['restaurant'],
+            };
+  
+            const restaurantResults = await new Promise((resolve, reject) => {
+              service.nearbySearch(restaurantRequest, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+                  resolve(results);
+                } else {
+                  reject(`No nearby restaurant found for ${lastPlace.name}`);
+                }
+              });
+            });
+  
+            console.log(`Nearby restaurant for ${lastPlace.name}:`, restaurantResults[0]);
+          } catch (error) {
+            console.error(error);
+          }
         }
       }
     }
   };
+  
   
 
   const extractPlacesFromItinerary = (itineraryResponse) => {
@@ -188,30 +198,26 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
   // Form submission handler
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-     // Additional check before proceeding with form submission
-  if (formError) {
-    console.error("Form submission halted due to errors.");
-    return; // Stop the form submission if there is an error
-  }
-
-    if (!user) {
-      navigate("/login"); // Redirects to login page if user is not logged in
-      return; // Prevents further execution of the function
+  
+    if (formError) {
+      console.error("Form submission halted due to errors.");
+      return;
     }
-    if (
-      !destination ||
-      !dateRange[0] ||
-      !dateRange[1] ||
-      !peopleGroup ||
-      !budget
-    ) {
+  
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+  
+    if (!destination || !dateRange[0] || !dateRange[1] || !peopleGroup || !budget) {
       setFormError("All fields are required. Please fill out the entire form.");
       return;
     }
-    setFormError(""); // Clear any existing error messages
+  
     setIsLoading(true);
-    const prompt = `Generate a structured travel itinerary for ${destination} for a ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget considering user interests in ${user.interests} from ${dateRange[0]} to ${dateRange[1]}. Divide the itinerary into morning, afternoon, and evening sections for each day. For each period, suggest two places to visit. Present the itinerary with explicit headings for each day and period, followed by the names of places to visit, each accompanied by a brief description.
+    console.log("Selected Dates:", dateRange[0].format('YYYY-MM-DD'), dateRange[1].format('YYYY-MM-DD'));
+  
+    const prompt = `Generate a structured travel itinerary for ${destination} for a ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget considering user interests in ${user.interests} from ${dateRange[0].format('YYYY-MM-DD')} to ${dateRange[1].format('YYYY-MM-DD')}, covering each day including last day . Divide the itinerary into morning, afternoon, and evening sections for each day. For each period, suggest two places to visit. Present the itinerary with explicit headings for each day and period, followed by the names of places to visit, each accompanied by a brief description.
 
     Example format:
     Day 1: Tuesday, 19 Mar 2024
@@ -261,24 +267,23 @@ const maxDate = dayjs().add(1, 'year'); // One year from today as the maximum da
     
 
     try {
-      // Call to OpenAI's API
       const completion = await openai.chat.completions.create({
         messages: [{ role: "system", content: prompt }],
         model: "gpt-3.5-turbo",
       });
-
-      setIsLoading(false);
-
-      const places = extractPlacesFromItinerary(
-        completion.choices[0].message.content
-      );
-      console.log("Extracted Places:", places); // Lo
+  
+      console.log("API Requested Dates:", `${dateRange[0].format('YYYY-MM-DD')} to ${dateRange[1].format('YYYY-MM-DD')}`);
+      console.log("Extracted Itinerary Response:", completion.choices[0].message.content);
+  
+      const places = extractPlacesFromItinerary(completion.choices[0].message.content);
+      console.log("Extracted Places:", places);
       const parsedItinerary = parseItineraryResponse(completion.choices[0].message.content);
       setItinerary(parsedItinerary);
-            console.log(completion.choices[0].message.content);
+  
     } catch (error) {
-      setIsLoading(false);
       console.error("Error generating trip plan:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
