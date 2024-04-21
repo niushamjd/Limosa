@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
+import FriendModal from './FriendModal';
 import "../styles/connect.css";
 
+import "../styles/modal.css";
 function Message({ message, onClose }) {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -29,7 +31,17 @@ function Connect() {
   const [errorMessage, setErrorMessage] = useState("");
   const [friendRequests, setFriendRequests] = useState([]);
 
+  const [selectedFriend, setSelectedFriend] = useState(null); // Selected friend for the modal
+  const [modalIsOpen, setModalIsOpen] = useState(false); // Modal open/close state
 
+  const openModal = (friend) => {
+    setSelectedFriend(friend); // Set the selected friend
+    setModalIsOpen(true); // Open the modal
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false); // Close the modal
+  };
   const fetchFriends = useCallback(async () => {
     try {
       const response = await fetch(`${BASE_URL}/users/${user._id}/friends`, {
@@ -232,15 +244,20 @@ function Connect() {
     <h2 className="friends-header">My Friends</h2>
     <div className="friends-container">
       {friends.map((friend) => (
-        <div key={friend._id} className="friend-card">
+        <div key={friend._id} className="friend-card" onClick={() => openModal(friend)}>
           <div className="friend-details">
             <h3 className="friend-name">{friend.username}</h3>
-            <p className="friend-email">{friend.email}</p>
-            <p className="friend-email">Interests: {friend.interests.join(", ")}</p>
+           
           </div>
         </div>
       ))}
     </div>
+     {/* Modal component */}
+     <FriendModal
+        isOpen={modalIsOpen}
+        onClose={closeModal}
+        friend={selectedFriend} // Pass the selected friend
+      />
   
     <h2 className="friend-requests-header">Friend Requests</h2>
 <div className="friends-container">

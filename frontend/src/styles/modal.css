@@ -1,0 +1,66 @@
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75); /* Slightly transparent black */
+  z-index: 1100; /* Ensure it's above other elements */
+}
+
+/* Modal Content */
+.modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the modal */
+  background: #1e1930 !important; /* Consistent with other card backgrounds */
+  border: 1px solid #333 !important;
+  padding: 15px; /* Reduced padding for a more compact size */
+  border-radius: 5px; /* Reduced border radius for sharper corners */
+  width: 300px !important; /* Smaller width for a more compact modal */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Reduced shadow for subtlety */
+  z-index: 1150; /* Ensure it's above the overlay */
+  text-align: center; /* Center-align content */
+}
+
+/* Modal Content Headers */
+.modal-content h3 {
+  color: #FAA935; /* Bold color for headers */
+  margin-bottom: 10px; /* Space below the header */
+}
+
+/* Modal Content Paragraphs */
+.modal-content p {
+  color: #ccc; /* Consistent with other text */
+  margin: 5px 0; /* Reduced margins for a more compact layout */
+}
+
+/* Clickable Span for Email */
+.modal-content span {
+  color: #FAA935; /* Highlighted color for clickable elements */
+  text-decoration: underline; /* Underline to indicate it's clickable */
+  cursor: pointer; /* Cursor change for clickable elements */
+}
+
+/* Modal Close Button */
+.modal-content button {
+  background-color: #FAA935; /* Consistent with other buttons */
+  color: #fff;
+  border: none;
+  border-radius: 5px; /* Consistent with other elements */
+  padding: 10px 20px; /* Adjusted padding for the button */
+  cursor: pointer; /* Cursor change for interactivity */
+  transition: background-color 0.3s ease; /* Smooth hover transition */
+}
+
+/* Hover Effect for Button */
+.modal-content button:hover {
+  background-color: #c37e00; /* Darker shade on hover */
+}
+
+/* Hover Effect for Modal Content */
+.modal-content:hover {
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4); /* Stronger shadow on hover */
+}
