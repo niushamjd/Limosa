@@ -10,11 +10,11 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthContextProvider } from "./context/AuthContext";
 import {disableReactDevTools} from '@fvilers/disable-react-devtools';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-
+import Modal from 'react-modal';
 if (process.env.NODE_ENV === 'production') {
   disableReactDevTools();
 }
-
+Modal.setAppElement('#root');
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
