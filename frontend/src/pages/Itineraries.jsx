@@ -280,7 +280,7 @@ function addRestaurantsToItinerary(itinerary, restaurants) {
   
     setIsLoading(true);
   
-    const prompt = `Generate a structured travel itinerary for ${destination} for a ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget considering user interests in ${user.interests} from ${dateRange[0].format('YYYY-MM-DD')} to ${dateRange[1].format('YYYY-MM-DD')}, covering each day including last day . Divide the itinerary into morning, afternoon, and evening sections for each day. For each period, suggest two places to visit. Present the itinerary with explicit headings for each day and period, followed by the names of places to visit, each accompanied by a brief description.
+    const prompt = `Generate a structured travel itinerary for ${destination} for a ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget considering user interests in ${user.interests} from ${dateRange[0].format('YYYY-MM-DD')} to ${dateRange[1].format('YYYY-MM-DD')}, covering each day including last day, when the start and end date are the same, give itinerary for only one day . Divide the itinerary into morning, afternoon, and evening sections for each day. For each period, suggest two places to visit. Present the itinerary with explicit headings for each day and period, followed by the names of places to visit, each accompanied by a brief description.
 
     Example format:
     Day 1: Tuesday, 19 Mar 2024
@@ -345,46 +345,41 @@ const restaurants = await fetchNearbyRestaurantForLastPlaces(parsedItinerary);
 const itineraryWithRestaurants = addRestaurantsToItinerary(parsedItinerary, restaurants);
 setItinerary(itineraryWithRestaurants);
 
-  
-    } catch (error) {
-      console.error("Error generating trip plan:", error);
-    } finally {
-      setIsLoading(false);
-    }
-    //send post request to backend
-    try {
-      const itineraryPost = {
-        userId: user._id,
-        itineraryEvents: itinerary,
-        dateRange: {
-          start: dateRange[0].toISOString(),
-          end: dateRange[1].toISOString(),
-        },
-        tips: "Additional tips or comments here",
-        photo: "URL to a relevant photo if applicable"
-      };
-    
-      const response = await fetch(`${BASE_URL}/itinerary`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(itineraryPost)
-      });
-    
-      if (!response.ok) {
-        throw new Error('Network response was not ok: ' + response.statusText);
-      }
-    
-      const data = await response.json();
-      console.log("Itinerary created successfully:", data);
-    
-    } catch (error) {
-      console.error("Error:", error);
-    }
-    
-    
-  };
+// Wait until state update is complete before sending POST request
+await new Promise(resolve => setTimeout(resolve, 0));
+
+const itineraryPost = {
+    userId: user._id,
+    itineraryEvents: itineraryWithRestaurants,
+    dateRange: {
+        start: dateRange[0].toISOString(),
+        end: dateRange[1].toISOString(),
+    },
+    tips: "Additional tips or comments here",
+    photo: "URL to a relevant photo if applicable"
+};
+
+const response = await fetch(`${BASE_URL}/itinerary`, {
+    method: "POST",
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(itineraryPost)
+});
+
+if (!response.ok) {
+    throw new Error('Network response was not ok: ' + response.statusText);
+}
+
+const data = await response.json();
+console.log("Itinerary created successfully:", data);
+
+} catch (error) {
+console.error("Error generating trip plan:", error);
+} finally {
+setIsLoading(false);
+}
+};
 
   // Render the component
   return (
