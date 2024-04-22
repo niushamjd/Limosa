@@ -211,23 +211,6 @@ function Itineraries() {
     return updatedItinerary;
   }
 
-  const extractPlacesFromItinerary = (itineraryResponse) => {
-    const places = [];
-
-    // Split the response by lines
-    const lines = itineraryResponse.split("\n");
-
-    // Iterate over each line to find "Place:"
-    lines.forEach((line) => {
-      if (line.startsWith("Place:")) {
-        // Extract the place name, trimming "Place: " from the start
-        const placeName = line.substring("Place:".length).trim();
-        places.push(placeName);
-      }
-    });
-
-    return places;
-  };
 
   const parseItineraryResponse = (itineraryResponse) => {
     const itineraryObj = {};
