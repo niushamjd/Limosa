@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
 import "../styles/travel-group.css";
+import { set } from 'mongoose';
 
 function Message({ message, onClose }) {
     return (
@@ -13,7 +14,7 @@ function Message({ message, onClose }) {
 }
 
 function TravelGroup() {
-  const { user } = useContext(AuthContext);
+  const { user, dispatch } = useContext(AuthContext);
   const [groupData, setGroupData] = useState({
     groupName: "",
     commonInterests: [],
@@ -83,17 +84,24 @@ function TravelGroup() {
 
   const validateForm = () => {
     const errors = {};
-    if (!groupData.groupName) errors.groupName = "Group name is required";
-    if (groupData.groupMates.length === 0) errors.friends = "Select at least one friend";
+    if (!groupData.groupName) {
+        errors.groupName = "Please enter a group name";
+    } else if (groups.some(group => group.groupName.toLowerCase() === groupData.groupName.toLowerCase())) {
+        errors.groupName = "Group name already exists";
+    }
+    if (groupData.groupMates.length === 0) {
+        errors.friends = "Please select at least one friend to add to the group";
+    }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  };
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      setError("Please ensure all required fields are filled out.");
+      setError("Please correct the errors in the form");
       return;
     }
   
@@ -121,6 +129,7 @@ function TravelGroup() {
         setShowMessage(true);
         window.scrollTo(0, 0);
         fetchGroups(); // Fetch the updated groups
+        dispatch({ payload: response.data });
       } else {
         console.error('Failed to create travel group:', data);
         setError(`Failed to create travel group: ${data.message}`);

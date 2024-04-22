@@ -82,27 +82,37 @@ export const updateUser = async (req, res) => {
 // update User
 export const updateUserGroup = async (req, res) => {
   const id = req.params.id;
-  console.log("Received data for update:", req.body);  // Check what you are actually receiving
-  const groupToAdd = req.body.groups;  // This should be an array
+  const groupToAdd = req.body.groups[0];  // Assuming one group at a time for simplicity
 
   try {
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      { $push: { groups: { $each: groupToAdd } } },  // Use $each for pushing an array
-      { new: true, runValidators: true }
-    );
-    console.log("Updated user:", updatedUser);
-    res.status(200).json({
-      success: true,
-      message: "Successfully updated",
-      data: updatedUser
-    });
+      const user = await User.findById(id);
+      // Check for existing group name
+      const duplicateGroup = user.groups.find(group => group.groupName.toLowerCase() === groupToAdd.groupName.toLowerCase());
+
+      if (duplicateGroup) {
+          return res.status(400).json({
+              success: false,
+              message: "Group name already exists"
+          });
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+          id,
+          { $push: { groups: groupToAdd } },
+          { new: true, runValidators: true }
+      );
+
+      res.status(200).json({
+          success: true,
+          message: "Successfully updated",
+          data: updatedUser
+      });
   } catch (error) {
-    console.error("Failed to update user:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to update"
-    });
+      console.error("Failed to update user:", error);
+      res.status(500).json({
+          success: false,
+          message: "Failed to update"
+      });
   }
 };
 
