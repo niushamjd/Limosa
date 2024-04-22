@@ -1,14 +1,8 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Button } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Button, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { LocationOn as LocationOnIcon, Delete as DeleteIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { BASE_URL } from "../utils/config";
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Typography from '@mui/material/Typography';
-
 
 function Itinerary() {
   const location = useLocation();
@@ -16,6 +10,11 @@ function Itinerary() {
   console.log("Itinerary object:", itinerary);
   console.log("Itinerary ID:", itinerary._id);
   console.log("Itinerary Events:", itinerary.itineraryEvents);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(date);
+  };
 
   if (!itinerary) {
     return <div>No itinerary data found.</div>; // Handling case where itinerary is not present
@@ -52,13 +51,14 @@ function Itinerary() {
         {Object.entries(itinerary.itineraryEvents).map(([date, periods]) => (
           <Accordion key={date}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>{date}</Typography>
-            </AccordionSummary>
+            <LocationOnIcon style={{ color: 'orange' }} />
+            <Typography style={{ marginLeft: '8px' }}>{formatDate(date)}</Typography>
+              </AccordionSummary>
             <AccordionDetails>
               {Object.entries(periods).map(([period, activities]) => (
                 <div key={period}>
                   <Typography variant="h6" component="h2">{`${period.charAt(0).toUpperCase() + period.slice(1)}`}</Typography>
-                  <ul>
+                    <ul>
                     {activities.map((activity, index) => (
                       <li key={index}>
                         <strong>

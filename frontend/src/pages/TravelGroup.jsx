@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
 import "../styles/travel-group.css";
-import { set } from 'mongoose';
+//import { set } from 'mongoose';
 
 function Message({ message, onClose }) {
     return (
