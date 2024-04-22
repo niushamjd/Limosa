@@ -16,6 +16,8 @@ import ViewItinerary from '../pages/ViewItinerary'
 import TravelGroup from '../pages/TravelGroup'
 import ViewPastItinerary from '../pages/ViewPastItinerary'
 import Connect from '../pages/Connect'
+import Itinerary from '../pages/Itinerary'
+
 
 const Routers = () => {
   return (
@@ -37,6 +39,7 @@ const Routers = () => {
         <Route path="/travelgroup" element={<TravelGroup />}></Route>
         <Route path="/viewPastItinerary" element={<ViewPastItinerary />}></Route>
         <Route path="/connect" element={<Connect />}></Route>
+        <Route path="/itinerary" element={<Itinerary />} />
 
 
     </Routes>
