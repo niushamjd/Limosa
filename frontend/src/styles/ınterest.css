@@ -50,7 +50,7 @@
 }
 h2 {
   text-align: center;
-  font-family: var(--subtitle-font-name);
+  font-family: 'Playfair Display', serif;
   font-weight: bolder;
   margin-top: 30px;
   position: relative; /* Added to position the pseudo-element */

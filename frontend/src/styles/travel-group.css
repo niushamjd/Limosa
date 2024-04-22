@@ -4,8 +4,34 @@
     --secondary-color: #faa935;
     --heading-color: #0b2727;
     --text-color: #6e7074;
-    --font-name: "Montserrat", sans-serif;
+   
+    
   }
+  .split-container {
+    display: flex; /* Use flex layout to create a split view */
+    justify-content: space-between; /* Space between the two sections */
+    padding: 20px; /* Padding around the container */
+  }
+  
+  /* Left section for "Your Trips" */
+  .left-section {
+    flex: 1; /* Take up equal space with the right section */
+    padding-right: 10px; /* Space between the two sections */
+  }
+  
+  /* Right section for "Create a Travel Group" */
+  .right-section {
+    flex: 1; /* Take up equal space with the left section */
+    padding-left: 10px; /* Space between the two sections */
+  }
+  
+  /* Group Grid Layout */
+  .group-grid {
+    display: grid;
+    grid-template-columns: 3fr; /* Default to 1 column */
+    gap: 10px; /* Space between grid items */
+  }
+  
   
   .travel-group-container h2, /* Assuming you wrap your component in a div with this class */
   h2 {
@@ -15,7 +41,11 @@
     text-align: center;
     margin: 20px 0;
   }
-  
+  h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-top: 20px;
+  }
   /* You may want to wrap your Travel Group form in a container with a specific class or reuse .travel-group-container for consistency */
   
   .travel-group-container, .form-group {
@@ -30,8 +60,11 @@
   
   .form-group label {
     display: block;
-    margin-bottom: 5px;
-    color: var(--text-color);
+  
+  
+  color: var(--text-color); /* Label color */
+  font-size: 1rem; /* Label font size */
+  margin-bottom: 5px; /* Space below the label */
   }
   
   .form-group input[type="text"],
@@ -43,6 +76,7 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    
   }
   
   .submit-container {
@@ -68,7 +102,45 @@
     
   }
   
-
+  .group-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns layout */
+    gap: 16px; /* space between grid items */
+    margin: 0 auto; /* center the grid */
+    max-width: 960px; /* maximum grid width */
+    padding: 16px; /* padding around the grid */
+  }
+  
+  .group-card {
+    background: #fff; /* white background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* subtle shadow */
+    border-radius: 8px; /* rounded corners */
+    overflow: hidden; /* clip content to the border radius */
+    cursor: pointer; /* change cursor on hover */
+    transition: transform 0.3s ease, border-color 0.3s ease; /* smooth transitions */
+  }
+  
+  .group-card img {
+    width: 100%; /* full width */
+    height: auto; /* maintain aspect ratio */
+    object-fit: cover; /* fill without distorting */
+    transition: opacity 0.3s ease; /* smooth opacity change */
+  }
+  
+  .group-card:hover {
+    transform: scale(1.05); /* slight enlargement on hover */
+  }
+  
+  .group-card p {
+    --font-name: "Montserrat", sans-serif;
+    text-align: center; /* centered text */
+    padding: 8px; /* padding inside the card */
+    margin: 0; /* remove default paragraph margin */
+  }
+  
+  .group-card.selected {
+    border: 2px solid #FAA935; /* highlight when selected */
+  }
   .input-error {
     border: 2px solid red;
   }
