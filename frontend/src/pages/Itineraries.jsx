@@ -39,6 +39,7 @@ function Itineraries() {
   const [dateRange, setDateRange] = useState([null, null]);
   const [destination, setDestination] = useState("");
   const [peopleGroup, setPeopleGroup] = useState("");
+  const [groupNames, setGroupNames] = useState(''); // Ensure this line exists
   const [budget, setBudget] = useState("");
   const [itineraryId, setItineraryId] = useState("");
 
@@ -49,6 +50,8 @@ function Itineraries() {
   // Options for select inputs
   const peopleOptions = ["Solo", "Family", "Couple", "Group"];
   const budgetOptions = ["Economy", "Standard", "Luxury"];
+  const groupOptions = user?.groups.map(group => group.groupName) || ["You have no groups"];
+
   const navigate = useNavigate(); // Add this if not already imported
   const cityOptions = ["İstanbul", "İzmir", "Ankara", "Antalya"];
   // Instantiate OpenAI with the API key
@@ -286,6 +289,22 @@ function Itineraries() {
             </Select>
           </FormControl>
         </Box>
+        {peopleGroup === "Group" && (
+          <Box mt={2}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Select your group</InputLabel>
+              <Select
+                value={groupNames}
+                onChange={(e) => setGroupNames(e.target.value)}
+                input={<OutlinedInput label="Select your group" />}
+              >
+                {groupOptions.map((groupName) => (
+                  <MenuItem key={groupName} value={groupName}>{groupName}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        )}
         <Box mt={2}>
           <FormControl fullWidth margin="normal" error={!!formError && !budget}>
             <InputLabel>What is your ideal budget?</InputLabel>
