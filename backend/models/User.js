@@ -4,6 +4,11 @@ import itinerarySchema from "./Itinerary.js";
 
 const { Schema } = mongoose;
 
+const groupMateSchema = new Schema({
+  id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  username: { type: String, required: true }
+});
+
 const userSchema = new Schema(
   {
     username: {
@@ -70,18 +75,12 @@ const userSchema = new Schema(
     }],
     groups: {
       type: [{
-          groupName: {
-              type: String,
-          },
-          numberOfPeople: {
-              type: Number,
-          },
-          commonInterests: {
-              type: [String],
-          },
+          groupName: { type: String, required: true },
+          groupMates: [groupMateSchema], // Use the new GroupMate schema here
+          commonInterests: { type: [String], default: [] },
       }],
       default: [],
-    },
+  },
     friends: {
       type: [Schema.Types.ObjectId],
       ref: 'User',

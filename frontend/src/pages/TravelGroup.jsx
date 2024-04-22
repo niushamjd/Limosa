@@ -6,25 +6,72 @@ import "../styles/travel-group.css";
 function Message({ message, onClose }) {
     return (
       <div className="message-container">
-        <div className="message-content">
-          {message}
-        
-        </div>
+        <button onClick={onClose}>Close</button>
+        <div className="message-content">{message}</div>
       </div>
     );
-  }
+}
+
 function TravelGroup() {
+  const { user } = useContext(AuthContext);
   const [groupData, setGroupData] = useState({
     groupName: "",
-    numberOfPeople: "",
     commonInterests: [],
+    groupMates: []
   });
-  const [interests, setInterests] = useState([]);
+  const [groups, setGroups] = useState([]); // State to hold user groups
+  const [friends, setFriends] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
-  const [error, setError] = useState(""); // State to store the error message
-  const [validationErrors, setValidationErrors] = useState({}); // New state to track validation errors for each field
-  const { user } = useContext(AuthContext);
+  const [error, setError] = useState("");
+  const [validationErrors, setValidationErrors] = useState({});
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/users/${user._id}/groups`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setGroups(data.data); // Assuming the backend sends the groups under a 'groups' key
+        } else {
+          throw new Error(data.message || 'Failed to fetch groups');
+        }
+      } catch (error) {
+        setError('Error fetching groups: ' + error.message);
+      }
+    };
+
+    fetchGroups();
+  }, [user._id]); // Fetch groups when the component mounts or user id changes
+
+
+
+  const handleFriendChange = (friend) => {
+    // Determine if the friend is already selected
+    const isAlreadySelected = groupData.groupMates.some(gm => gm.id === friend._id);
+
+    // If already selected, remove them, otherwise add them
+    const newFriends = isAlreadySelected
+        ? groupData.groupMates.filter(gm => gm.id !== friend._id)
+        : [...groupData.groupMates, { id: friend._id, username: friend.username }];
+
+    // Update state with the new list of group mates
+    setGroupData(prevState => ({
+        ...prevState,
+        groupMates: newFriends,
+        commonInterests: [...new Set([...prevState.commonInterests, ...extractFriendInterests(newFriends.map(f => f.id))])]
+    }));
+};
+
+
+
+  const extractFriendInterests = (selectedFriendIds) => {
+    return friends.filter(friend => selectedFriendIds.includes(friend._id))
+                  .flatMap(friend => friend.interests);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,128 +80,136 @@ function TravelGroup() {
       [name]: value
     }));
   };
+
   const validateForm = () => {
     const errors = {};
-    if (!groupData.groupName) errors.groupName = true;
-    if (!groupData.numberOfPeople) errors.numberOfPeople = true;
-    if (groupData.commonInterests.length === 0) errors.commonInterests = true;
-    
+    if (!groupData.groupName) errors.groupName = "Group name is required";
+    if (groupData.groupMates.length === 0) errors.friends = "Select at least one friend";
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
-  const handleInterestChange = (e) => {
-    const options = e.target.options;
-    const commonInterests = [];
-    for (let i = 0; i < options.length; i++) {
-      if (options[i].selected) {
-        commonInterests.push(options[i].value);
-      }
-    }
-    setGroupData(prevState => ({
-      ...prevState,
-      commonInterests: [...prevState.commonInterests, ...commonInterests]
-    }));
-  };
-  
-  
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      setError("All fields are required. Please fill out the entire form.");
+      setError("Please ensure all required fields are filled out.");
       return;
     }
+  
+    const formattedGroupData = {
+      groupName: groupData.groupName,
+      commonInterests: groupData.commonInterests,
+      groupMates: groupData.groupMates.map(gm => ({
+        id: gm.id,  // Ensure this is the MongoDB ObjectId of the user
+        username: gm.username  // Ensure this is the username of the user
+      }))
+    };
+    
     try {
-        const response = await fetch(`${BASE_URL}/users/${user._id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ groups: groupData }),
-        });
+      console.log('formattedGroupData:', formattedGroupData);
+      const response = await fetch(`${BASE_URL}/users/${user._id}`, {  // Ensure the endpoint is correct
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ groups: [formattedGroupData] }),  // Ensure this is an array if your schema expects an array
+      });
+      const data = await response.json();
       if (response.ok) {
         setSuccessMessage("Travel group created successfully");
         setShowMessage(true);
         window.scrollTo(0, 0);
-        console.log(groupData)
       } else {
-        console.error('Failed to create travel group');
+        console.error('Failed to create travel group:', data);
+        setError(`Failed to create travel group: ${data.message}`);
       }
     } catch (error) {
       console.error('Error creating travel group:', error);
+      setError(`Error creating travel group: ${error.message}`);
     }
-  };
+};
 
-  const handleCloseMessage = () => {
-    setError(""); 
-    setShowMessage(false);
-  };
-  useEffect(() => {
-    let timer;
-    if (error) {
-      timer = setTimeout(() => {
-        setError("");
-      }, 2000); // Clears the error message after 3 seconds
-    }
   
-    return () => clearTimeout(timer); // Cleanup function to clear the timer if the component unmounts or the error changes
-  }, [error]); 
+
+
 
   useEffect(() => {
-    if (showMessage) {
-      const timer = setTimeout(() => {
-        setShowMessage(false);
-      }, 1500);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [showMessage]);
-
-  useEffect(() => {
-    const fetchInterests = async () => {
+    const fetchFriends = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/interests`, {
+        const response = await fetch(`${BASE_URL}/users/${user._id}/friends`, {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           }
         });
         if (response.ok) {
-          const data = await response.json();
-          setInterests(data.data);
+          const jsonResponse = await response.json();
+          if (jsonResponse.success) {
+            setFriends(jsonResponse.data); // Store the full friend objects
+          } else {
+            throw new Error(jsonResponse.message);
+          }
         } else {
-          console.error('Failed to fetch interests');
+          throw new Error('Failed to fetch friends');
         }
       } catch (error) {
-        console.error('Error fetching interests:', error);
+        setError('Error fetching friends: ' + error.message);
       }
     };
 
-    fetchInterests();
-  }, []);
+    fetchFriends();
+  }, [user._id]);
+
 
   return (
     <>
-     {error && <Message message={error} />}
-      {showMessage && <Message message={successMessage} onClose={handleCloseMessage} />}
+      {error && <Message message={error} onClose={() => setError("")} />}
+      {showMessage && <Message message={successMessage} onClose={() => setShowMessage(false)} />}
+      <div className="existing-groups">
+          <h3>Your Travel Groups:</h3>
+          {groups.map(group => (
+            <div key={group.id} className="group-item">
+              <p>{group.groupName}</p>
+              <ul>
+                {group.commonInterests.map(interest => (
+                  <li key={interest}>{interest}</li>
+                ))}
+              </ul>
+
+              Group mates:
+              <ul>
+                {group.groupMates.map(gm => (
+                  <li key={gm.id}>{gm.username}</li>
+                ))}
+              </ul>
+
+            </div>
+          ))}
+        </div>
       <h2>Create a Travel Group</h2>
       <form className='group' onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="groupName">Group Name:</label>
           <input type="text" id="groupName" name="groupName" value={groupData.groupName} onChange={handleChange} className={validationErrors.groupName ? 'input-error' : ''} />
+          {validationErrors.groupName && <p className="error-message">{validationErrors.groupName}</p>}
         </div>
         <div className="form-group">
-          <label htmlFor="numberOfPeople">Number of People:</label>
-          <input type="number" id="numberOfPeople" name="numberOfPeople" value={groupData.numberOfPeople} onChange={handleChange} className={validationErrors.numberOfPeople ? 'input-error' : ''}/>
-        </div>
-        <div className="form-group">
-          <label htmlFor="interests">Select Mutual Interests:</label>
-          <select id="commonInterest" name="commonInterest" multiple value={groupData.commonInterests} onChange={handleInterestChange} className={validationErrors.commonInterests ? 'input-error' : ''}>
-            {interests.map(interest => (
-              <option key={interest.interestName} value={interest.interestName}>{interest.interestName}</option>
-            ))}
-          </select>
+          <label>Select Friends:</label>
+          {friends.map(friend => (
+    <div key={friend._id}>
+        <label>
+            <input 
+                type="checkbox"
+                checked={groupData.groupMates.some(gm => gm.id === friend._id)}
+                onChange={() => handleFriendChange(friend)}
+            />
+            {friend.username}
+        </label>
+    </div>
+))}
+
+          {validationErrors.friends && <p className="error-message">{validationErrors.friends}</p>}
         </div>
         <div className="submit-container">
           <button type="submit" className="submit">Create Group</button>

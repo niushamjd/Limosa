@@ -59,26 +59,31 @@ export const createUser = async (req, res) => {
 // update User
 export const updateUser = async (req, res) => {
   const id = req.params.id;
+  console.log("Received data for update:", req.body);  // Check what you are actually receiving
+  const groupToAdd = req.body.groups;  // This should be an array
+
   try {
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      {
-        $set: req.body,
-      },
-      { new: true }
+      { $push: { groups: { $each: groupToAdd } } },  // Use $each for pushing an array
+      { new: true, runValidators: true }
     );
+    console.log("Updated user:", updatedUser);
     res.status(200).json({
       success: true,
-      message: "Succesfully updated",
-      data: updatedUser,
+      message: "Successfully updated",
+      data: updatedUser
     });
   } catch (error) {
+    console.error("Failed to update user:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to update",
+      message: "Failed to update"
     });
   }
 };
+
+
 // delete User
 export const deleteUser = async (req, res) => {
   const id = req.params.id;
@@ -338,3 +343,18 @@ export const modifyFriendRequest = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+export const getUserGroups = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const user = await
+    User.findById(userId).populate('groups', 'groupName groupMates commonInterests'); 
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ message: 'Groups found', data: user.groups });
+  }
+  catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
