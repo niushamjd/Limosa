@@ -40,6 +40,8 @@ function Itineraries() {
   const [destination, setDestination] = useState("");
   const [peopleGroup, setPeopleGroup] = useState("");
   const [budget, setBudget] = useState("");
+  const [itineraryId, setItineraryId] = useState("");
+
   const { user } = useContext(AuthContext);
   const [itinerary, setItinerary] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -148,42 +150,44 @@ function Itineraries() {
         const itineraryPost = {
           userId: user._id,
           itineraryEvents: itineraryWithRestaurants,
-          dateRange: {
-            start: dateRange[0].toISOString(),
-            end: dateRange[1].toISOString(),
-          },
+          dateRange: { start: dateRange[0].toISOString(), end: dateRange[1].toISOString() },
           tips: "Additional tips or comments here",
           photo: "URL to a relevant photo if applicable",
         };
-  
+    
         const response = await fetch(`${BASE_URL}/itinerary`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(itineraryPost),
         });
-  
+    
         if (!response.ok) {
           throw new Error("Network response was not ok: " + response.statusText);
         }
-  
         const data = await response.json();
         console.log("Itinerary created successfully:", data);
+    
+        // Store itinerary ID after successful creation
+        setItineraryId(data.data._id);
+    
+        navigate("/itinerary", { state: { itinerary: data.data } }); // Ensure that the data passed contains the ID
       } catch (error) {
         console.error("Error:", error);
+        setFormError("An error occurred while creating the itinerary.");
+      } finally {
+        setIsLoading(false);
       }
-
-      
-      navigate("/itinerary", { state: { itinerary: itineraryWithRestaurants } }); // Yönlendirme ve veriyi taşıma
-    } catch (error) {
-      setFormError("An error occurred while generating the itinerary. Please try again.");
-    } finally {
-      setIsLoading(false); // Hata veya başarı durumunda loading'i durdur
     }
+    catch (error) {
+      console.error("Error:", error);
+      setFormError("An error occurred while generating the itinerary.");
+      setIsLoading(false);
+    }
+  };
+
     
 
-  };
+  
 
   // Render the component
   return (
