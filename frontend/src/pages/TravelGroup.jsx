@@ -26,7 +26,6 @@ function TravelGroup() {
   const [error, setError] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
 
-  useEffect(() => {
     const fetchGroups = async () => {
       try {
         const response = await fetch(`${BASE_URL}/users/${user._id}/groups`, {
@@ -43,9 +42,10 @@ function TravelGroup() {
         setError('Error fetching groups: ' + error.message);
       }
     };
-
-    fetchGroups();
-  }, [user._id]); // Fetch groups when the component mounts or user id changes
+    
+    useEffect(() => {
+      fetchGroups();
+    }, [user._id]); // Fetch groups when the component mounts or user id changes
 
 
 
@@ -120,6 +120,7 @@ function TravelGroup() {
         setSuccessMessage("Travel group created successfully");
         setShowMessage(true);
         window.scrollTo(0, 0);
+        fetchGroups(); // Fetch the updated groups
       } else {
         console.error('Failed to create travel group:', data);
         setError(`Failed to create travel group: ${data.message}`);
@@ -176,7 +177,6 @@ function TravelGroup() {
                   <li key={interest}>{interest}</li>
                 ))}
               </ul>
-
               Group mates:
               <ul>
                 {group.groupMates.map(gm => (
