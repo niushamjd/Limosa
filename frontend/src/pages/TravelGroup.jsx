@@ -108,7 +108,7 @@ function TravelGroup() {
     
     try {
       console.log('formattedGroupData:', formattedGroupData);
-      const response = await fetch(`${BASE_URL}/users/${user._id}`, {  // Ensure the endpoint is correct
+      const response = await fetch(`${BASE_URL}/users/${user._id}/groups`, {  // Ensure the endpoint is correct
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

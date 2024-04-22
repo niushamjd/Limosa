@@ -59,6 +59,29 @@ export const createUser = async (req, res) => {
 // update User
 export const updateUser = async (req, res) => {
   const id = req.params.id;
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        $set: req.body,
+      },
+      { new: true }
+    );
+    res.status(200).json({
+      success: true,
+      message: "Succesfully updated",
+      data: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update",
+    });
+  }
+};
+// update User
+export const updateUserGroup = async (req, res) => {
+  const id = req.params.id;
   console.log("Received data for update:", req.body);  // Check what you are actually receiving
   const groupToAdd = req.body.groups;  // This should be an array
 
