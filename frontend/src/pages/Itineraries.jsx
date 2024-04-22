@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { BASE_URL } from "../utils/config";
 import { generateItineraryPrompt, fetchItinerary } from "../services/ItineraryService";
+import { fetchNearbyRestaurants } from "../services/RestaurantService";
+import { parseItineraryResponse, addRestaurantsToItinerary } from "../services/ItineraryParserService";
 
 import "../styles/itineraries.css";
 import {
@@ -85,174 +87,10 @@ function Itineraries() {
     return () => clearTimeout(timer); // Cleanup function to clear the timer
   }, [formError]);
 
-  const fetchNearbyRestaurantForLastPlaces = async (itinerary) => {
-    if (!mapRef.current) {
-      console.error("Google Maps JavaScript API has not been loaded yet.");
-      return [];
-    }
-
-    const service = new window.google.maps.places.PlacesService(mapRef.current);
-    let restaurantsArray = []; // Array to hold all restaurant details
-
-    // Label for the outer loop for easy break
-    outerLoop: for (const [date, periods] of Object.entries(itinerary)) {
-      for (const [period, activities] of Object.entries(periods)) {
-        const lastPlace = activities
-          .filter((activity) => activity.type === "Place")
-          .pop();
-
-        if (lastPlace) {
-          const request = {
-            query: lastPlace.name,
-            fields: ["name", "geometry.location"],
-          };
-
-          try {
-            const placeResults = await new Promise((resolve, reject) => {
-              service.textSearch(request, (results, status) => {
-                if (
-                  status === google.maps.places.PlacesServiceStatus.OK &&
-                  results.length > 0
-                ) {
-                  resolve(results);
-                } else {
-                  reject(`Place details not found for ${lastPlace.name}`);
-                }
-              });
-            });
-
-            const location = placeResults[0].geometry.location;
-            const restaurantRequest = {
-              location: location,
-              radius: "1000", // Search within 1000 meters
-              type: ["restaurant"],
-            };
-
-            const restaurantResults = await new Promise((resolve, reject) => {
-              service.nearbySearch(restaurantRequest, (results, status) => {
-                if (
-                  status === google.maps.places.PlacesServiceStatus.OK &&
-                  results.length > 0
-                ) {
-                  resolve(results);
-                } else {
-                  reject(`No nearby restaurant found for ${lastPlace.name}`);
-                }
-              });
-            });
-
-            // Only add the first restaurant result to the array, checking for duplicates
-            for (const restaurant of restaurantResults) {
-              const isDuplicate = restaurantsArray.some(
-                (r) =>
-                  r.name === restaurant.name &&
-                  r.location === restaurant.vicinity
-              );
-              if (!isDuplicate) {
-                restaurantsArray.push({
-                  name: restaurant.name,
-                  activity: "Dining",
-                  type: "Restaurant",
-                  location: restaurant.vicinity,
-                  photo:
-                    restaurant.photos && restaurant.photos.length > 0
-                      ? restaurant.photos[0].getUrl()
-                      : "",
-                });
-                break; // Add only one unique restaurant per last place
-              }
-            }
-
-            // Break out of the loop if 6 unique restaurants have been found
-            if (restaurantsArray.length === 6) {
-              break outerLoop;
-            }
-          } catch (error) {
-            console.error(error);
-          }
-        }
-      }
-    }
-    return restaurantsArray;
-  };
-
-  function addRestaurantsToItinerary(itinerary, restaurants) {
-    const updatedItinerary = { ...itinerary };
-    let restaurantIndex = 0; // To keep track of which restaurant to add next
-
-    // Iterate over each date in the itinerary
-    for (const date in updatedItinerary) {
-      if (!updatedItinerary.hasOwnProperty(date)) {
-        continue;
-      }
-
-      // Go through each period: morning, afternoon, evening
-      ["morning", "afternoon", "evening"].forEach((period) => {
-        if (updatedItinerary[date][period] && restaurants[restaurantIndex]) {
-          // Add a restaurant to the current period
-          updatedItinerary[date][period].push({
-            name: restaurants[restaurantIndex].name,
-            activity: "Dining at " + restaurants[restaurantIndex].name,
-            type: "Restaurant",
-            location: restaurants[restaurantIndex].location,
-            photo: restaurants[restaurantIndex].photo,
-          });
-
-          // Increment to use the next restaurant for the next period
-          restaurantIndex = (restaurantIndex + 1) % restaurants.length; // Loop back if end is reached
-        }
-      });
-
-      // Optional: Stop adding if you've cycled through all restaurants once
-      if (restaurantIndex >= restaurants.length) {
-        break; // Remove this if you want to cycle restaurants until all periods are filled
-      }
-    }
-    return updatedItinerary;
-  }
-
-
-  const parseItineraryResponse = (itineraryResponse) => {
-    const itineraryObj = {};
-    const days = itineraryResponse.split("Day ").slice(1); // Split response by "Day" and ignore the first empty split
-
-    days.forEach((day) => {
-      const lines = day.split("\n").map((line) => line.trim()); // Trim lines to remove any extraneous whitespace
-      const dateLine = lines.shift(); // The first line contains the date
-      const date = dateLine.match(/\d+ \w+ \d{4}/)[0]; // Extract the date with better regex
-
-      itineraryObj[date] = { morning: [], afternoon: [], evening: [] };
-      let currentPeriod = "morning";
-
-      lines.forEach((line, index) => {
-        if (line.includes("Morning:")) currentPeriod = "morning";
-        else if (line.includes("Afternoon:")) currentPeriod = "afternoon";
-        else if (line.includes("Evening:")) currentPeriod = "evening";
-        else if (
-          line.startsWith("- Place:") ||
-          line.startsWith("- Restaurant:")
-        ) {
-          // The next line is assumed to be the activity description
-          const activityLine = lines[index + 1]; // Get the next line for the activity
-          const name = line.split(":")[1].trim();
-          const activity = activityLine
-            ? activityLine.split(":")[1].trim()
-            : "";
-
-          itineraryObj[date][currentPeriod].push({
-            type: line.startsWith("- Place:") ? "Place" : "Restaurant",
-            name: name,
-            activity: activity,
-          });
-        }
-      });
-    });
-    return itineraryObj;
-  };
 
   useEffect(() => {
     if (Object.keys(itinerary).length > 0) {
-      fetchNearbyRestaurantForLastPlaces(itinerary);
+      fetchNearbyRestaurants(mapRef, itinerary);
     }
   }, [itinerary]); // Dependency array ensures this effect runs only when `itinerary` changes
 
@@ -297,7 +135,8 @@ function Itineraries() {
       const parsedItinerary = await parseItineraryResponse(
         generatedItinerary
       );
-      const restaurants = await fetchNearbyRestaurantForLastPlaces(
+      const restaurants = await fetchNearbyRestaurants(
+        mapRef,
         parsedItinerary
       );
 
