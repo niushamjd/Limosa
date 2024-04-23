@@ -3,7 +3,7 @@ import {
   createItinerary,
   getItineraryById,
   getUSerItineraries,
-  deleteEventFromItinerary  // Import the new function
+  deleteEventsFromItinerary  // Import the new function
 } from "../controllers/itineraryController.js";
 
 const router = express.Router();
@@ -17,7 +17,7 @@ router.get("/user/:userId", getUSerItineraries);
 // Delete an event from an itinerary
 router.post("/delete-event", (req, res) => {
   console.log("Delete event route hit");
-  deleteEventFromItinerary(req, res);
+  deleteEventsFromItinerary(req, res);
 });
 
 export default router;

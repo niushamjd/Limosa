@@ -54,23 +54,24 @@ export const getUSerItineraries = async (req, res) => {
 }
 
 // Controller function to delete an event from a specific date and period
-export const deleteEventFromItinerary = async (req, res) => {
-    const { itineraryId, date, period, eventName } = req.body;
-    console.log(itineraryId);
-    console.log(`Attempting to delete event: ${eventName} on ${date} during ${period}`);
+export const deleteEventsFromItinerary = async (req, res) => {
+    const { itineraryId, date, period, eventName, deleteType } = req.body;
     try {
-        const update = {
-            $pull: { [`itineraryEvents.${date}.${period}`]: { name: eventName } }
-        };
-        const itinerary = await Itinerary.findByIdAndUpdate(itineraryId, update, { new: true });
-        if (!itinerary) {
-            console.log('Itinerary not found with ID:', itineraryId);
-            return res.status(404).json({ success: false, message: 'Itinerary not found' });
-        }
-        console.log('Event deleted, updated itinerary:', itinerary);
-        res.status(200).json({ success: true, message: 'Event deleted successfully', data: itinerary });
+      let update = {};
+      if (deleteType === "day") {
+        // This block should handle deleting the entire day
+        update.$unset = { [`itineraryEvents.${date}`]: "" };
+      } else {
+        // This block handles deleting specific events
+        update.$pull = { [`itineraryEvents.${date}.${period}`]: { name: eventName } };
+      }
+      const itinerary = await Itinerary.findByIdAndUpdate(itineraryId, update, { new: true });
+      if (!itinerary) {
+        return res.status(404).json({ success: false, message: 'Itinerary not found' });
+      }
+      res.status(200).json({ success: true, message: 'Events deleted successfully', data: itinerary });
     } catch (error) {
-        console.error('Error deleting event from itinerary:', error);
-        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+      res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
-};
+  };
+  
