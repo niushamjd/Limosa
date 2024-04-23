@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button, Typography, Accordion, AccordionSummary, AccordionDetails, Box, Paper } from '@mui/material';
 import { LocationOn as LocationOnIcon, Delete as DeleteIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
@@ -6,23 +6,31 @@ import { BASE_URL } from "../utils/config";
 
 function Itinerary() {
   const location = useLocation();
-  const { itinerary } = location.state || {};
+  const locationState = location.state || {};
+  const [itinerary, setItinerary] = useState(locationState.itinerary);
+
+  useEffect(() => {
+    // This will re-initialize the state when location state changes
+    setItinerary(location.state.itinerary);
+  }, [location.state.itinerary]);
 
   if (!itinerary) {
     return <div>No itinerary data found.</div>;
   }
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
       weekday: 'long', month: 'long', day: 'numeric'
     }).format(date);
   };
+
   const handleDelete = async (date, period = null, eventName = null) => {
     const isDeletingDay = !period && !eventName; // Check that both are null to decide to delete the whole day
     const body = isDeletingDay ?
       { itineraryId: itinerary._id, date, deleteType: "day" } :
       { itineraryId: itinerary._id, date, period, eventName, deleteType: "part" };
-  
+
     try {
       const response = await fetch(`${BASE_URL}/itinerary/delete-event`, {
         method: 'POST',
@@ -31,11 +39,21 @@ function Itinerary() {
       });
       if (!response.ok) throw new Error(`Failed to delete: ${response.statusText}`);
       console.log('Deletion successful');
+
+      // Update state to reflect the changes
+      if (isDeletingDay) {
+        const updatedItinerary = {...itinerary};
+        delete updatedItinerary.itineraryEvents[date];
+        setItinerary(updatedItinerary);
+      } else {
+        const updatedItinerary = {...itinerary};
+        updatedItinerary.itineraryEvents[date][period] = updatedItinerary.itineraryEvents[date][period].filter(event => event.name !== eventName);
+        setItinerary(updatedItinerary);
+      }
     } catch (error) {
       console.error('Error deleting:', error);
     }
   };
-  
 
   return (
     <Box sx={{ display: 'flex', height: 'calc(100vh - 64px)', mt: 8 }}>
@@ -47,9 +65,8 @@ function Itinerary() {
               <LocationOnIcon style={{ color: 'orange' }} />
               <Typography style={{ marginLeft: '8px' }}>{formatDate(date)}</Typography>
               <Button onClick={() => handleDelete(date)} variant="contained" color="error">
-  Delete Day
-</Button>
-
+                Delete Day
+              </Button>
             </AccordionSummary>
             <AccordionDetails>
               {Object.entries(periods).map(([period, activities]) => (
