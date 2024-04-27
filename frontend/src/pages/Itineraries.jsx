@@ -11,7 +11,7 @@ import { BASE_URL } from "../utils/config";
 import { generateItineraryPrompt, fetchItinerary } from "../services/ItineraryService";
 import { fetchNearbyRestaurants } from "../services/RestaurantService";
 import { parseItineraryResponse, addRestaurantsToItinerary } from "../services/ItineraryParserService";
-
+import loadingIcon from "../assets/images/loading.mp4";
 import "../styles/itineraries.css";
 import {
   Box,
@@ -92,7 +92,13 @@ function Itineraries() {
     return () => clearTimeout(timer); // Cleanup function to clear the timer
   }, [formError]);
 
-
+  useEffect(() => {
+    if (isLoading) {
+      document.body.style.overflow = 'hidden'; // Prevent scroll when loading
+    } else {
+      document.body.style.overflow = ''; // Allow scroll when not loading
+    }
+  }, [isLoading]);
   useEffect(() => {
     if (Object.keys(itinerary).length > 0) {
       fetchNearbyRestaurants(mapRef, itinerary);
@@ -194,6 +200,8 @@ function Itineraries() {
 
   // Render the component
   return (
+    <div>
+    <div className={`content-container ${isLoading ? 'blurred' : ''}`}>
     <div className="trip-form-container">
       <h2>Get your personalized itinerary</h2>
       {formError && (
@@ -334,12 +342,8 @@ function Itineraries() {
         </div>
       </form>
       <br />
-      {isLoading && (
-        <div className="loading-indicator">
-          <p>Loading your trip plan...</p>
-          {/* Replace with an image or emoji if you prefer */}
-        </div>
-      )}
+     
+    
       <br />
       {/* Itinerary accordion display */}
       {Object.keys(itinerary).length > 0 && (
@@ -370,6 +374,23 @@ function Itineraries() {
               </AccordionDetails>
             </Accordion>
           ))}
+        </div>
+      )}
+    </div>
+   
+    </div>
+    {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-content">
+            <p>Customizing your trip plan...</p>
+            <video
+              src={loadingIcon}
+              autoPlay
+              loop
+              muted
+             
+            />
+          </div>
         </div>
       )}
     </div>
