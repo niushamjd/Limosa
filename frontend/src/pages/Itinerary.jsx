@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { red } from '@mui/material/colors'; // Import red color from MUI's color palette
+import { red,deepOrange } from "@mui/material/colors"; // Import red color from MUI's color palette
 import {
   Button,
   Typography,
@@ -110,8 +110,18 @@ function Itinerary() {
             </AccordionSummary>
             <AccordionDetails>
               {Object.entries(periods).map(([period, activities]) => (
-                <Box key={period}>
-                  <Typography variant="h6">
+                <Box key={period} sx={{ marginTop: 3 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontSize: "1.5rem", // Increased font size
+                      fontWeight: 600, // Semi-bold for emphasis
+                      color: deepOrange[500], // Using a bold color for contrast
+                      backgroundColor: "rgba(255, 165, 0, 0.2)", // Light background color
+                      padding: "8px", // Padding for comfort
+                      borderRadius: "4px", // Rounded corners for smooth edges
+                    }}
+                  >
                     {period.charAt(0).toUpperCase() + period.slice(1)}
                   </Typography>
                   {activities.map((activity, index) => (
@@ -138,14 +148,18 @@ function Itinerary() {
                         onClick={() =>
                           handleDelete(date, period, activity.name)
                         }
-                        sx={{ mt: 2, 
-                          padding: '8px 16px', // Adding padding for a better feel
-                          boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.16)', // Subtle shadow effect
-                          borderRadius: '8px', // Rounded corners for a more refined look
-                          textTransform: 'none', // No uppercase transformation 
+                        sx={{
+                          mt: 2,
+                          padding: "8px 16px", // Adding padding for a better feel
+                          boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.16)", // Subtle shadow effect
+                          borderRadius: "8px", // Rounded corners for a more refined look
+                          textTransform: "none", // No uppercase transformation
                         }}
                       >
-                        <span style={{ fontWeight: 'semibold', color: red[500] }}>Delete</span> {/* Making text bold */}
+                        <span style={{ fontWeight: 600, color: red[500] }}>
+                          Delete
+                        </span>{" "}
+                        {/* Making text bold */}
                       </Button>
                     </Paper>
                   ))}
