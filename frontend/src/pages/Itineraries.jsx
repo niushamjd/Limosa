@@ -158,6 +158,9 @@ function Itineraries() {
       try {
         const itineraryPost = {
           userId: user._id,
+          city: destination,
+          group: peopleGroup,
+          budget: budget,
           itineraryEvents: itineraryWithRestaurants,
           dateRange: { start: dateRange[0].toISOString(), end: dateRange[1].toISOString() },
           tips: "Additional tips or comments here",

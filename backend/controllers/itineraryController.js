@@ -4,10 +4,13 @@ import Itinerary from '../models/Itinerary.js';
 export const createItinerary = async (req, res) => {
   try {
 
-      const { userId, itineraryEvents, dateRange, photo, tips } = req.body;
+      const { userId, itineraryEvents, dateRange, photo, tips,city,group,budget } = req.body;
 
       const newItinerary = new Itinerary({
           userId,
+          city,
+          group,
+          budget,
           itineraryEvents,
           dateRange,
           photo,
@@ -99,20 +102,15 @@ export const updateItinerary = async (req, res) => {
   try {
       // Extract itinerary ID from request parameters
       const { id } = req.params;
-      console.log(`Updating itinerary with ID: ${id}`); // Log the ID of the itinerary being updated
 
       // Extract updated itinerary data from request body
       const { name, tips } = req.body;
-      console.log('Received data:', { name, tips }); // Log the data received to update
 
       // Find the itinerary object by ID and update it
       const updatedItinerary = await Itinerary.findByIdAndUpdate(id, {
           name, // Only update name and tips
           tips
       }, { new: true });
-
-      console.log('Updated itinerary:', updatedItinerary); // Log the updated itinerary object
-
       if (!updatedItinerary) {
           return res.status(404).json({ success: false, message: 'Itinerary not found' });
       }

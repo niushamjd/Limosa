@@ -130,6 +130,9 @@ function ViewPastItinerary() {
                 <p>Notes: {itinerary.tips}</p>
                 <button onClick={() => deleteItinerary(itinerary._id)}>Delete Itinerary</button>
                 <button onClick={() => startEditing(itinerary._id)}>Modify Itinerary</button>
+                <p>Destination: {itinerary.city}</p>
+                <p>Group: {itinerary.group}</p>
+                <p>Budget: {itinerary.budget}</p>
               </div>
             )}
             {Object.entries(itinerary.itineraryEvents).map(([date, sessions], idx) => (

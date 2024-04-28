@@ -17,6 +17,9 @@ const dailyEventsSchema = new Schema({
 
 const itinerarySchema = new Schema({
   name: { type: String },
+  city: { type: String, required: true },
+  group: { type: String, required: true },
+  budget: { type: String, required: true },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   itineraryEvents: { type: Map, of: dailyEventsSchema },
   dateRange: {
