@@ -11,7 +11,6 @@ export async function fetchNearbyRestaurants(mapRef, itinerary) {
   for (const [date, periods] of Object.entries(itinerary)) {
     for (const [period, activities] of Object.entries(periods)) {
       const lastPlace = activities.filter(activity => activity.type === "Place").pop();
-      console.log("Last place:", lastPlace);
       if (lastPlace) {
         const request = {
           query: lastPlace.name,

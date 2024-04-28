@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { red,deepOrange } from "@mui/material/colors"; // Import red color from MUI's color palette
 import {
@@ -21,15 +21,69 @@ function Itinerary() {
   const location = useLocation();
   const locationState = location.state || {};
   const [itinerary, setItinerary] = useState(locationState.itinerary);
+  const mapRef = useRef(null);
+
+  const loadGoogleMaps = (callback) => {
+    if (window.google) {
+      callback();
+    } else {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8`;
+      document.head.appendChild(script);
+      script.onload = () => {
+        callback(); // Initialize map after the script is loaded
+      };
+    }
+  };
+
+
+  const initMap = () => {
+    if (!itinerary || !mapRef.current) return;
+
+    let centerLat = 37.7749; // Default latitude
+    let centerLng = -122.4194; // Default longitude
+    let firstEventFound = false;
+
+    const map = new window.google.maps.Map(mapRef.current, {
+      zoom: 12,
+      center: { lat: centerLat, lng: centerLng },
+    });
+
+    Object.entries(itinerary.itineraryEvents).forEach(([date, dailyEvents]) => {
+      ['morning', 'afternoon', 'evening'].forEach(period => {
+        dailyEvents[period]?.forEach(event => {
+          if (event.coordinates && !firstEventFound) {
+            centerLat = event.coordinates.latitude;
+            centerLng = event.coordinates.longitude;
+            map.setCenter({ lat: centerLat, lng: centerLng });
+            firstEventFound = true; // Ensures that the map centers on the first event found
+          }
+          if (event.coordinates) {
+            new window.google.maps.Marker({
+              position: { lat: event.coordinates.latitude, lng: event.coordinates.longitude },
+              map: map,
+              title: event.name,
+            });
+          }
+        });
+      });
+    });
+  };
 
   useEffect(() => {
-    // This will re-initialize the state when location state changes
-    setItinerary(location.state.itinerary);
-  }, [location.state.itinerary]);
+    if (window.google && itinerary) {
+      initMap();
+    } else if (!window.google) {
+      loadGoogleMaps(initMap);
+    }
+  }, [location.state.itinerary, itinerary]); // Dependency array includes itinerary to reinitialize the map on data change
+
 
   if (!itinerary) {
     return <div>No itinerary data found.</div>;
   }
+
+
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -169,16 +223,8 @@ function Itinerary() {
           </Accordion>
         ))}
       </Box>
-      <Box sx={{ flex: 1, minHeight: "100%" }}>
-        <iframe
-          title="Google Maps"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.4920654559354!2d-122.4194157!3d37.7749295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80858064!2zU2FuIEZyYW5jaXNjbywgQ0Eg!5e0!3m2!1sen!2sus!4v1641861192787"
-          width="100%"
-          height="100%"
-          frameBorder="0"
-          style={{ border: "none" }}
-          allowFullScreen
-        />
+      <Box sx={{ flex: 1, minHeight: '100%' }}>
+        <div ref={mapRef} style={{ width: '100%', height: '100%' }}></div>
       </Box>
     </Box>
   );
