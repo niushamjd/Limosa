@@ -75,3 +75,22 @@ export const deleteEventsFromItinerary = async (req, res) => {
     }
   };
   
+  // Controller function to delete an itinerary object by ID
+  export const deleteItinerary = async (req, res) => {
+    try {
+      // Extract itinerary ID from request parameters
+      const { id } = req.params;
+  
+      // Find and delete the itinerary object by ID
+      const itinerary = await Itinerary.findByIdAndDelete(id);
+  
+      if (!itinerary) {
+        return res.status(404).json({ success: false, message: 'Itinerary not found' });
+      }
+  
+      res.status(200).json({ success: true, message: 'Itinerary deleted successfully', data: itinerary });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+  };
+  

@@ -11,24 +11,41 @@ function ViewPastItinerary() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchItineraries = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${BASE_URL}/itinerary/user/${userId}`);
-        const data = await response.json();
-        if (data.success) {
-          setItineraryData(data.data);
-        } else {
-          throw new Error(data.message);
-        }
-      } catch (error) {
-        setError(error);
-      }
-      setIsLoading(false);
-    };
-
     fetchItineraries();
   }, [userId]);
+
+  const fetchItineraries = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/itinerary/user/${userId}`);
+      const data = await response.json();
+      if (data.success) {
+        setItineraryData(data.data);
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      setError(error);
+    }
+    setIsLoading(false);
+  };
+
+  const deleteItinerary = async (itineraryId) => {
+    try {
+      const response = await fetch(`${BASE_URL}/itinerary/${itineraryId}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      if (data.success) {
+        // Remove the itinerary from local state to update the UI
+        setItineraryData(itineraryData.filter(itinerary => itinerary._id !== itineraryId));
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      setError(error);
+    }
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -48,7 +65,7 @@ function ViewPastItinerary() {
                 <h2>{date}</h2>
                 {Object.entries(sessions).map(([session, events], sessionIdx) => (
                   <div key={sessionIdx}>
-                    <h3>{session.charAt(0).toUpperCase() + session.slice(1)}</h3> {/* Capitalize session name */}
+                    <h3>{session.charAt(0).toUpperCase() + session.slice(1)}</h3>
                     {events.map((event, eventIdx) => (
                       <p key={eventIdx}>
                         {event.name}: {event.activity}
@@ -59,6 +76,7 @@ function ViewPastItinerary() {
               </div>
             ))}
             <p className="itinerary-card__tips">{itinerary.tips}</p>
+            <button onClick={() => deleteItinerary(itinerary._id)}>Delete Itinerary</button>
           </div>
         </div>
       ))}
