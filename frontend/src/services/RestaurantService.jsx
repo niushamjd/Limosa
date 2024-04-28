@@ -1,5 +1,5 @@
 /* global google */  // This tells ESLint that google is a global variable
-export async function fetchNearbyRestaurants(mapRef, itinerary) {
+export async function fetchNearbyRestaurants(mapRef, itinerary, budget) {
   if (!mapRef.current) {
     console.error("Google Maps JavaScript API has not been loaded yet.");
     return [];
@@ -7,6 +7,16 @@ export async function fetchNearbyRestaurants(mapRef, itinerary) {
 
   const service = new window.google.maps.places.PlacesService(mapRef.current);
   let restaurantsArray = [];
+
+  // Define a mapping from budget to price levels
+  const budgetToPriceLevels = {
+    Economic: [0, 1],  // Cheaper options
+    Standard: [2],     // Mid-range options
+    Luxury: [3, 4]     // More expensive options
+  };
+
+  // Get the appropriate price levels based on the budget
+  const priceLevels = budgetToPriceLevels[budget] || [0, 1, 2, 3, 4];  // Default to all if budget is undefined
 
   for (const [date, periods] of Object.entries(itinerary)) {
     for (const [period, activities] of Object.entries(periods)) {
@@ -28,8 +38,9 @@ export async function fetchNearbyRestaurants(mapRef, itinerary) {
             });
           });
 
-          // Use the geometry from the place results as the location for nearby restaurants
-          const location = placeResults[0].geometry.location;
+          const location = placeResults[0]?.geometry.location;
+          if (!location) continue;  // Skip if no suitable location found
+
           const restaurantRequest = {
             location: location,
             radius: "1000",
@@ -38,46 +49,54 @@ export async function fetchNearbyRestaurants(mapRef, itinerary) {
 
           const restaurantResults = await new Promise((resolve, reject) => {
             service.nearbySearch(restaurantRequest, (results, status) => {
-              if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+              if (status === google.maps.places.PlacesServiceStatus.OK) {
                 resolve(results);
               } else {
-                reject(`No nearby restaurants found for ${lastPlace.name}`);
+                reject(`Search failed with status ${status} for ${lastPlace.name}`);
               }
             });
           });
 
-          restaurantResults.forEach(restaurant => {
-            const coordinates = { // Extract coordinates
+          const filteredByBudget = restaurantResults.filter(r =>
+            r.price_level !== undefined && priceLevels.includes(r.price_level)
+          );
+
+          filteredByBudget.forEach(restaurant => {
+            const coordinates = {
               latitude: restaurant.geometry.location.lat(),
               longitude: restaurant.geometry.location.lng()
             };
-            if (!restaurantsArray.some(r => r.name === restaurant.name)) {
+            // Check for uniqueness based on name and vicinity
+            if (!restaurantsArray.some(r => r.name === restaurant.name && r.location === restaurant.vicinity)) {
               restaurantsArray.push({
                 name: restaurant.name,
                 activity: "Dining",
                 type: "Restaurant",
                 location: restaurant.vicinity,
-                coordinates, // Include coordinates for each restaurant
-                photo: restaurant.photos && restaurant.photos.length > 0 ? restaurant.photos[0].getUrl() : ""
+                coordinates,
+                photo: restaurant.photos && restaurant.photos.length > 0 ? restaurant.photos[0].getUrl() : "",
+                price: restaurant.price_level,
               });
             }
           });
 
-          if (restaurantsArray.length >= 6) {
-            break;
+          if (restaurantsArray.length >= 21) {
+            break; // Adjusted limit as per requirements
           }
-        } catch (error) {
+        } catch ( error) {
           console.error(error);
         }
       }
     }
-    if (restaurantsArray.length >= 6) {
-      break;
+    if (restaurantsArray.length >= 21) {
+      break; // Exit if we have collected enough restaurants
     }
   }
 
   return restaurantsArray;
 }
+
+
 
 // Example function to fetch place details including coordinates
 export const fetchPlaceDetails = async (placeName) => {
