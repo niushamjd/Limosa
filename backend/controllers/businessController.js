@@ -1,5 +1,4 @@
-import Business from "../models/Business";
-
+import Business from '../models/Business.js';
 // Controller function to create a business object
 export const createBusiness = async (req, res) => {
     try {
@@ -13,3 +12,11 @@ export const createBusiness = async (req, res) => {
 };
 
 // Controller function to get all business objects
+export const getAllBusiness = async (req, res) => {
+    try {
+        const businesses = await Business.find();
+        res.status(200).json({ success: true, message: 'Businesses found', data: businesses });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    }
+};

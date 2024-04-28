@@ -63,7 +63,7 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      default: "user",
+      default: "traveler",
     },
     interests: {
       type: [String],
