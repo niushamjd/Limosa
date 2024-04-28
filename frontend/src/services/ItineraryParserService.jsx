@@ -17,6 +17,8 @@ export const addRestaurantsToItinerary = (itinerary, restaurants) => {
             activity: "Dining at " + restaurants[restaurantIndex].name,
             type: "Restaurant",
             location: restaurants[restaurantIndex].location,
+            coordinates: restaurants[restaurantIndex].coordinates, // Adding coordinates
+
             photo: restaurants[restaurantIndex].photo,
           });
 

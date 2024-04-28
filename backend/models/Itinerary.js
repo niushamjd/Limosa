@@ -1,13 +1,19 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
+const coordinatesSchema = new Schema({
+  latitude: { type: Number, required: true },
+  longitude: { type: Number, required: true }
+}, { _id: false }); // _id not necessary for this subdocument
+
 const eventSchema = new Schema({
   name: { type: String, required: true },
   activity: { type: String, default: '' }, // default to empty string if not provided
   type: { type: String, required: true },
   location: { type: String },
+  coordinates: coordinatesSchema, // Include coordinates schema
   photo: String,
-});
+}, { _id: false }); // _id not necessary for this subdocument if desired
 
 const dailyEventsSchema = new Schema({
   morning: [eventSchema],
