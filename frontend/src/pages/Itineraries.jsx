@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { BASE_URL } from "../utils/config";
 import { generateItineraryPrompt, fetchItinerary } from "../services/ItineraryService";
-import { fetchNearbyRestaurants } from "../services/RestaurantService";
+import { fetchNearbyRestaurants, fetchPlaceDetails } from "../services/RestaurantService";
 import { parseItineraryResponse, addRestaurantsToItinerary } from "../services/ItineraryParserService";
 import loadingIcon from "../assets/images/loading.mp4";
 import "../styles/itineraries.css";
@@ -143,9 +143,18 @@ function Itineraries() {
 
     
       // After fetching or parsing your initial itinerary:
-      const parsedItinerary = await parseItineraryResponse(
-        generatedItinerary
-      );
+      const parsedItinerary = await parseItineraryResponse(generatedItinerary);
+      // Example: Assume places are part of parsedItinerary and need details
+      for (const date of Object.keys(parsedItinerary)) {
+        for (const period of Object.keys(parsedItinerary[date])) {
+          for (const event of parsedItinerary[date][period]) {
+            if (event.type === 'Place') {
+              const placeDetails = await fetchPlaceDetails(event.name); // Assuming place name can be used as a query
+              event.coordinates = placeDetails.coordinates; // Add coordinates to the event
+            }
+          }
+        }
+      }
       const restaurants = await fetchNearbyRestaurants(
         mapRef,
         parsedItinerary
