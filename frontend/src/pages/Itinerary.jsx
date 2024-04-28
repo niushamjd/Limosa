@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { red } from '@mui/material/colors'; // Import red color from MUI's color palette
 import {
   Button,
   Typography,
@@ -128,13 +129,23 @@ function Itinerary() {
                       )}
                       <Button
                         size="small"
-                        startIcon={<DeleteIcon />}
+                        startIcon={
+                          <DeleteIcon
+                            fontSize="medium" // Standardized icon size
+                            sx={{ color: red[500] }} // Icon color to match the button's error theme
+                          />
+                        }
                         onClick={() =>
                           handleDelete(date, period, activity.name)
                         }
-                        sx={{ mt: 2 }}
+                        sx={{ mt: 2, 
+                          padding: '8px 16px', // Adding padding for a better feel
+                          boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.16)', // Subtle shadow effect
+                          borderRadius: '8px', // Rounded corners for a more refined look
+                          textTransform: 'none', // No uppercase transformation 
+                        }}
                       >
-                        Delete
+                        <span style={{ fontWeight: 'semibold', color: red[500] }}>Delete</span> {/* Making text bold */}
                       </Button>
                     </Paper>
                   ))}
