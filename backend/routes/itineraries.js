@@ -3,7 +3,8 @@ import {
   createItinerary,
   getItineraryById,
   getUSerItineraries,
-  deleteItinerary
+  deleteItinerary,
+  updateItinerary
 } from "../controllers/itineraryController.js";
 import { verifyAdmin, verifyUser } from "../utils/verifyToken.js";
 
@@ -17,6 +18,8 @@ router.get("/:id", getItineraryById);
 router.get("/user/:userId", getUSerItineraries);
 // Delete single itinerary
 router.delete("/:id", deleteItinerary);
+// Update single itinerary
+router.put("/:id", updateItinerary);
 
 
 

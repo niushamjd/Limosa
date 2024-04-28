@@ -16,6 +16,7 @@ const dailyEventsSchema = new Schema({
 }, { _id: false }); // _id not necessary for this subdocument
 
 const itinerarySchema = new Schema({
+  name: { type: String },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   itineraryEvents: { type: Map, of: dailyEventsSchema },
   dateRange: {
