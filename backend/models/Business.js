@@ -36,7 +36,8 @@ const businessSchema = new Schema({
   openingHours: String, // You can make this more complex if needed
   contactDetails: contactSchema,
   specialOffers: [offerSchema],
-  events: [eventSchema]
+  events: [eventSchema],
+  premium: { type: Boolean, default: false }
 }, { timestamps: true }); // Include timestamps to track creation and updates
 
 const Business = mongoose.model("Business", businessSchema);

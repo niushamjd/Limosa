@@ -2,6 +2,13 @@ import Business from '../models/Business.js';
 // Controller function to create a business object
 export const createBusiness = async (req, res) => {
     try {
+        // Check if a business with the same name already exists
+        const existingBusiness = await Business.findOne({ name: req.body.name });
+        if (existingBusiness) {
+            return res.status(400).json({ success: false, message: 'A business with the same name already exists' });
+        }
+
+        // If no existing business found, create a new one
         const newBusiness = new Business(req.body);
         const savedBusiness = await newBusiness.save();
         res.status(201).json({ success: true, message: 'Business created successfully', data: savedBusiness });
@@ -10,6 +17,7 @@ export const createBusiness = async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
 };
+
 
 // Controller function to get all business objects
 export const getAllBusiness = async (req, res) => {

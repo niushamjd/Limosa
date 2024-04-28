@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
+import { TextField, Button, Box, FormControlLabel, RadioGroup, Radio } from '@mui/material';
 import { BASE_URL } from "../utils/config";
 
 function Business() {
@@ -21,45 +21,58 @@ function Business() {
       }
     },
     specialOffers: [],
-    events: []
+    events: [],
+    premium: false // Default premium value
   });
 
   // Function to handle changes in input fields
-  const handleChange = (e, nestedKey, parentKey) => {
-    if (parentKey) {
-      // Handle nested changes, such as in the contactDetails or address object
-      const updatedNestedData = { ...formData[parentKey], [nestedKey]: e.target.value };
-      setFormData({ ...formData, [parentKey]: updatedNestedData });
-    } else {
-      // Handle top-level state changes
-      setFormData({ ...formData, [e.target.name]: e.target.value });
-    }
-  };
+ // Function to handle changes in input fields
+// Function to handle changes in input fields
+const handleChange = (e, nestedKey, parentKey, grandParentKey) => {
+  if (grandParentKey !== undefined) {
+    // Handle nested changes for specialOffers or events
+    const updatedNestedData = [...formData[parentKey]];
+    updatedNestedData[grandParentKey][nestedKey] = e.target.value;
+    setFormData({ ...formData, [parentKey]: updatedNestedData });
+  } else if (parentKey !== undefined) {
+    // Handle nested changes, such as in the contactDetails or address object
+    const updatedNestedData = { ...formData[parentKey], [nestedKey]: e.target.value };
+    setFormData({ ...formData, [parentKey]: updatedNestedData });
+  } else if (e.target.type === 'radio') {
+    // Handle radio button changes
+    setFormData({ ...formData, [e.target.name]: e.target.value === 'true' });
+  } else {
+    // Handle top-level state changes
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  }
+};
 
-  // Function to handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`${BASE_URL}/business`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-  
-      if (response.ok) {
-        const responseData = await response.json();
-        alert('Business created successfully!');
-        console.log(responseData);
-      } else {
-        throw new Error('Failed to create business due to server-side error.');
-      }
-    } catch (error) {
-      console.error('Error creating business:', error);
-      alert(error.message);
+
+ // Function to handle form submission
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await fetch(`${BASE_URL}/business`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      const responseData = await response.json();
+      alert('Business created successfully!');
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.message); // Throw the specific error message returned by the server
     }
-  };
+  } catch (error) {
+    console.error('Error creating business:', error);
+    alert(error.message);
+  }
+};
+
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
@@ -167,6 +180,68 @@ function Business() {
         value={formData.contactDetails.address.country}
         onChange={(e) => handleChange(e, 'country', 'address')}
       />
+      {/* Premium Radio Button */}
+      <RadioGroup
+        aria-label="premium"
+        name="premium"
+        value={formData.premium.toString()} // Convert boolean to string
+        onChange={handleChange}
+      >
+        <FormControlLabel value="true" control={<Radio />} label="Premium" />
+        <FormControlLabel value="false" control={<Radio />} label="Regular" />
+      </RadioGroup>
+      {/* Special Offers */}
+      <h2>Special Offers</h2>
+      {formData.specialOffers.map((offer, index) => (
+        <div key={index}>
+          <TextField
+            margin="normal"
+            fullWidth
+            label="Title"
+            value={offer.title}
+            onChange={(e) => handleChange(e, 'title', 'specialOffers', index)}
+          />
+          <TextField
+            margin="normal"
+            fullWidth
+            label="Description"
+            value={offer.description}
+            onChange={(e) => handleChange(e, 'description', 'specialOffers', index)}
+          />
+          {/* Add more fields for start and end dates */}
+        </div>
+      ))}
+      <Button
+        onClick={() => setFormData({ ...formData, specialOffers: [...formData.specialOffers, {}] })}
+      >
+        Add Special Offer
+      </Button>
+      {/* Events */}
+      <h2>Events</h2>
+      {formData.events.map((event, index) => (
+        <div key={index}>
+          <TextField
+            margin="normal"
+            fullWidth
+            label="Event Name"
+            value={event.eventName}
+            onChange={(e) => handleChange(e, 'eventName', 'events', index)}
+          />
+          <TextField
+            margin="normal"
+            fullWidth
+            label="Event Description"
+            value={event.eventDescription}
+            onChange={(e) => handleChange(e, 'eventDescription', 'events', index)}
+          />
+          {/* Add more fields for event date */}
+        </div>
+      ))}
+      <Button
+        onClick={() => setFormData({ ...formData, events: [...formData.events, {}] })}
+      >
+        Add Event
+      </Button>
       <Button
         type="submit"
         fullWidth
