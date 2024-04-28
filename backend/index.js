@@ -11,6 +11,7 @@ import reviewRoute from "./routes/reviews.js";
 import bookingRoute from "./routes/bookings.js";
 import transferBookingRoute from "./routes/transferBookings.js"; // The route file for transfer bookings
 import interestRoute from "./routes/interests.js";
+import businessRoute from "./routes/business.js";
 
 
 dotenv.config();
@@ -54,6 +55,7 @@ app.use('/api/v1/review',reviewRoute);
 app.use('/api/v1/booking',bookingRoute);
 app.use('/api/v1/interests',interestRoute);
 app.use('/api/v1/itinerary',itineraryRoute);
+app.use('/api/v1/business',businessRoute);
 
 
 app.listen(port, () =>{
