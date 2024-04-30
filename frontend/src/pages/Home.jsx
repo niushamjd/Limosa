@@ -96,13 +96,13 @@ const Home = () => {
                   with your travel needs. 
                   <br/>
                   We believe in creating memorable
-                  travel.
+                  memoirs.
                 </p>
               </div>
               <div className="counter__wrapper d-flex align-items-center gap-5">
                 <div className="counter__box">
                   <span>1k+</span>
-                  <h6>Successfull Transfers</h6>
+                  <h6>Successfull Travels</h6>
                 </div>
                 <div className="counter__box">
                   <span>500+</span>
@@ -137,7 +137,7 @@ const Home = () => {
           <Row>
             <Col lg="12">
               <Subtitle subtitle={"Fans Love"} />
-              <h2 className="testimonial__title">What our fans say about us </h2>
+              <h2 className="testimonial__title">What our users say about us </h2>
             </Col>
             <Col lg="12">
               <Testimonials />

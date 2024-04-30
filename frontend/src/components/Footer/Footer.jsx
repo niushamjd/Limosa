@@ -10,8 +10,8 @@ const quick__links = [
     display: "Home",
   },
   {
-    path: "/about",
-    display: "About",
+    path: "/featured",
+    display: "Featured",
   },
   {
     path: "/profile",

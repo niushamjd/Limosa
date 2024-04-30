@@ -18,6 +18,7 @@ import ViewPastItinerary from '../pages/ViewPastItinerary'
 import Connect from '../pages/Connect'
 import Itinerary from '../pages/Itinerary'
 import Business from '../pages/Business'
+import Featured from '../pages/Featured'
 
 
 const Routers = () => {
@@ -42,6 +43,8 @@ const Routers = () => {
         <Route path="/connect" element={<Connect />}></Route>
         <Route path="/itinerary" element={<Itinerary />} />
         <Route path="/business" element={<Business />} />
+        <Route path="/featured" element={<Featured />} />
+
 
 
 
