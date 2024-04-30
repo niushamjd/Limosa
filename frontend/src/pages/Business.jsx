@@ -33,11 +33,28 @@ const handleChange = (e, nestedKey, parentKey, grandParentKey) => {
     // Handle nested changes for specialOffers or events
     const updatedNestedData = [...formData[parentKey]];
     updatedNestedData[grandParentKey][nestedKey] = e.target.value;
-    setFormData({ ...formData, [parentKey]: updatedNestedData });
+    setFormData(prevState => ({ ...prevState, [parentKey]: updatedNestedData }));
   } else if (parentKey !== undefined) {
     // Handle nested changes, such as in the contactDetails or address object
-    const updatedNestedData = { ...formData[parentKey], [nestedKey]: e.target.value };
-    setFormData({ ...formData, [parentKey]: updatedNestedData });
+    if (parentKey === "address") {
+      // For address fields, create a new address object with the updated value
+      const updatedAddress = {
+        ...formData.contactDetails.address,
+        [nestedKey]: e.target.value
+      };
+      // Update contactDetails with the new address object
+      setFormData(prevState => ({
+        ...prevState,
+        contactDetails: {
+          ...prevState.contactDetails,
+          address: updatedAddress
+        }
+      }));
+    } else {
+      // For other nested fields, update the nested object directly
+      const updatedNestedData = { ...formData[parentKey], [nestedKey]: e.target.value };
+      setFormData(prevState => ({ ...prevState, [parentKey]: updatedNestedData }));
+    }
   } else if (e.target.type === 'radio') {
     // Handle radio button changes
     setFormData({ ...formData, [e.target.name]: e.target.value === 'true' });
@@ -46,6 +63,7 @@ const handleChange = (e, nestedKey, parentKey, grandParentKey) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   }
 };
+
 
 
  // Function to handle form submission
