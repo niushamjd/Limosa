@@ -1,6 +1,5 @@
-import React, { useState, useEffect,useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { red,deepOrange } from "@mui/material/colors"; // Import red color from MUI's color palette
 import {
   Button,
   Typography,
@@ -10,12 +9,15 @@ import {
   Box,
   Paper,
 } from "@mui/material";
+import { red, deepOrange } from "@mui/material/colors";
 import {
   LocationOn as LocationOnIcon,
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
+import { DataGridPro } from '@mui/x-data-grid-pro';
 import { BASE_URL } from "../utils/config";
+
 
 function Itinerary() {
   const location = useLocation();
@@ -35,8 +37,22 @@ function Itinerary() {
       };
     }
   };
+  const handleRowOrderChange = async (params) => {
+    const { oldIndex, targetIndex, field } = params;
+    const date = field.split('.')[0]; // Assuming the field naming is 'date.period'
+    const period = field.split('.')[1];
+    const updatedRows = await updateRowPosition(oldIndex, targetIndex, itinerary.itineraryEvents[date][period]);
+    const updatedItinerary = { ...itinerary };
+    updatedItinerary.itineraryEvents[date][period] = updatedRows;
+    setItinerary(updatedItinerary);
+  };
 
-
+  const updateRowPosition = (initialIndex, newIndex, rows) => {
+    const rowsClone = [...rows];
+    const row = rowsClone.splice(initialIndex, 1)[0];
+    rowsClone.splice(newIndex, 0, row);
+    return rowsClone;
+  };
   const initMap = () => {
     if (!itinerary || !mapRef.current) return;
 
@@ -71,13 +87,13 @@ function Itinerary() {
   };
 
   useEffect(() => {
-    if (window.google && itinerary) {
-      initMap();
-    } else if (!window.google) {
-      loadGoogleMaps(initMap);
+    // Ensure that 'itinerary' is not null or undefined before attempting to access its properties
+    if (window.google && itinerary && itinerary.itineraryEvents) {
+        initMap();
+    } else if (!window.google && itinerary) {
+        loadGoogleMaps(initMap);
     }
-  }, [location.state.itinerary, itinerary]); // Dependency array includes itinerary to reinitialize the map on data change
-
+}, [location.state.itinerary, itinerary]); // Dependency array includes itinerary to reinitialize the map on data change
 
   if (!itinerary) {
     return <div>No itinerary data found.</div>;
@@ -139,89 +155,86 @@ function Itinerary() {
       <Box sx={{ flex: 1, overflowY: "auto", pr: 2 }}>
         <Typography variant="h4">Your Itinerary</Typography>
         {Object.entries(itinerary.itineraryEvents).map(([date, periods]) => (
-          <Accordion key={date}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <LocationOnIcon style={{ color: "orange" }} />
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  width: "100%",
-                }}
-              >
-                <Typography style={{ marginLeft: "8px" }}>
-                  {formatDate(date)}
-                </Typography>
-                <Button
-                  onClick={() => handleDelete(date)}
-                  variant="contained"
-                  color="error"
-                  sx={{ borderRadius: "16px" }}
-                >
-                  Delete Day
-                </Button>
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              {Object.entries(periods).map(([period, activities]) => (
-                <Box key={period} sx={{ marginTop: 3 }}>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontSize: "1.5rem", // Increased font size
-                      fontWeight: 600, // Semi-bold for emphasis
-                      color: deepOrange[500], // Using a bold color for contrast
-                      backgroundColor: "rgba(255, 165, 0, 0.2)", // Light background color
-                      padding: "8px", // Padding for comfort
-                      borderRadius: "4px", // Rounded corners for smooth edges
-                    }}
-                  >
-                    {period.charAt(0).toUpperCase() + period.slice(1)}
-                  </Typography>
-                  {activities.map((activity, index) => (
-                    <Paper key={index} elevation={2} sx={{ p: 2, mb: 2 }}>
-                      <Typography variant="h5">{activity.name}</Typography>
-                      <Typography variant="body1">
-                        {activity.activity}
-                      </Typography>
-                      {activity.photo && (
-                        <img
-                          src={activity.photo}
-                          alt={activity.name}
-                          style={{ width: "100%", marginTop: "8px" }}
-                        />
-                      )}
-                      <Button
-                        size="small"
-                        startIcon={
-                          <DeleteIcon
-                            fontSize="medium" // Standardized icon size
-                            sx={{ color: red[500] }} // Icon color to match the button's error theme
-                          />
-                        }
-                        onClick={() =>
-                          handleDelete(date, period, activity.name)
-                        }
-                        sx={{
-                          mt: 2,
-                          padding: "8px 16px", // Adding padding for a better feel
-                          boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.16)", // Subtle shadow effect
-                          borderRadius: "8px", // Rounded corners for a more refined look
-                          textTransform: "none", // No uppercase transformation
-                        }}
-                      >
-                        <span style={{ fontWeight: 600, color: red[500] }}>
-                          Delete
-                        </span>{" "}
-                        {/* Making text bold */}
-                      </Button>
-                    </Paper>
-                  ))}
-                </Box>
-              ))}
-            </AccordionDetails>
-          </Accordion>
-        ))}
+  <Accordion key={date}>
+    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      <LocationOnIcon style={{ color: "orange" }} />
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          width: "100%",
+        }}
+      >
+        <Typography style={{ marginLeft: "8px" }}>
+          {formatDate(date)}
+        </Typography>
+        <Button
+          onClick={() => handleDelete(date)} // This deletes the entire day
+          variant="contained"
+          color="error"
+          sx={{ borderRadius: "16px" }}
+        >
+          Delete Day
+        </Button>
+      </Box>
+    </AccordionSummary>
+    <AccordionDetails>
+      {Object.entries(periods).map(([period, activities]) => (
+        <Box key={period} sx={{ marginTop: 3 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontSize: "1.5rem",
+              fontWeight: 600,
+              color: deepOrange[500],
+              backgroundColor: "rgba(255, 165, 0, 0.2)",
+              padding: "8px",
+              borderRadius: "4px",
+            }}
+          >
+            {period.charAt(0).toUpperCase() + period.slice(1)}
+          </Typography>
+          <div style={{ height: 400, width: '100%' }}>
+            <DataGridPro
+              rows={activities}
+              columns={[
+                { field: 'name', headerName: 'Event', width: 150 },
+                { field: 'activity', headerName: 'Activity', width: 150 },
+                {
+                  field: 'delete',
+                  headerName: 'Delete',
+                  sortable: false,
+                  width: 110,
+                  renderCell: (params) => (
+                    <Button
+                      variant="contained"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={() => handleDelete(date, period, params.row.name)}
+                    >
+                      Delete
+                    </Button>
+                  ),
+                }
+              ]}
+              rowReordering
+              onRowOrderChange={(params) => handleRowOrderChange({
+                ...params,
+                field: `${date}.${period}` // Passing date and period for state updates
+              })}
+              getRowId={row => row.name}  // Ensure names are unique
+              disableColumnMenu
+              hideFooter
+              autoHeight
+            />
+          </div>
+        </Box>
+      ))}
+    </AccordionDetails>
+  </Accordion>
+))
+
+        }
       </Box>
       <Box sx={{ flex: 1, minHeight: '100%' }}>
         <div ref={mapRef} style={{ width: '100%', height: '100%' }}></div>
