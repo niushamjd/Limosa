@@ -3,7 +3,6 @@ import { Card, CardContent, CardMedia, Typography, Button, Box } from "@mui/mate
 import ReactStars from "react-rating-stars-component"; // Star rating component
 import { AuthContext } from "../context/AuthContext";
 import { BASE_URL } from "../utils/config";
-import funImage from "../assets/images/rome, italy.jpg";
 import "../styles/ItineraryGrid.css";
 
 function ViewPastItinerary() {
@@ -49,6 +48,24 @@ function ViewPastItinerary() {
     }
     setIsLoading(false);
   };
+
+
+  const getCityImage = (cityName) => {
+    // Boşlukları "-" ile değiştirerek dosya adını oluştur
+  
+    let imageSrc;
+    
+    try {
+      // Dinamik olarak ilgili resmi yükle
+      imageSrc = require(`../assets/images/${cityName}.jpg`);
+    } catch (err) {
+      // Eğer resim bulunamazsa, varsayılan bir resim kullan
+      imageSrc = require("../assets/images/default.jpg");
+    }
+
+    return imageSrc;
+  };
+
 
   const deleteItinerary = async (itineraryId) => {
     try {
@@ -121,17 +138,21 @@ function ViewPastItinerary() {
     return <div>Error loading itineraries: {error.message}</div>;
   }
 
+
   return (
     <div className="itinerary-grid">
-      {itineraryData.map((itinerary, index) => (
+      {itineraryData.map((itinerary, index) => {
+        const imageSrc = getCityImage(itinerary.city); // Şehir adına göre resmi al
+
+        return (
         <Card key={index} sx={{ maxWidth: 345 }}>
           {" "}
           {/* Card Component */}
           <CardMedia
             component="img"
             height="140"
-            image={funImage} // The photo imported
-            alt="Itinerary Photo"
+            image={imageSrc}
+            alt={`Image for ${itinerary.city}`}
           />
           <CardContent>
             <Typography gutterBottom variant="h5" component="div">
@@ -179,9 +200,9 @@ function ViewPastItinerary() {
             </Box>
           </CardContent>
         </Card>
-      ))}
+        );
+      })}
     </div>
   );
 }
-
 export default ViewPastItinerary;
