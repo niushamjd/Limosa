@@ -39,14 +39,18 @@ export const register = async (req, res) => {
 
     // Send email
     try {
-        sendEmail(params);
+        await sendEmail(params);
+        // Respond to the client immediately after sending the email
         res.status(200).json({ success: true, message: "Successfully registered. Please check your email." });
     } catch (emailError) {
         console.error("Email sending error:", emailError);
-        // Consider how you want to handle email errors; e.g., log the error but still consider registration successful
+        // Handle email sending error gracefully
+        // Log the error and respond to the client
+        res.status(200).json({ success: true, message: "Successfully registered. Email sending failed. Please contact support." });
     }
-
   } catch (error) {
+    // Handle registration error
+    console.error("Registration error:", error);
     res.status(500).json({ success: false, message: "Registration failed. Try again." });
   }
 };
