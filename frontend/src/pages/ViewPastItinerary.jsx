@@ -1,9 +1,18 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Card, CardContent, CardMedia, Typography, Button, Box } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button,
+  Box,
+} from "@mui/material";
+import EventNoteIcon from "@mui/icons-material/EventNote"; // Import the calendar icon
 import ReactStars from "react-rating-stars-component"; // Star rating component
 import { AuthContext } from "../context/AuthContext";
 import { BASE_URL } from "../utils/config";
 import "../styles/ItineraryGrid.css";
+import TextField from "@mui/material/TextField";
 
 function ViewPastItinerary() {
   const { user } = useContext(AuthContext);
@@ -19,8 +28,13 @@ function ViewPastItinerary() {
   }, [userId]);
 
   const formatEventDate = (isoDateString) => {
-    return new Date(isoDateString).toLocaleDateString();
+    return new Date(isoDateString).toLocaleDateString('en-GB', {
+      day: '2-digit',      // Use two digits for the day
+      month: 'short',      // Use the abbreviated form of the month
+      year: 'numeric'      // Use the full numeric year
+    });
   };
+  
 
   const onRatingChange = async (newRating, itineraryId) => {
     try {
@@ -35,7 +49,6 @@ function ViewPastItinerary() {
       saveChanges(editState._id);
     }
   }, [editState]);
-  
 
   const formatDuration = (start, end) => {
     const startDate = new Date(start);
@@ -51,11 +64,13 @@ function ViewPastItinerary() {
       if (data.success) {
         setItineraryData(data.data);
         if (editState._id) {
-          const editedItinerary = data.data.find(itinerary => itinerary._id === editState._id);
+          const editedItinerary = data.data.find(
+            (itinerary) => itinerary._id === editState._id
+          );
           if (editedItinerary) {
-            setEditState(prevState => ({
+            setEditState((prevState) => ({
               ...prevState,
-              rate: editedItinerary.rate || 0
+              rate: editedItinerary.rate || 0,
             }));
           }
         }
@@ -71,14 +86,12 @@ function ViewPastItinerary() {
   useEffect(() => {
     fetchItineraries();
   }, [userId]);
-  
-
 
   const getCityImage = (cityName) => {
     // Boşlukları "-" ile değiştirerek dosya adını oluştur
-  
+
     let imageSrc;
-    
+
     try {
       // Dinamik olarak ilgili resmi yükle
       imageSrc = require(`../assets/images/${cityName}.jpg`);
@@ -89,7 +102,6 @@ function ViewPastItinerary() {
 
     return imageSrc;
   };
-
 
   const deleteItinerary = async (itineraryId) => {
     try {
@@ -109,6 +121,7 @@ function ViewPastItinerary() {
     }
   };
 
+  /*
   const startEditing = (itineraryId) => {
     const itinerary = itineraryData.find((it) => it._id === itineraryId);
     setEditState({
@@ -119,7 +132,15 @@ function ViewPastItinerary() {
       editing: true,
     });
   };
-  
+  */
+
+  const startEditing = (itineraryId) => {
+    const itinerary = itineraryData.find((it) => it._id === itineraryId);
+    setEditState({
+      ...itinerary,
+      editing: true,
+    });
+  };
 
   const handleChange = (e, field) => {
     setEditState({
@@ -146,7 +167,12 @@ function ViewPastItinerary() {
       setError(error);
     }
   };
-  
+
+  const handleSaveChanges = (itineraryId) => {
+    const itinerary = itineraryData.find((it) => it._id === itineraryId);
+    saveChanges(itineraryId, { name: itinerary.name });
+    setEditState({});
+  };
 
   const cancelEditing = () => {
     setEditState({});
@@ -160,73 +186,99 @@ function ViewPastItinerary() {
     return <div>Error loading itineraries: {error.message}</div>;
   }
 
-
   return (
     <div className="itinerary-grid">
       {itineraryData.map((itinerary, index) => {
         const imageSrc = getCityImage(itinerary.city); // Şehir adına göre resmi al
 
         return (
-        <Card key={index} sx={{ maxWidth: 345 }}>
-          {" "}
-          {/* Card Component */}
-          <CardMedia
-            component="img"
-            height="140"
-            image={imageSrc}
-            alt={`Image for ${itinerary.city}`}
-          />
-          <CardContent>
-            <Typography gutterBottom variant="h5" component="div">
-              {itinerary.city}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {`Group: ${itinerary.group}`} {/* Display group */}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {`Budget: ${itinerary.budget}`} {/* Display budget */}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {`Duration: ${formatDuration(
-                itinerary.dateRange.start,
-                itinerary.dateRange.end
-              )}`}{" "}
-              {/* Display duration */}
-            </Typography>
-            <ReactStars
-  count={5} // Number of stars
-  value={itinerary.rate || 0} // Use itinerary.rate instead of itineraryData.rate
-  size={24} // Size of stars
-  activeColor="#ffd700" // Color when active
-  onChange={(newRating) => onRatingChange(newRating, itinerary._id)} // Event handler for changes
-/>
+          <Card key={index} sx={{ maxWidth: 345 }}>
+            {" "}
+            {/* Card Component */}
+            <CardMedia
+              component="img"
+              height="140"
+              image={imageSrc}
+              alt={`Image for ${itinerary.city}`}
+            />
+            <CardContent>
+              <Typography gutterBottom variant="h5" component="div">
+                {itinerary.city}, Turkey
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5,  fontSize: '1.1rem' }}>
+                <EventNoteIcon sx={{ color: "orange" }} />
+                <Typography variant="body2" color="text.secondary"  sx={{ fontSize: '1.1rem', fontWeight:"bold"}}>
+                  {formatEventDate(itinerary.dateRange.start)} ·{" "}
+                  {formatDuration(
+                    itinerary.dateRange.start,
+                    itinerary.dateRange.end
+                  )}
+                </Typography>
+              </Box>
+              {editState._id === itinerary._id && editState.editing ? (
+                <TextField
+                  size="small"
+                  variant="outlined"
+                  value={itinerary.name}
+                  onChange={(e) => handleChange(e, itinerary._id)}
+                  sx={{ width: "100%", my: 1 }}
+                />
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1.1rem', paddingBottom: "6px"}} >
+                  {itinerary.name}
+                </Typography>
+              )}
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1.1rem', paddingBottom: "6px"}}>
+                <span style={{ fontWeight: "bold" }}>Group:</span>{" "}
+                {itinerary.group}
+              </Typography>
+              <Typography variant="body2" color="text.secondary"  sx={{ fontSize: '1.1rem', paddingBottom: "6px"}}>
+                <span style={{ fontWeight: "bold" }}>Budget:</span>{" "}
+                {itinerary.budget}
+              </Typography>
 
+              <ReactStars
+                count={5} // Number of stars
+                value={itinerary.rate || 0} // Use itinerary.rate instead of itineraryData.rate
+                size={24} // Size of stars
+                activeColor="#ffd700" // Color when active
+                onChange={(newRating) =>
+                  onRatingChange(newRating, itinerary._id)
+                } // Event handler for changes
+              />
 
-            <Box
-               sx={{ display: "flex", justifyContent: "flex-start", gap: "1rem", mt: 2 }}
-            >
-              {" "}
-              {/* Box to contain buttons */}
-              <Button
-                variant="contained"
-                className="btn primary__btn"
-                onClick={() => deleteItinerary(itinerary._id)}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-evenly",
+                  gap: "1rem",
+                  mt: 2,
+                }}
               >
-                Delete Itinerary
-              </Button>
-              <Button
-                variant="contained"
-                className="btn primary__btn"
-                onClick={() => startEditing(itinerary._id)}
-              >
-                Modify Itinerary
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
+                {" "}
+                {/* Box to contain buttons */}
+                <Button
+                  variant="contained"
+                  className="btn primary__btn"
+                  onClick={() => deleteItinerary(itinerary._id)}
+                >
+                  Delete
+                </Button>
+                <Button
+                  variant="contained"
+                  className="btn primary__btn"
+                  onClick={() => startEditing(itinerary._id)}
+                >
+                  Modify
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
         );
       })}
     </div>
   );
 }
 export default ViewPastItinerary;
+
+
