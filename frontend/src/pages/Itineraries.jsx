@@ -108,7 +108,6 @@ function Itineraries() {
   // Form submission handler
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("interests:", user.groups);
 
     if (formError) {
       console.error("Form submission halted due to errors.");
