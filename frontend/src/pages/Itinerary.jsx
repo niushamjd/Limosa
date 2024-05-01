@@ -170,8 +170,8 @@ function Itinerary() {
                     sx={{
                       fontSize: "1.5rem", // Increased font size
                       fontWeight: 600, // Semi-bold for emphasis
-                      color: deepOrange[500], // Using a bold color for contrast
-                      backgroundColor: "rgba(255, 165, 0, 0.2)", // Light background color
+                      color: "#1e1930", // Using a bold color for contrast
+                      backgroundColor: "#FAA935", // Light background color
                       padding: "8px", // Padding for comfort
                       borderRadius: "4px", // Rounded corners for smooth edges
                     }}
