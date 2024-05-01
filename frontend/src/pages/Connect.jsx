@@ -3,7 +3,7 @@ import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
 import FriendModal from './FriendModal';
 import "../styles/connect.css";
-
+import { debounce } from 'lodash'; // Make sure to install lodash, use `npm install lodash`
 import "../styles/modal.css";
 function Message({ message, onClose }) {
   useEffect(() => {
@@ -33,7 +33,10 @@ function Connect() {
 
   const [selectedFriend, setSelectedFriend] = useState(null); // Selected friend for the modal
   const [modalIsOpen, setModalIsOpen] = useState(false); // Modal open/close state
-
+const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers state variable
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   const openModal = (friend) => {
     setSelectedFriend(friend); // Set the selected friend
     setModalIsOpen(true); // Open the modal
@@ -41,6 +44,61 @@ function Connect() {
 
   const closeModal = () => {
     setModalIsOpen(false); // Close the modal
+  };
+  
+  const handleSearchChange = (value) => {
+    setSearchTerm(value.toLowerCase());
+    setCurrentPage(1);
+  };
+
+  const filterUsers = () => {
+    const filtered = users.filter(user => user.email.toLowerCase().includes(searchTerm));
+    setFilteredUsers(filtered);
+  };
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/users`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response.ok) {
+        const jsonResponse = await response.json();
+        setUsers(jsonResponse.data);
+        filterUsers(); // Filter users after fetching them
+      } else {
+        throw new Error('Failed to fetch users');
+      }
+    } catch (error) {
+      setErrorMessage('Error fetching users: ' + error.message);
+    }
+  }, []);
+
+  
+ useEffect(() => {
+  const fetchData = async () => {
+    await fetchUsers(); // Kullanıcıları getir
+    setSearchTerm(''); // Arama terimini boş bir dize olarak ayarla
+  };
+
+  fetchData();
+}, []);
+  
+  
+  // Pagination controls
+  const lastPageIndex = currentPage * itemsPerPage;
+  const firstPageIndex = lastPageIndex - itemsPerPage;
+  const currentUsers = filteredUsers.slice(firstPageIndex, lastPageIndex);
+  const total_pages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleInputChange = (e) => {
+    handleSearchChange(e.target.value); // Update search term on input change
   };
   const fetchFriends = useCallback(async () => {
     try {
@@ -53,7 +111,7 @@ function Connect() {
       if (response.ok) {
         const jsonResponse = await response.json();
         if (jsonResponse.success) {
-          setFriends(jsonResponse.data); // Store the full friend objects
+          setFriends(jsonResponse.data);
         } else {
           throw new Error(jsonResponse.message);
         }
@@ -65,6 +123,9 @@ function Connect() {
     }
   }, [user._id]);
 
+  useEffect(() => {
+    fetchFriends();
+  }, [user._id, fetchFriends]);
   const fetchFriendRequests = useCallback(async () => {
     try {
       const response = await fetch(`${BASE_URL}/users/${user._id}/friend-requests`, {
@@ -76,7 +137,7 @@ function Connect() {
       if (response.ok) {
         const jsonResponse = await response.json();
         if (jsonResponse.success) {
-          setFriendRequests(jsonResponse.data); // Store the friend requests data
+          setFriendRequests(jsonResponse.data);
         } else {
           throw new Error(jsonResponse.message);
         }
@@ -87,16 +148,12 @@ function Connect() {
       setErrorMessage('Error fetching friend requests: ' + error.message);
     }
   }, [user._id]);
-  
 
-  useEffect(() => {
-    fetchFriends();
-  }, [user._id, fetchFriends]);
   useEffect(() => {
     fetchFriendRequests();
   }, [user._id, fetchFriendRequests]);
   
-
+  
   const handleUserInteraction = async (connectUserId) => {
     const isFriend = friends.some(friend => friend._id === connectUserId);
     const endpoint = `${BASE_URL}/users/${user._id}/connect`; // Always use /connect for both follow and unfollow
@@ -127,6 +184,7 @@ function Connect() {
       setErrorMessage(`Error ${isFriend ? 'unfollowing' : 'following'} user: ` + error.message);
     }
   };
+
   const handleUserRequest = async (requestId, action) => {
     if (action === 'accept') {
       // Accepting the friend request
@@ -195,59 +253,94 @@ function Connect() {
   };
   
   
-  
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/users`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        if (response.ok) {
-          const jsonResponse = await response.json();
-          if (jsonResponse.success && Array.isArray(jsonResponse.data)) {
-            setUsers(jsonResponse.data);
-          } else {
-            throw new Error('Data is not an array or success flag is false');
-          }
-        } else {
-          throw new Error('Failed to fetch users');
+    const fetchData = async () => {
+      const response = await fetch(`${BASE_URL}/users`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
         }
-      } catch (error) {
-        setErrorMessage('Error fetching users: ' + error.message);
+      });
+      if (response.ok) {
+        const jsonResponse = await response.json();
+        if (jsonResponse.success && Array.isArray(jsonResponse.data)) {
+          setUsers(jsonResponse.data); // Tüm kullanıcıları direkt olarak güncelle
+          setFilteredUsers(jsonResponse.data); // Filtrelenmiş kullanıcıları da güncelle
+        } else {
+          throw new Error('Data is not an array or success flag is false');
+        }
+      } else {
+        throw new Error('Failed to fetch users');
       }
     };
-    fetchUsers();
+  
+    fetchData();
   }, []);
+  
 
   return (
     <div className="connect-users-container">
-    {errorMessage && <Message message={errorMessage} onClose={() => setErrorMessage("")} />}
-    {successMessage && <Message message={successMessage} onClose={() => setSuccessMessage("")} />}
-  
-    <h2 className="connect-users-header">Connect with Users</h2>
-    <div>
-      {users.map((userItem) => (
-        <div key={userItem._id} className="user-card">
-          <div className="user-details">
-            <span className="user-name">{userItem.username}</span>
-          </div>
-          <button className="interaction-button" onClick={() => handleUserInteraction(userItem._id)}>
-            {friends.some(friend => friend._id === userItem._id) ? 'Unfollow' : 'Follow'}
-          </button>
-        </div>
-      ))}
+      {errorMessage && <Message message={errorMessage} onClose={() => setErrorMessage("")} />}
+      {successMessage && <Message message={successMessage} onClose={() => setSuccessMessage("")} />}
+      <div className="search-bar">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleInputChange}
+          placeholder="Search users by email"
+          className="search-input"
+        />
+        <button onClick={filterUsers} className="search-button">Search</button>
+      </div>
+      <h2 className="connect-users-header">Connect with Users</h2>
+      <div>
+      {searchTerm === '' ? (
+          // If search term is empty, render paginated users
+          currentUsers.map((userItem) => (
+            <div key={userItem._id} className="user-card">
+              <div className="user-details">
+                <span className="user-name">{userItem.username}</span>
+              </div>
+              <button className="interaction-button" onClick={() => handleUserInteraction(userItem._id)}>
+                {friends.some(friend => friend._id === userItem._id) ? 'Unfollow' : 'Follow'}
+              </button>
+            </div>
+            
+          ))
+        ) : (
+          // If search term is not empty, render filtered users
+          filteredUsers.map((userItem) => (
+            <div key={userItem._id} className="user-card">
+              <div className="user-details">
+                <span className="user-name">{userItem.username}</span>
+              </div>
+              <button className="interaction-button" onClick={() => handleUserInteraction(userItem._id)}>
+                {friends.some(friend => friend._id === userItem._id) ? 'Unfollow' : 'Follow'}
+              </button>
+            </div>
+          ))
+        )}
     </div>
-  
-    <h2 className="friends-header">My Friends</h2>
+     {/* Pagination controls */}
+     {searchTerm === '' && (
+      <div className="pagination">
+        {Array.from({ length: total_pages }, (_, index) => (
+          <button key={index + 1} onClick={() => paginate(index + 1)}>
+            {index + 1}
+          </button>
+        ))}
+      </div>
+    )}
+    <br />
+     <h2 className="friends-header">My Friends</h2>
     <div className="friends-container">
       {friends.map((friend) => (
+        
         <div key={friend._id} className="friend-card" onClick={() => openModal(friend)}>
           <div className="friend-details">
             <h3 className="friend-name">{friend.username}</h3>
-           
+          
+
           </div>
         </div>
       ))}
