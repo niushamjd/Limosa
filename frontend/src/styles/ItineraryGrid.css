@@ -4,6 +4,7 @@
   grid-auto-rows: auto; /* Auto-adjust row height */
   gap: 1rem; /* Space between grid items */
   margin: 1rem;
+  font-family: var(--font-name);
 }
 
 .itinerary-card {
