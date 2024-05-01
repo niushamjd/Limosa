@@ -25,7 +25,6 @@ function ViewPastItinerary() {
   const onRatingChange = async (newRating, itineraryId) => {
     try {
       await saveChanges(itineraryId, { rate: newRating });
-      console.log("Rating changed:", newRating);
     } catch (error) {
       setError(error);
     }
@@ -196,7 +195,7 @@ function ViewPastItinerary() {
             </Typography>
             <ReactStars
   count={5} // Number of stars
-  value={itineraryData.rate || 0} // Initial value
+  value={itinerary.rate || 0} // Use itinerary.rate instead of itineraryData.rate
   size={24} // Size of stars
   activeColor="#ffd700" // Color when active
   onChange={(newRating) => onRatingChange(newRating, itinerary._id)} // Event handler for changes
