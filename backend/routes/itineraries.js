@@ -4,7 +4,8 @@ import {
   getItineraryById,
   getUSerItineraries,
   deleteItinerary,
-  updateItinerary
+  updateItinerary,
+  deleteEventsFromItinerary 
 } from "../controllers/itineraryController.js";
 import { verifyAdmin, verifyUser } from "../utils/verifyToken.js";
 
@@ -20,6 +21,10 @@ router.get("/user/:userId", getUSerItineraries);
 router.delete("/:id", deleteItinerary);
 // Update single itinerary
 router.put("/:id", updateItinerary);
+// Delete an event from an itinerary
+router.post("/delete-event", (req, res) => {
+  deleteEventsFromItinerary(req, res);
+});
 
 
 
