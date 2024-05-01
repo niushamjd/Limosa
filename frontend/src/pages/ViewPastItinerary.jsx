@@ -7,12 +7,13 @@ import {
   Button,
   Box,
 } from "@mui/material";
-import EventNoteIcon from "@mui/icons-material/EventNote"; // Import the calendar icon
-import ReactStars from "react-rating-stars-component"; // Star rating component
+import EventNoteIcon from "@mui/icons-material/EventNote";
+import ReactStars from "react-rating-stars-component";
 import { AuthContext } from "../context/AuthContext";
 import { BASE_URL } from "../utils/config";
 import "../styles/ItineraryGrid.css";
 import TextField from "@mui/material/TextField";
+
 
 function ViewPastItinerary() {
   const { user } = useContext(AuthContext);
@@ -28,13 +29,12 @@ function ViewPastItinerary() {
   }, [userId]);
 
   const formatEventDate = (isoDateString) => {
-    return new Date(isoDateString).toLocaleDateString('en-GB', {
-      day: '2-digit',      // Use two digits for the day
-      month: 'short',      // Use the abbreviated form of the month
-      year: 'numeric'      // Use the full numeric year
+    return new Date(isoDateString).toLocaleDateString("en-GB", {
+      day: "2-digit", // Use two digits for the day
+      month: "short", // Use the abbreviated form of the month
+      year: "numeric", // Use the full numeric year
     });
   };
-  
 
   const onRatingChange = async (newRating, itineraryId) => {
     try {
@@ -53,13 +53,14 @@ function ViewPastItinerary() {
   const formatDuration = (start, end) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
-  
+
     // Check if start and end date are the same day
     if (startDate.toDateString() === endDate.toDateString()) {
       return "1 Day"; // Or "Same Day" if you prefer
     }
-  
-    const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+    const duration =
+      Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
     return `${duration} Days`;
   };
 
@@ -70,6 +71,7 @@ function ViewPastItinerary() {
       const data = await response.json();
       if (data.success) {
         setItineraryData(data.data);
+        console.log("Itinerary data:", data.data);
         if (editState._id) {
           const editedItinerary = data.data.find(
             (itinerary) => itinerary._id === editState._id
@@ -94,25 +96,17 @@ function ViewPastItinerary() {
     fetchItineraries();
   }, [userId]);
 
-  const getCityImage = (cityName) => {
-    // Generate a random number between 1 and 4
-    const randomNum = Math.floor(Math.random() * 4) + 1;
-  
-    // Replace spaces with "-" and append a random number
-    const formattedCityName = `${cityName.replace(/ /g, '-')}-${randomNum}`;
-    console.log("Formatted city name:", formattedCityName); 
-  
-    let imageSrc;
-  
-    try {
-      // Attempt to dynamically load the corresponding image
-      imageSrc = require(`../assets/images/${formattedCityName}.jpg`);
-    } catch (err) {
-      // If the image is not found, use a default image
-      imageSrc = require("../assets/images/default.jpg");
+ 
+  const handleEditToggle = (itineraryId) => {
+    const itinerary = itineraryData.find(it => it._id === itineraryId);
+    if (editState._id === itineraryId && editState.editing) {
+      handleSaveChanges(itineraryId);  // Save changes when in edit mode
+    } else {
+      setEditState({
+        ...itinerary,
+        editing: true,
+      });
     }
-  
-    return imageSrc;
   };
 
   const deleteItinerary = async (itineraryId) => {
@@ -180,12 +174,34 @@ function ViewPastItinerary() {
     }
   };
 
-  const handleSaveChanges = (itineraryId) => {
-    const itinerary = itineraryData.find((it) => it._id === itineraryId);
-    saveChanges(itineraryId, { name: itinerary.name });
-    setEditState({});
-  };
+  const handleSaveChanges = async (itineraryId) => {
+    const updatedItinerary = {
+      ...editState,
+      name: editState.name,
+      editing: false,  // Turn off editing mode
+    };
+    try {
+      const response = await fetch(`${BASE_URL}/itinerary/${itineraryId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: updatedItinerary.name }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setItineraryData(itineraryData.map(it =>
+          it._id === itineraryId ? { ...it, name: updatedItinerary.name } : it
+        ));
+        setEditState({});  // Reset edit state
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      setError(error);
+    }
 
+  };
   const cancelEditing = () => {
     setEditState({});
   };
@@ -201,8 +217,8 @@ function ViewPastItinerary() {
   return (
     <div className="itinerary-grid">
       {itineraryData.map((itinerary, index) => {
-        const imageSrc = getCityImage(itinerary.city); // Şehir adına göre resmi al
-
+        const imageSrc = itinerary.photo;
+        const isEditing = editState._id === itinerary._id && editState.editing;
         return (
           <Card key={index} sx={{ maxWidth: 345 }}>
             {" "}
@@ -217,9 +233,20 @@ function ViewPastItinerary() {
               <Typography gutterBottom variant="h5" component="div">
                 {itinerary.city}, Turkey
               </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5,  fontSize: '1.1rem' }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  fontSize: "1.1rem",
+                }}
+              >
                 <EventNoteIcon sx={{ color: "orange" }} />
-                <Typography variant="body2" color="text.secondary"  sx={{ fontSize: '1.1rem', fontWeight:"bold"}}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontSize: "1.1rem", fontWeight: "bold" }}
+                >
                   {formatEventDate(itinerary.dateRange.start)} ·{" "}
                   {formatDuration(
                     itinerary.dateRange.start,
@@ -227,24 +254,47 @@ function ViewPastItinerary() {
                   )}
                 </Typography>
               </Box>
-              {editState._id === itinerary._id && editState.editing ? (
+              {isEditing ? (
                 <TextField
                   size="small"
                   variant="outlined"
-                  value={itinerary.name}
-                  onChange={(e) => handleChange(e, itinerary._id)}
-                  sx={{ width: "100%", my: 1 }}
+                  value={editState.name}
+                  onChange={(e) => handleChange(e, 'name')}
+                  multiline
+                  rows={1}
+                  maxRows={4}
+                  sx={{
+                    width: "100%",
+                    my: 1,
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderWidth: "0 !important",
+                        borderBottomWidth: "1px !important"
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    maxLength: 50,
+                  }}
                 />
               ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1.1rem', paddingBottom: "6px"}} >
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1.1rem', paddingBottom: "3px" }}>
                   {itinerary.name}
                 </Typography>
               )}
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1.1rem', paddingBottom: "6px"}}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: "1.1rem", paddingBottom: "3px" }}
+              >
                 <span style={{ fontWeight: "bold" }}>Group:</span>{" "}
                 {itinerary.group}
               </Typography>
-              <Typography variant="body2" color="text.secondary"  sx={{ fontSize: '1.1rem', paddingBottom: "6px"}}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: "1.1rem", paddingBottom: "3px" }}
+              >
                 <span style={{ fontWeight: "bold" }}>Budget:</span>{" "}
                 {itinerary.budget}
               </Typography>
@@ -279,9 +329,9 @@ function ViewPastItinerary() {
                 <Button
                   variant="contained"
                   className="btn primary__btn"
-                  onClick={() => startEditing(itinerary._id)}
+                  onClick={() => handleEditToggle(itinerary._id)}
                 >
-                  Modify
+                  {isEditing ? 'OK' : 'Modify'}
                 </Button>
               </Box>
             </CardContent>
@@ -292,5 +342,3 @@ function ViewPastItinerary() {
   );
 }
 export default ViewPastItinerary;
-
-

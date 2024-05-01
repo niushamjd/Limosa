@@ -105,6 +105,13 @@ function Itineraries() {
     }
   }, [itinerary]); // Dependency array ensures this effect runs only when `itinerary` changes
 
+  const getCityImage = (cityName) => {
+    const randomNum = Math.floor(Math.random() * 4) + 1;
+    const formattedCityName = `${cityName.replace(/ /g, "-")}-${randomNum}`;
+    // Direct path from the public directory
+    return `${formattedCityName}.jpg`;
+  };
+
   // Form submission handler
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -175,8 +182,9 @@ function Itineraries() {
           itineraryEvents: itineraryWithRestaurants,
           dateRange: { start: dateRange[0].toISOString(), end: dateRange[1].toISOString() },
           tips: "Additional tips or comments here",
-          photo: "URL to a relevant photo if applicable",
+          photo: getCityImage(destination),
         };
+        console.log("Itinerary post data:", itineraryPost);
     
         const response = await fetch(`${BASE_URL}/itinerary`, {
           method: "POST",

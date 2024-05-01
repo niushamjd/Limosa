@@ -1,6 +1,6 @@
 import React, { useState, useEffect,useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { red,deepOrange, lightBlue } from "@mui/material/colors"; // Import red color from MUI's color palette
+import { red } from "@mui/material/colors"; // Import red color from MUI's color palette
 import {
   Button,
   Typography,

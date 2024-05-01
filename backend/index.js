@@ -56,6 +56,8 @@ app.use('/api/v1/booking',bookingRoute);
 app.use('/api/v1/interests',interestRoute);
 app.use('/api/v1/itinerary',itineraryRoute);
 app.use('/api/v1/business',businessRoute);
+app.use(express.static('public'));
+
 
 
 app.listen(port, () =>{
