@@ -53,7 +53,14 @@ function ViewPastItinerary() {
   const formatDuration = (start, end) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
-    return `${Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))} Days`;
+  
+    // Check if start and end date are the same day
+    if (startDate.toDateString() === endDate.toDateString()) {
+      return "1 Day"; // Or "Same Day" if you prefer
+    }
+  
+    const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    return `${duration} Days`;
   };
 
   const fetchItineraries = async () => {
@@ -88,18 +95,23 @@ function ViewPastItinerary() {
   }, [userId]);
 
   const getCityImage = (cityName) => {
-    // Boşlukları "-" ile değiştirerek dosya adını oluştur
-
+    // Generate a random number between 1 and 4
+    const randomNum = Math.floor(Math.random() * 4) + 1;
+  
+    // Replace spaces with "-" and append a random number
+    const formattedCityName = `${cityName.replace(/ /g, '-')}-${randomNum}`;
+    console.log("Formatted city name:", formattedCityName); 
+  
     let imageSrc;
-
+  
     try {
-      // Dinamik olarak ilgili resmi yükle
-      imageSrc = require(`../assets/images/${cityName}.jpg`);
+      // Attempt to dynamically load the corresponding image
+      imageSrc = require(`../assets/images/${formattedCityName}.jpg`);
     } catch (err) {
-      // Eğer resim bulunamazsa, varsayılan bir resim kullan
+      // If the image is not found, use a default image
       imageSrc = require("../assets/images/default.jpg");
     }
-
+  
     return imageSrc;
   };
 
@@ -197,7 +209,7 @@ function ViewPastItinerary() {
             {/* Card Component */}
             <CardMedia
               component="img"
-              height="140"
+              height="190"
               image={imageSrc}
               alt={`Image for ${itinerary.city}`}
             />
