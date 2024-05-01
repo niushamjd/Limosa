@@ -39,7 +39,7 @@ export const register = async (req, res) => {
 
     // Send email
     try {
-        await sendEmail(params);
+        sendEmail(params);
         res.status(200).json({ success: true, message: "Successfully registered. Please check your email." });
     } catch (emailError) {
         console.error("Email sending error:", emailError);
