@@ -33,7 +33,8 @@ const itinerarySchema = new Schema({
     end: { type: Date, required: true }
   },
   photo: String,
-  tips: String
+  tips: String,
+  rate: { type: Number, default: 0 }
 }, { timestamps: true });
 
 export default mongoose.model('Itinerary', itinerarySchema);

@@ -104,12 +104,13 @@ export const updateItinerary = async (req, res) => {
       const { id } = req.params;
 
       // Extract updated itinerary data from request body
-      const { name, tips } = req.body;
+      const { name, tips, rate } = req.body;
 
       // Find the itinerary object by ID and update it
       const updatedItinerary = await Itinerary.findByIdAndUpdate(id, {
           name, // Only update name and tips
-          tips
+          tips,
+          rate
       }, { new: true });
       if (!updatedItinerary) {
           return res.status(404).json({ success: false, message: 'Itinerary not found' });

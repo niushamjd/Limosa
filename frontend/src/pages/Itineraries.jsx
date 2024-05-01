@@ -155,10 +155,13 @@ function Itineraries() {
           }
         }
       }
+      console.log(budget);
       const restaurants = await fetchNearbyRestaurants(
         mapRef,
-        parsedItinerary
+        parsedItinerary,
+        budget
       );
+      console.log("Restaurants fetched:", restaurants);
 
       const itineraryWithRestaurants = await addRestaurantsToItinerary(
         parsedItinerary,

@@ -91,6 +91,7 @@ function ViewPastItinerary() {
       _id: itinerary._id,
       name: itinerary.name || "", // Ensure default empty string if undefined
       tips: itinerary.tips || "", // Ensure default empty string if undefined
+      rate: itinerary.rate || 0, // Ensure default 0 if undefined
       editing: true,
     });
   };
@@ -112,6 +113,7 @@ function ViewPastItinerary() {
         body: JSON.stringify({
           name: editState.name,
           tips: editState.tips,
+          rate: editState.rate
         }),
       });
       const data = await response.json();
