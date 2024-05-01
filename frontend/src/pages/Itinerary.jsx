@@ -184,12 +184,12 @@ function Itinerary() {
           <Typography
             variant="h6"
             sx={{
-              fontSize: "1.5rem",
-              fontWeight: 600,
-              color: deepOrange[500],
-              backgroundColor: "rgba(255, 165, 0, 0.2)",
-              padding: "8px",
-              borderRadius: "4px",
+              fontSize: "1.5rem", // Increased font size
+                      fontWeight: 600, // Semi-bold for emphasis
+                      color: "#1e1930", // Using a bold color for contrast
+                      backgroundColor: "#FAA935", // Light background color
+                      padding: "8px", // Padding for comfort
+                      borderRadius: "4px", // Rounded corners for smooth edges
             }}
           >
             {period.charAt(0).toUpperCase() + period.slice(1)}

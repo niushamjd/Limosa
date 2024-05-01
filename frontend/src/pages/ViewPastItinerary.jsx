@@ -22,10 +22,20 @@ function ViewPastItinerary() {
     return new Date(isoDateString).toLocaleDateString();
   };
 
-  const onRatingChange = (newRating, itineraryId) => {
-    console.log("New rating:", newRating);
-    // You can send the new rating to your backend or update the state
+  const onRatingChange = async (newRating, itineraryId) => {
+    try {
+      await saveChanges(itineraryId, { rate: newRating });
+    } catch (error) {
+      setError(error);
+    }
   };
+
+  useEffect(() => {
+    if (editState.rate !== undefined && editState._id) {
+      saveChanges(editState._id);
+    }
+  }, [editState]);
+  
 
   const formatDuration = (start, end) => {
     const startDate = new Date(start);
@@ -40,6 +50,15 @@ function ViewPastItinerary() {
       const data = await response.json();
       if (data.success) {
         setItineraryData(data.data);
+        if (editState._id) {
+          const editedItinerary = data.data.find(itinerary => itinerary._id === editState._id);
+          if (editedItinerary) {
+            setEditState(prevState => ({
+              ...prevState,
+              rate: editedItinerary.rate || 0
+            }));
+          }
+        }
       } else {
         throw new Error(data.message);
       }
@@ -48,6 +67,11 @@ function ViewPastItinerary() {
     }
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    fetchItineraries();
+  }, [userId]);
+  
 
 
   const getCityImage = (cityName) => {
@@ -95,6 +119,7 @@ function ViewPastItinerary() {
       editing: true,
     });
   };
+  
 
   const handleChange = (e, field) => {
     setEditState({
@@ -103,30 +128,25 @@ function ViewPastItinerary() {
     });
   };
 
-  const saveChanges = async (itineraryId) => {
+  const saveChanges = async (itineraryId, changes) => {
     try {
+      console.log("Saving changes:", changes);
       const response = await fetch(`${BASE_URL}/itinerary/${itineraryId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: editState.name,
-          tips: editState.tips,
-          rate: editState.rate
-        }),
+        body: JSON.stringify(changes),
       });
       const data = await response.json();
-      if (data.success) {
-        fetchItineraries();
-        setEditState({}); // Reset edit state
-      } else {
+      if (!data.success) {
         throw new Error(data.message);
       }
     } catch (error) {
       setError(error);
     }
   };
+  
 
   const cancelEditing = () => {
     setEditState({});
@@ -174,12 +194,14 @@ function ViewPastItinerary() {
               {/* Display duration */}
             </Typography>
             <ReactStars
-              count={5} // Number of stars
-              value={0} // Initial value
-              size={24} // Size of stars
-              activeColor="#ffd700" // Color when active
-              onChange={(newRating) => onRatingChange(newRating, itinerary._id)} // Event handler for changes
-            />
+  count={5} // Number of stars
+  value={itinerary.rate || 0} // Use itinerary.rate instead of itineraryData.rate
+  size={24} // Size of stars
+  activeColor="#ffd700" // Color when active
+  onChange={(newRating) => onRatingChange(newRating, itinerary._id)} // Event handler for changes
+/>
+
+
             <Box
                sx={{ display: "flex", justifyContent: "flex-start", gap: "1rem", mt: 2 }}
             >
