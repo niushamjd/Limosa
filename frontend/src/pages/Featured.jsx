@@ -11,7 +11,6 @@ const Featured = () => {
         const response = await fetch(`${BASE_URL}/business`);
         if (response.ok) {
           const data = await response.json(); // Extract JSON data from the response
-          console.log("Fetched businesses:", data.data); // Log the fetched data
           setBusinesses(data.data.filter(business => business.premium)); // Filter businesses with premium membership
         } else {
           throw new Error('Failed to fetch businesses');

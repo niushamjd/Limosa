@@ -6,10 +6,19 @@ const openai = new OpenAI({
     dangerouslyAllowBrowser: true,
 });
 
-export const generateItineraryPrompt = (destination, peopleGroup, budget, user, dateRange) => {
+export const generateItineraryPrompt = (destination, peopleGroup, budget, user, dateRange,groupName) => {
+  const fetchCommonInterests = (groupName) => {
+    // Find the group object with the given groupName
+    const group = user.groups.find(group => group.groupName === groupName);
+  
+    // If group is found, return its commonInterests, otherwise return an empty array
+    return group ? group.commonInterests : [];
+  };
+  const commonInterests = fetchCommonInterests(groupName);
+  
     return  prompt = `Generate a structured travel itinerary for ${destination} for a ${peopleGroup.toLowerCase()} with a ${budget.toLowerCase()} budget considering user interests in ${
         user.interests
-      } from ${dateRange[0].format("YYYY-MM-DD")} to ${dateRange[1].format(
+      } and ${commonInterests}from ${dateRange[0].format("YYYY-MM-DD")} to ${dateRange[1].format(
         "YYYY-MM-DD"
       )}, covering each day including last day, when selected start and end date are same, only generate for a single day but if it is not same date create for all dates exactly . Divide the itinerary into morning, afternoon, and evening sections for each day. For each period, suggest two places to visit. Present the itinerary with explicit headings for each day and period, followed by the names of places to visit, each accompanied by a brief description.
   

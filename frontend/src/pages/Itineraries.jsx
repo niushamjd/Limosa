@@ -39,7 +39,7 @@ function Itineraries() {
   const [dateRange, setDateRange] = useState([null, null]);
   const [destination, setDestination] = useState("");
   const [peopleGroup, setPeopleGroup] = useState("");
-  const [groupNames, setGroupNames] = useState(''); // Ensure this line exists
+  const [groupName, setgroupName] = useState(''); // Ensure this line exists
   const [budget, setBudget] = useState("");
   const [itineraryId, setItineraryId] = useState("");
 
@@ -108,6 +108,7 @@ function Itineraries() {
   // Form submission handler
   const handleSubmit = async (event) => {
     event.preventDefault();
+    console.log("interests:", user.groups);
 
     if (formError) {
       console.error("Form submission halted due to errors.");
@@ -133,7 +134,8 @@ function Itineraries() {
 
     setIsLoading(true);
 
-    prompt = generateItineraryPrompt(destination, peopleGroup, budget, user, dateRange)
+    prompt = generateItineraryPrompt(destination, peopleGroup, budget, user, dateRange,groupName)
+    
 
     try {
       
@@ -155,13 +157,11 @@ function Itineraries() {
           }
         }
       }
-      console.log(budget);
       const restaurants = await fetchNearbyRestaurants(
         mapRef,
         parsedItinerary,
         budget
       );
-      console.log("Restaurants fetched:", restaurants);
 
       const itineraryWithRestaurants = await addRestaurantsToItinerary(
         parsedItinerary,
@@ -317,8 +317,8 @@ function Itineraries() {
             <FormControl fullWidth margin="normal">
               <InputLabel>Select your group</InputLabel>
               <Select
-                value={groupNames}
-                onChange={(e) => setGroupNames(e.target.value)}
+                value={groupName}
+                onChange={(e) => setgroupName(e.target.value)}
                 input={<OutlinedInput label="Select your group" />}
               >
                 {groupOptions.map((groupName) => (
