@@ -30,7 +30,7 @@ function Connect() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [friendRequests, setFriendRequests] = useState([]);
-
+  const [showNotFoundMessage, setShowNotFoundMessage] = useState(false); // State to manage the not found message
   const [selectedFriend, setSelectedFriend] = useState(null); // Selected friend for the modal
   const [modalIsOpen, setModalIsOpen] = useState(false); // Modal open/close state
 const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers state variable
@@ -54,6 +54,16 @@ const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers 
   const filterUsers = () => {
     const filtered = users.filter(user => user.email.toLowerCase().includes(searchTerm));
     setFilteredUsers(filtered);
+  
+    // Check if search term is not empty and no users are found
+    if (searchTerm !== '' && filtered.length === 0) {
+      setShowNotFoundMessage(true);
+      setTimeout(() => {
+        setShowNotFoundMessage(false);
+      }, 1500);
+    } else {
+      setShowNotFoundMessage(false); // Hide the message if users are found or search term is empty
+    }
   };
 
   const fetchUsers = useCallback(async () => {
@@ -287,6 +297,9 @@ const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers 
 
   return (
     <div className="connect-users-container">
+       {showNotFoundMessage && (
+        <Message message="User not found" onClose={() => setShowNotFoundMessage(false)} />
+      )}
       {errorMessage && <Message message={errorMessage} onClose={() => setErrorMessage("")} />}
       {successMessage && <Message message={successMessage} onClose={() => setSuccessMessage("")} />}
       <div className="search-bar">
@@ -300,7 +313,7 @@ const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers 
         <button onClick={filterUsers} className="search-button">Search</button>
       </div>
       <h2 className="connect-users-header">Connect with Users</h2>
-      <div>
+      <div className='user'>
       {searchTerm === '' ? (
           // If search term is empty, render paginated users
           currentUsers.map((userItem) => (

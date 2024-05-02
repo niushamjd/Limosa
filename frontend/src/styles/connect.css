@@ -60,7 +60,9 @@
   .user-email {
     color: #ccc;
   }
-  
+  .user{
+    height: 350px;
+  }
   .interaction-button {
     padding: 8px 16px;
     background-color: #FAA935;
