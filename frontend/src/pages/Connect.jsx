@@ -92,7 +92,14 @@ const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers 
   const firstPageIndex = lastPageIndex - itemsPerPage;
   const currentUsers = filteredUsers.slice(firstPageIndex, lastPageIndex);
   const total_pages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const currentFilteredUsers = filteredUsers.slice(firstPageIndex, lastPageIndex);
+  const totalFilteredPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
+
+  const lastFilteredIndex = currentPage * itemsPerPage;
+  const firstFilteredIndex = lastFilteredIndex - itemsPerPage;
+  
+  
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
@@ -309,7 +316,7 @@ const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers 
           ))
         ) : (
           // If search term is not empty, render filtered users
-          filteredUsers.map((userItem) => (
+          currentFilteredUsers.map((userItem) => (
             <div key={userItem._id} className="user-card">
               <div className="user-details">
                 <span className="user-name">{userItem.username}</span>
@@ -322,15 +329,23 @@ const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers 
         )}
     </div>
      {/* Pagination controls */}
-     {searchTerm === '' && (
-      <div className="pagination">
-        {Array.from({ length: total_pages }, (_, index) => (
-          <button key={index + 1} onClick={() => paginate(index + 1)}>
-            {index + 1}
-          </button>
-        ))}
-      </div>
-    )}
+{searchTerm === '' ? (
+  <div className="pagination">
+    {Array.from({ length: total_pages }, (_, index) => (
+      <button key={index + 1} onClick={() => paginate(index + 1)}>
+        {index + 1}
+      </button>
+    ))}
+  </div>
+) : (
+  <div className="pagination">
+    {Array.from({ length: totalFilteredPages }, (_, index) => (
+      <button key={index + 1} onClick={() => paginate(index + 1)}>
+        {index + 1}
+      </button>
+    ))}
+  </div>
+)}
     <br />
      <h2 className="friends-header">My Friends</h2>
     <div className="friends-container">
