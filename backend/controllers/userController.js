@@ -82,29 +82,27 @@ export const updateUser = async (req, res) => {
 // update User
 export const updateUserGroup = async (req, res) => {
   const id = req.params.id;
-  const groupToAdd = req.body.groups[0];  // Assuming one group at a time for simplicity
+  const groupsToUpdate = req.body.groups;  // Get the updated groups array from the request
 
   try {
-      const user = await User.findById(id);
-      // Check for existing group name
-      const duplicateGroup = user.groups.find(group => group.groupName.toLowerCase() === groupToAdd.groupName.toLowerCase());
+      // Update the user's groups array directly with the provided array
+      const updatedUser = await User.findByIdAndUpdate(id, {
+          $set: { groups: groupsToUpdate }
+      }, {
+          new: true,
+          runValidators: true
+      });
 
-      if (duplicateGroup) {
-          return res.status(400).json({
+      if (!updatedUser) {
+          return res.status(404).json({
               success: false,
-              message: "Group name already exists"
+              message: "User not found"
           });
       }
 
-      const updatedUser = await User.findByIdAndUpdate(
-          id,
-          { $push: { groups: groupToAdd } },
-          { new: true, runValidators: true }
-      );
-
       res.status(200).json({
           success: true,
-          message: "Successfully updated",
+          message: "Groups updated successfully",
           data: updatedUser
       });
   } catch (error) {

@@ -66,30 +66,6 @@ function TravelGroup() {
   }, []);
 
   useEffect(() => {
-    // Fetch logged-in user's interests
-    const fetchUserInterests = async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/users/${user._id}/interests`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUserInterests(data.data); // Store the user's interests
-        } else {
-          throw new Error("Failed to fetch user interests");
-        }
-      } catch (error) {
-        console.error("Error fetching user interests:", error);
-      }
-    };
-
-    fetchUserInterests(); // Fetch user's interests on component mount
-  }, [user._id]); // Re-fetch if user ID changes
-
-
-
-  useEffect(() => {
     if (showMessage || error) { // If there's a success message or an error
       const timer = setTimeout(() => {
         setShowMessage(false); // Hide success message
@@ -150,6 +126,34 @@ function TravelGroup() {
       commonInterests: allInterests, // Set updated commonInterests
     }));
   };
+  const deleteGroup = async (groupId) => {
+    try {
+        // Create a new array excluding the group to be deleted
+        const updatedGroups = groups.filter(group => group._id !== groupId);
+
+        // Send the updated array to the backend
+        const response = await fetch(`${BASE_URL}/users/${user._id}/groups`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ groups: updatedGroups })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Failed to update groups");
+
+        // Update local state to reflect the group deletion
+        setGroups(updatedGroups);
+        setSuccessMessage("Group deleted successfully");
+        setShowMessage(true);
+    } catch (error) {
+        console.error("Failed to delete group:", error);
+        setError(`Failed to delete group: ${error.message}`);
+    }
+};
+
+
 
   const extractFriendInterests = (selectedFriendIds) => {
     return friends
@@ -179,46 +183,41 @@ function TravelGroup() {
       setError("Please ensure all required fields are filled out.");
       return;
     }
-    const existingGroup = groups.find(group => group.groupName === groupData.groupName);
-    if (existingGroup) {
-      setError("A group with this name already exists. Please choose a different name.");
-      return;
-    }
-    const formattedGroupData = {
+
+    const newGroup = {
       groupName: groupData.groupName,
       commonInterests: groupData.commonInterests,
-      groupMates: groupData.groupMates.map((gm) => ({
+      groupMates: groupData.groupMates.map(gm => ({
         id: gm.id,
         username: gm.username,
       })),
     };
 
+    const formattedGroups = [...groups, newGroup]; // Optimistically add new group
+
     try {
-      console.log('formattedGroupData:', formattedGroupData);
       const response = await fetch(`${BASE_URL}/users/${user._id}/groups`, { 
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ groups: [formattedGroupData] }), // Ensure this is an array if your schema expects it
-        }
-      );
+          body: JSON.stringify({ groups: formattedGroups })
+      });
 
       const data = await response.json();
-      if (response.ok) {
-        setSuccessMessage("Travel group created successfully");
-        setShowMessage(true);
-        window.scrollTo(0, 0); // Scroll to the top to show message
-        fetchGroups(); // Fetch updated groups
-      } else {
-        console.error("Failed to create travel group:", data);
-        setError(`Failed to create travel group: ${data.message}`);
-      }
+      if (!response.ok) throw new Error(data.message || "Failed to create travel group");
+
+      setGroups(formattedGroups); // Confirm addition to state
+      setSuccessMessage("Travel group created successfully");
+      setShowMessage(true);
+      window.scrollTo(0, 0); // Scroll to the top to show message
     } catch (error) {
       console.error("Error creating travel group:", error);
       setError(`Error creating travel group: ${error.message}`);
+      setGroups(groups.filter(group => group.groupName !== newGroup.groupName)); // Revert on failure
     }
-  };
+};
+
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -247,6 +246,7 @@ function TravelGroup() {
     fetchFriends(); // Fetch friends on component mount
   }, [user._id]); // Fetch on user ID change
 
+
   return (
     <>
       {error && <Message message={error} onClose={() => setError("")} />}
@@ -257,26 +257,25 @@ function TravelGroup() {
       <div className="existing-groups">
           <h3>Your Travel Groups:</h3>
           <div className="group-grid">
-  {groups.map((group) => {
-    const mostFrequentInterest = getMostFrequentInterest(group.commonInterests);
-    const interestImage = getInterestImage(mostFrequentInterest); // Fetch the image source
-
-    return (
-      <div key={group.id} className="group-card">
-        <img
-          src={interestImage} // Use the correct image source
-          alt={mostFrequentInterest} // Provide an alt text
-        />
-       <p><strong>{group.groupName}</strong></p>
+          {groups.map((group) => (
+    <div key={group._id} className="group-card">
+        <img src={getInterestImage(getMostFrequentInterest(group.commonInterests))}
+             alt={getMostFrequentInterest(group.commonInterests)} />
+        <p><strong>{group.groupName}</strong></p>
         Group mates:
-              <ul>
-                {group.groupMates.map(gm => (
-                  <li key={gm.id}>{gm.username}</li>
-                ))}
-              </ul>
-      </div>
-    );
-  })}
+        <ul>
+            {group.groupMates.map(gm => (
+                <li key={gm.id}>{gm.username}</li>
+            ))}
+        </ul>
+        <ul>
+            {group.commonInterests.map((interest, index) => (
+                <li key={index}>{interest}</li>
+            ))}
+        </ul>
+        <button onClick={() => deleteGroup(group._id)}>Delete Group</button>
+    </div>
+))}
 </div>
 
       </div>
