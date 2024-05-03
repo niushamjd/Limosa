@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TextField, Button, Box, FormControlLabel, RadioGroup, Radio } from '@mui/material';
 import { BASE_URL } from "../utils/config";
+import { fetchPlaceDetails } from '../services/RestaurantService';
+import { useLoadScript } from '@react-google-maps/api';
 import '../styles/business.css'; 
 function Business() {
   // State to store input form data
@@ -22,9 +24,14 @@ function Business() {
     },
     specialOffers: [],
     events: [],
-    premium: false // Default premium value
+    premium: true // Default premium value
   });
   const [errorMessage, setErrorMessage] = useState('');
+  const libraries = useMemo(() => ["places"], []);
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: "AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8", // Replace with your actual Google Maps API key
+    libraries,
+  });
  
   const addSpecialOffer = (e) => {
     e.preventDefault();
@@ -96,60 +103,69 @@ const handleChange = (e, nestedKey, parentKey, grandParentKey) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   }
 };
-
-
-
- // Function to handle form submission
-
- const handleSubmit = async (e) => {
+// Function to handle form submission
+const handleSubmit = async (e) => {
   e.preventDefault();
+  setErrorMessage(''); // Clear previous error messages
 
-  // Clear previous error messages
-  setErrorMessage('');
-
-  // Validate input fields
   if (!formData.contactDetails.address.city.trim() && !formData.name.trim()) {
     setErrorMessage('Name and City fields must not be empty.');
-    setTimeout(() => setErrorMessage(''), 1500);  // Clear the message after 3 seconds
     return;
-  }
- else  if (!formData.name.trim()) {
+  } else if (!formData.name.trim()) {
     setErrorMessage('Name field must not be empty.');
-    setTimeout(() => setErrorMessage(''), 1500);  // Clear the message after 3 seconds
     return;
-  } 
- else if (!formData.contactDetails.address.city.trim()) {
+  } else if (!formData.contactDetails.address.city.trim()) {
     setErrorMessage('City field must not be empty.');
-    setTimeout(() => setErrorMessage(''), 1500);  // Clear the message after 3 seconds
     return;
   }
-  
 
   try {
-    const response = await fetch(`${BASE_URL}/business`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
+    if (isLoaded) {
+      const placeDetails = await fetchPlaceDetails(formData.name);
+      console.log(placeDetails);
 
-    if (response.ok) {
-      const responseData = await response.json();
-      alert('Business created successfully!');
-      setFormData({...formData, name: '', type: '', openingHours: '', contactDetails: {phone: '', email: '', website: '', address: {street: '', city: '', state: '', zipCode: '', country: ''}}, specialOffers: [], events: [], premium: false});  // Reset form data
-      setErrorMessage(''); // Clear error message on successful submission
+      // Check if the fetched business name contains the user entered name
+      if (placeDetails && placeDetails.name.toLowerCase().includes(formData.name.toLowerCase())) {
+        // Your existing code to handle successful API response
+        // Format and update the formData with fetched place details
+        const response = await fetch(`${BASE_URL}/business`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          alert('Business created successfully!');
+          setFormData({
+            name: '',
+            type: '',
+            openingHours: '',
+            contactDetails: { phone: '', email: '', website: '', address: { street: '', city: '', state: '', zipCode: '', country: '' } },
+            specialOffers: [],
+            events: [],
+            premium: true
+          });
+        } else {
+          const errorData = await response.json();
+          setErrorMessage(errorData.message || 'An error occurred while creating the business.');
+        }
+      } else {
+        // Error handling if the business name does not match
+        setErrorMessage(`No business found with the name '${formData.name}'. Please check the name and try again.`);
+      }
     } else {
-      const errorData = await response.json();
-      setErrorMessage(errorData.message || 'An error occurred while creating the business.');
-      setTimeout(() => setErrorMessage(''), 3000);  // Clear the message after 3 seconds
+      setErrorMessage('Google Places API is not loaded.');
     }
   } catch (error) {
     console.error('Error creating business:', error);
-    setErrorMessage(error.message || 'Network error, please try again later.');
-    setTimeout(() => setErrorMessage(''), 3000);  // Clear the message after 3 seconds
+    setErrorMessage(error.message || 'No business found that matches the entered name.');
   }
 };
+
+
+
 
 
 return (
@@ -235,18 +251,6 @@ return (
     />
   
    
-   
-    
-    <RadioGroup
-      className="form-field"
-      aria-label="premium"
-      name="premium"
-      value={formData.premium.toString()}
-      onChange={handleChange}
-    >
-      <FormControlLabel value="true" control={<Radio />} label="Premium" />
-      <FormControlLabel value="false" control={<Radio />} label="Regular" />
-    </RadioGroup>
     <h2 className="section-heading">Special Offers</h2>
     {formData.specialOffers.map((offer, index) => (
       <div key={index} className="offer-section">

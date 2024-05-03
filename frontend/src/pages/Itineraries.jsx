@@ -29,7 +29,7 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import OpenAI from "openai";
-import { useLoadScript, GoogleMap } from "@react-google-maps/api";
+import { useLoadScript } from "@react-google-maps/api";
 
 function Itineraries() {
   // State and context setup

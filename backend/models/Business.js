@@ -37,7 +37,8 @@ const businessSchema = new Schema({
   contactDetails: contactSchema,
   specialOffers: [offerSchema],
   events: [eventSchema],
-  premium: { type: Boolean, default: false }
+  premium: { type: Boolean, default: false },
+  photo: String,
 }, { timestamps: true }); // Include timestamps to track creation and updates
 
 const Business = mongoose.model("Business", businessSchema);
