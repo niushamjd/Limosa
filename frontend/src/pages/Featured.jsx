@@ -1,80 +1,64 @@
-import React, { useEffect, useState } from "react";
-import { BASE_URL } from "../utils/config";
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardMedia, Typography, Grid } from '@mui/material';
+import { BASE_URL } from '../utils/config';
+import "../styles/featured.css"; // Ensure to include necessary styles
 
 const Featured = () => {
   const [businesses, setBusinesses] = useState([]);
 
   useEffect(() => {
-    // Function to fetch all businesses
     const fetchBusinesses = async () => {
       try {
         const response = await fetch(`${BASE_URL}/business`);
         if (response.ok) {
-          const data = await response.json(); // Extract JSON data from the response
-          setBusinesses(data.data.filter(business => business.premium)); // Filter businesses with premium membership
+          const data = await response.json();
+          setBusinesses(data.data.filter(business => business.premium)); // Filter for premium businesses
         } else {
           throw new Error('Failed to fetch businesses');
         }
       } catch (error) {
-        console.error("Error fetching businesses:", error);
+        console.error('Error fetching businesses:', error);
       }
     };
 
-    fetchBusinesses(); // Call the fetch function when component mounts
-  }, []); // Empty dependency array means this effect runs only once on mount
+    fetchBusinesses();
+  }, []);
 
   return (
-    <div>
-      <h1>Featured</h1>
-      <ul>
-        {businesses.map((business) => (
-          <li key={business._id}>
-            <h2>{business.name}</h2>
-            {business.type && <p>Type: {business.type}</p>}
-            {business.openingHours && <p>Opening Hours: {business.openingHours}</p>}
-            <p>Contact Details:</p>
-            <ul>
-              {business.contactDetails.phone && <li>Phone: {business.contactDetails.phone}</li>}
-              {business.contactDetails.email && <li>Email: {business.contactDetails.email}</li>}
-              {business.contactDetails.website && <li>Website: {business.contactDetails.website}</li>}
-              {business.contactDetails.address && (
-                <li>
-                  Address: {business.contactDetails.address.street},{" "}
-                  {business.contactDetails.address.city},{" "}
-                  {business.contactDetails.address.state},{" "}
-                  {business.contactDetails.address.zipCode},{" "}
-                  {business.contactDetails.address.country}
-                </li>
-              )}
-            </ul>
-            <p>Special Offers:</p>
-            <ul>
-              {business.specialOffers.map((offer, index) => (
-                <li key={index}>
-                  <strong>{offer.title}</strong>: {offer.description} (Valid
-                  from {new Date(offer.startDate).toLocaleDateString()} to{" "}
-                  {new Date(offer.endDate).toLocaleDateString()})
-                </li>
-              ))}
-            </ul>
-            {business.events.length > 0 && ( // Conditionally render "Events" section if there are events
-              <>
-                <p>Events:</p>
-                <ul>
-                  {business.events.map((event, index) => (
-                    <li key={index}>
-                      <strong>{event.eventName}</strong>: {event.eventDescription}{" "}
-                      (Date: {new Date(event.eventDate).toLocaleDateString()})
-                    </li>
-                  ))}
-                </ul>
-              </>
+    <Grid container spacing={2} className="featured-grid">
+      {businesses.map(business => (
+        <Grid item key={business._id} xs={12} sm={6} md={4} lg={3}>
+          <Card sx={{ maxWidth: 345, m: 2 }}>
+            {business.photo && (
+              <CardMedia
+                component="img"
+                height="140"
+                image={business.photo}
+                alt={`Photo of ${business.name}`}
+              />
             )}
-            <p>Premium: {business.premium ? "Yes" : "No"}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
+            <CardContent>
+              <Typography gutterBottom variant="h5" component="div">
+                {business.name}
+              </Typography>
+              {business.type && <Typography variant="body2" color="text.secondary">Type: {business.type}</Typography>}
+              {business.openingHours && <Typography variant="body2" color="text.secondary">Opening Hours: {business.openingHours}</Typography>}
+              <Typography variant="body2" color="text.secondary">
+                Contact: {business.contactDetails.phone || 'N/A'} | {business.contactDetails.email || 'N/A'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Website: {business.contactDetails.website || 'N/A'}
+              </Typography>
+              {business.contactDetails.address && (
+                <Typography variant="body2" color="text.secondary">
+                  Address: {`${business.contactDetails.address.street}, ${business.contactDetails.address.city}, ${business.contactDetails.address.state}, ${business.contactDetails.address.zipCode}, ${business.contactDetails.address.country}`}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
   );
 };
 

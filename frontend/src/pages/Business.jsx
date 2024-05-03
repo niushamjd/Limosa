@@ -102,16 +102,11 @@ const handleChange = (e, nestedKey, parentKey, grandParentKey) => {
     // Handle top-level state changes
     setFormData({ ...formData, [e.target.name]: e.target.value });
   }
-};
-// Function to handle form submission
-const handleSubmit = async (e) => {
+};const handleSubmit = async (e) => {
   e.preventDefault();
   setErrorMessage(''); // Clear previous error messages
 
-  if (!formData.contactDetails.address.city.trim() && !formData.name.trim()) {
-    setErrorMessage('Name and City fields must not be empty.');
-    return;
-  } else if (!formData.name.trim()) {
+  if (!formData.name.trim()) {
     setErrorMessage('Name field must not be empty.');
     return;
   } else if (!formData.contactDetails.address.city.trim()) {
@@ -124,20 +119,51 @@ const handleSubmit = async (e) => {
       const placeDetails = await fetchPlaceDetails(formData.name);
       console.log(placeDetails);
 
-      // Check if the fetched business name contains the user entered name
-      if (placeDetails && placeDetails.name.toLowerCase().includes(formData.name.toLowerCase())) {
-        // Your existing code to handle successful API response
-        // Format and update the formData with fetched place details
+      if (placeDetails) {
+        // Validate that the place details contain the required fields
+        if (!placeDetails.name.toLowerCase().includes(formData.name.toLowerCase())) {
+          setErrorMessage(`No business found with the exact name '${formData.name}'. Please check the name and try again.`);
+          return;
+        }
+
+        if (!placeDetails.phoneNumber && !placeDetails.website || placeDetails.photos.length === 0) {
+          setErrorMessage('Essential contact details or photos are missing.');
+          return;
+        }
+
+        // Prepare data based on the place details
+        const updatedFormData = {
+          ...formData,
+          name: placeDetails.name, // Use the name from place details
+          type: formData.type, // Preserve user input type if available
+          openingHours: JSON.stringify(placeDetails.openingHours.weekday_text),
+          contactDetails: {
+            phone: placeDetails.phoneNumber,
+            email: formData.contactDetails.email, // Preserve user input email if available
+            website: placeDetails.website,
+            address: {
+              street: placeDetails.address.split(',')[0], // Extract street from address
+              city: formData.contactDetails.address.city, // Preserve user input city
+              state: '', // State not extracted; adjust if needed
+              zipCode: '', // Zip code not extracted; adjust if needed
+              country: placeDetails.address.split(',').pop().trim() // Extract country from address
+            }
+          },
+          photo: placeDetails.photos.length > 0 ? placeDetails.photos[0].getUrl() : '',
+        };
+
+        // Attempt to create the business
         const response = await fetch(`${BASE_URL}/business`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(updatedFormData),
         });
 
         if (response.ok) {
           alert('Business created successfully!');
+          // Reset form data
           setFormData({
             name: '',
             type: '',
@@ -152,7 +178,6 @@ const handleSubmit = async (e) => {
           setErrorMessage(errorData.message || 'An error occurred while creating the business.');
         }
       } else {
-        // Error handling if the business name does not match
         setErrorMessage(`No business found with the name '${formData.name}'. Please check the name and try again.`);
       }
     } else {
@@ -160,11 +185,9 @@ const handleSubmit = async (e) => {
     }
   } catch (error) {
     console.error('Error creating business:', error);
-    setErrorMessage(error.message || 'No business found that matches the entered name.');
+    setErrorMessage(error.message || 'Network error, please try again later.');
   }
 };
-
-
 
 
 
