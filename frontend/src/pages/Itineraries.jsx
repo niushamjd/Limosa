@@ -165,7 +165,7 @@ function Itineraries() {
         for (const period of Object.keys(parsedItinerary[date])) {
           for (const event of parsedItinerary[date][period]) {
             if (event.type === 'Place') {
-              const placeDetails = await fetchPlaceDetails(event.name); // Assuming place name can be used as a query
+              const placeDetails = await fetchPlaceDetails(event.name, destination);
               event.coordinates = placeDetails.coordinates; // Add coordinates to the event
             }
           }
