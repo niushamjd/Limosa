@@ -95,62 +95,74 @@ export async function fetchNearbyRestaurants(mapRef, itinerary, budget) {
 
   return restaurantsArray;
 }
-
+const getCityLocation = async (cityName) => {
+  const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityName)}&key=AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8`;
+  const response = await fetch(geocodeUrl);
+  const data = await response.json();
+  if (data.status === "OK") {
+    return data.results[0].geometry.location; // returns { lat, lng }
+  } else {
+    throw new Error("Failed to geocode city name");
+  }
+};
 
 // Example function to fetch place details including coordinates
-export const fetchPlaceDetails = async (placeName) => {
-  const map = new window.google.maps.Map(document.createElement('div')); // Dummy map element for services
-  const service = new window.google.maps.places.PlacesService(map);
+export const fetchPlaceDetails = async (placeName, city = null) => {
+  if (!city) {
+    throw new Error(`City parameter is required but not provided.`);
+  }
 
-  const searchRequest = {
-    query: placeName,
-    fields: ['place_id']
-  };
+  const location = await getCityLocation(city);
+  const map = new window.google.maps.Map(document.createElement('div'));
+  const service = new window.google.maps.places.PlacesService(map);
+  const radius = 30000; // Reduced radius for more localized results
 
   try {
-    const searchResult = await new Promise((resolve, reject) => {
-      service.findPlaceFromQuery(searchRequest, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-          resolve(results[0].place_id);
-        } else {
-          reject('Place ID not found for ' + placeName);
-        }
-      });
+    const searchResults = await new Promise((resolve, reject) => {
+      service.textSearch({
+        query: `${placeName}`,
+        location: new google.maps.LatLng(location.lat, location.lng),
+        radius: radius,
+      }, handleSearchResults(resolve, reject));
     });
 
-    const detailsRequest = {
-      placeId: searchResult,
-      fields: ['name', 'geometry', 'formatted_address', 'formatted_phone_number', 'website', 'opening_hours', 'photos']
-      // Add more fields as needed
-    };
-
-    const detailsResult = await new Promise((resolve, reject) => {
-      service.getDetails(detailsRequest, (place, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          // Extract relevant information from place object
-          const placeDetails = {
-            name: place.name,
-            coordinates: {
-              latitude: place.geometry.location.lat(),
-              longitude: place.geometry.location.lng()
-            },
-            address: place.formatted_address,
-            phoneNumber: place.formatted_phone_number,
-            website: place.website,
-            openingHours: place.opening_hours,
-            photos: place.photos // Array of photo objects
-            // Add more fields as needed
-          };
-          resolve(placeDetails);
-        } else {
-          reject('Place details not found for ' + placeName);
-        }
-      });
-    });
-
-    return detailsResult;
+    return processSearchResults(searchResults, service);
   } catch (error) {
     console.error('Error fetching place details:', error);
     throw error;
   }
 };
+
+const handleSearchResults = (resolve, reject) => (results, status) => {
+  if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+    resolve(results);
+  } else {
+    reject(`No places found, status: ${status}`);
+  }
+};
+
+const processSearchResults = async (searchResults, service) => {
+  const detailsRequests = searchResults.map(result => new Promise((resolve, reject) => {
+    service.getDetails({
+      placeId: result.place_id,
+      fields: ['name', 'geometry', 'formatted_address', 'formatted_phone_number', 'website', 'opening_hours', 'photos']
+    }, (place, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        resolve(formatPlaceDetails(place));
+      } else {
+        reject('Details not found for ' + result.name);
+      }
+    });
+  }));
+  return Promise.all(detailsRequests);
+};
+
+const formatPlaceDetails = (place) => ({
+  name: place.name,
+  coordinates: { latitude: place.geometry.location.lat(), longitude: place.geometry.location.lng() },
+  address: place.formatted_address,
+  phoneNumber: place.formatted_phone_number,
+  website: place.website,
+  openingHours: place.opening_hours,
+  photos: place.photos
+});
