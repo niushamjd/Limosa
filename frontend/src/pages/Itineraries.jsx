@@ -5,7 +5,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 import { BASE_URL } from "../utils/config";
 import { generateItineraryPrompt, fetchItinerary } from "../services/ItineraryService";
@@ -53,6 +53,7 @@ function Itineraries() {
   const groupOptions = user?.groups.map(group => group.groupName) || ["You have no groups"];
 
   const navigate = useNavigate(); // Add this if not already imported
+  const location = useLocation();
   const cityOptions = ["İstanbul", "İzmir", "Ankara", "Antalya"];
   // Instantiate OpenAI with the API key
   const navigateToItinerary = () => {
@@ -69,6 +70,13 @@ function Itineraries() {
     googleMapsApiKey: "AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8", // Replace with your actual Google Maps API key
     libraries,
   });
+  useEffect(() => {
+    // Check if there's a state passed with navigation and has destination property
+    window.scrollTo(0, 0);
+    if (location.state && location.state.destination) {
+      setDestination(location.state.destination);
+    }
+  }, [location]); 
 
   const mapRef = useRef(null); // You'll use this ref to instantiate a map object without rendering it
 
