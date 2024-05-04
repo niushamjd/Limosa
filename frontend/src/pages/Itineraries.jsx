@@ -295,11 +295,13 @@ function Itineraries() {
                 <React.Fragment>
                   <TextField
                     {...startProps}
+                    inputProps={{ readOnly: true }}
                     error={!!formError && !dateRange[0]}
                   />
                   <Box sx={{ mx: 2 }}>to</Box>
                   <TextField
                     {...endProps}
+                    inputProps={{ readOnly: true }}
                     error={!!formError && !dateRange[1]}
                   />
                 </React.Fragment>
