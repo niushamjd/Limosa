@@ -13,9 +13,10 @@ import { AuthContext } from "../context/AuthContext";
 import { BASE_URL } from "../utils/config";
 import "../styles/ItineraryGrid.css";
 import TextField from "@mui/material/TextField";
-
+import { useNavigate } from "react-router-dom";
 
 function ViewPastItinerary() {
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const userId = user._id;
   const [itineraryData, setItineraryData] = useState([]);
@@ -96,11 +97,10 @@ function ViewPastItinerary() {
     fetchItineraries();
   }, [userId]);
 
- 
   const handleEditToggle = (itineraryId) => {
-    const itinerary = itineraryData.find(it => it._id === itineraryId);
+    const itinerary = itineraryData.find((it) => it._id === itineraryId);
     if (editState._id === itineraryId && editState.editing) {
-      handleSaveChanges(itineraryId);  // Save changes when in edit mode
+      handleSaveChanges(itineraryId); // Save changes when in edit mode
     } else {
       setEditState({
         ...itinerary,
@@ -178,7 +178,7 @@ function ViewPastItinerary() {
     const updatedItinerary = {
       ...editState,
       name: editState.name,
-      editing: false,  // Turn off editing mode
+      editing: false, // Turn off editing mode
     };
     try {
       const response = await fetch(`${BASE_URL}/itinerary/${itineraryId}`, {
@@ -190,17 +190,18 @@ function ViewPastItinerary() {
       });
       const data = await response.json();
       if (data.success) {
-        setItineraryData(itineraryData.map(it =>
-          it._id === itineraryId ? { ...it, name: updatedItinerary.name } : it
-        ));
-        setEditState({});  // Reset edit state
+        setItineraryData(
+          itineraryData.map((it) =>
+            it._id === itineraryId ? { ...it, name: updatedItinerary.name } : it
+          )
+        );
+        setEditState({}); // Reset edit state
       } else {
         throw new Error(data.message);
       }
     } catch (error) {
       setError(error);
     }
-
   };
   const cancelEditing = () => {
     setEditState({});
@@ -214,13 +215,21 @@ function ViewPastItinerary() {
     return <div>Error loading itineraries: {error.message}</div>;
   }
 
+  const handleCardClick = (itineraryId) => {
+    navigate(`/viewpastitinerary/${itineraryId}`);
+  };
+
   return (
     <div className="itinerary-grid">
       {itineraryData.map((itinerary, index) => {
         const imageSrc = itinerary.photo;
         const isEditing = editState._id === itinerary._id && editState.editing;
         return (
-          <Card key={index} sx={{ maxWidth: 345 }}>
+          <Card
+            key={index}
+            sx={{ maxWidth: 345, cursor: "pointer" }} // Add cursor pointer for better UX
+            onClick={() => handleCardClick(itinerary._id)}
+          >
             {" "}
             {/* Card Component */}
             <CardMedia
@@ -259,7 +268,7 @@ function ViewPastItinerary() {
                   size="small"
                   variant="outlined"
                   value={editState.name}
-                  onChange={(e) => handleChange(e, 'name')}
+                  onChange={(e) => handleChange(e, "name")}
                   multiline
                   rows={1}
                   maxRows={4}
@@ -269,7 +278,7 @@ function ViewPastItinerary() {
                     "& .MuiOutlinedInput-root": {
                       "& fieldset": {
                         borderWidth: "0 !important",
-                        borderBottomWidth: "1px !important"
+                        borderBottomWidth: "1px !important",
                       },
                     },
                   }}
@@ -278,7 +287,11 @@ function ViewPastItinerary() {
                   }}
                 />
               ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1.1rem', paddingBottom: "3px" }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontSize: "1.1rem", paddingBottom: "3px" }}
+                >
                   {itinerary.name}
                 </Typography>
               )}
@@ -298,17 +311,17 @@ function ViewPastItinerary() {
                 <span style={{ fontWeight: "bold" }}>Budget:</span>{" "}
                 {itinerary.budget}
               </Typography>
-
-              <ReactStars
-                count={5} // Number of stars
-                value={itinerary.rate || 0} // Use itinerary.rate instead of itineraryData.rate
-                size={24} // Size of stars
-                activeColor="#ffd700" // Color when active
-                onChange={(newRating) =>
-                  onRatingChange(newRating, itinerary._id)
-                } // Event handler for changes
-              />
-
+              <div onClick={(e) => e.stopPropagation()}>
+                <ReactStars
+                  count={5} // Number of stars
+                  value={itinerary.rate || 0} // Use itinerary.rate instead of itineraryData.rate
+                  size={24} // Size of stars
+                  activeColor="#ffd700" // Color when active
+                  onChange={(newRating) =>
+                    onRatingChange(newRating, itinerary._id)
+                  } // Event handler for changes
+                />
+              </div>
               <Box
                 sx={{
                   display: "flex",
@@ -331,7 +344,7 @@ function ViewPastItinerary() {
                   className="btn primary__btn"
                   onClick={() => handleEditToggle(itinerary._id)}
                 >
-                  {isEditing ? 'OK' : 'Modify'}
+                  {isEditing ? "OK" : "Modify"}
                 </Button>
               </Box>
             </CardContent>

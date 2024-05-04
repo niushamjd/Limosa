@@ -277,6 +277,7 @@ function Itineraries() {
                   const start = dayjs(newValue[0]);
                   const end = dayjs(newValue[1]);
                   const daysDiff = end.diff(start, "day");
+                  
 
                   if (daysDiff > 14) {
                     setFormError(
@@ -300,7 +301,7 @@ function Itineraries() {
                   />
                   <Box sx={{ mx: 2 }}>to</Box>
                   <TextField
-                    {...endProps}
+                    {...endProps} 
                     inputProps={{ readOnly: true }}
                     error={!!formError && !dateRange[1]}
                   />
