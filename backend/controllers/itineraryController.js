@@ -122,3 +122,27 @@ export const updateItinerary = async (req, res) => {
       res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
+
+export const updateItineraryDays = async (req, res) => {
+  console.log("Updating itinerary days for ID:", req.params.itineraryId);
+  console.log("New days data:", req.body.newDays);
+
+  try {
+      const updatedItinerary = await Itinerary.findByIdAndUpdate(
+          req.params.itineraryId, 
+          { $set: { itineraryEvents: req.body.newDays } },
+          { new: true }
+      );
+
+      if (!updatedItinerary) {
+          console.log("No itinerary found with ID:", req.params.itineraryId);
+          return res.status(404).json({ success: false, message: 'Itinerary not found' });
+      }
+
+      console.log("Updated itinerary:", updatedItinerary);
+      res.status(200).json({ success: true, message: 'Itinerary days updated successfully', data: updatedItinerary });
+  } catch (error) {
+      console.error('Error updating itinerary days:', error);
+      res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
