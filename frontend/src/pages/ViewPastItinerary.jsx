@@ -127,19 +127,6 @@ function ViewPastItinerary() {
     }
   };
 
-  /*
-  const startEditing = (itineraryId) => {
-    const itinerary = itineraryData.find((it) => it._id === itineraryId);
-    setEditState({
-      _id: itinerary._id,
-      name: itinerary.name || "", // Ensure default empty string if undefined
-      tips: itinerary.tips || "", // Ensure default empty string if undefined
-      rate: itinerary.rate || 0, // Ensure default 0 if undefined
-      editing: true,
-    });
-  };
-  */
-
   const startEditing = (itineraryId) => {
     const itinerary = itineraryData.find((it) => it._id === itineraryId);
     setEditState({

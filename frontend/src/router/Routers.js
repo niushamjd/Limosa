@@ -19,6 +19,7 @@ import Connect from '../pages/Connect'
 import Itinerary from '../pages/Itinerary'
 import Business from '../pages/Business'
 import Featured from '../pages/Featured'
+import PastItineraryDetails from '../pages/PastItineraryDetails'
 
 
 const Routers = () => {
@@ -44,6 +45,7 @@ const Routers = () => {
         <Route path="/itinerary" element={<Itinerary />} />
         <Route path="/business" element={<Business />} />
         <Route path="/featured" element={<Featured />} />
+        <Route path="/viewPastItinerary/:itineraryId" element={<PastItineraryDetails />} />
 
 
 
