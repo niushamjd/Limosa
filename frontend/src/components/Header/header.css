@@ -19,6 +19,27 @@
     .nav__item a:hover {
 color: inherit;
 }
+.nav__btns {
+    display: flex; /* Use flexbox */
+    align-items: center; /* Align items vertically */
+    gap: 0px important; /* Adjust the gap as needed */
+}
+h5.mb-0, .heart-icon {
+    margin: 0;
+    padding: 0;
+}
+
+h5.mb-0 {
+    margin-right: 0px; /* Set the right margin to 0 to remove space between username and heart icon */
+}
+
+.heart-icon {
+    width: 1.5rem; /* Adjust the width as needed */
+    height: auto; /* Maintain aspect ratio */
+    margin-right: 2px; /* Keep some margin if needed or reduce to 0 for closer appearance */
+}
+
+
 .nav__item a.active__link {
 color: var(--secondary-color);
 }

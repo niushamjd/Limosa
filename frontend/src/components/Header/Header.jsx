@@ -4,7 +4,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
 import "./header.css";
 import { AuthContext } from "./../../context/AuthContext";
-
+import heart from "../../assets/images/heart.png";
 const nav__links = [
   {
     path: "/home",
@@ -92,7 +92,18 @@ const toggleMenu = () => {
               <div className="nav__btns d-flex align-items-center gap-4">
                 {user ? (
                   <>
-                    <h5 className="mb-0">{user.username}</h5>
+                 <div>
+  <h5 className="mb-0" style={{ margin: 0, padding: 0, display: 'inline-block' }}>{user.username}</h5>
+  {user && user.friendRequests && user.friendRequests.length > 0 && (
+    <img
+      src={heart}
+      alt="Friend request"
+      className="heart-icon"
+      style={{ margin: 0, padding: 0, display: 'inline-block' }}
+      onClick={() => navigate('/connect')} // Navigate to Connect page on click
+    />
+  )}
+</div>
                     <Button className="btn btn-dark" onClick={logout}>
                       Logout
                     </Button>
