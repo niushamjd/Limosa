@@ -17,11 +17,15 @@ import {
 } from "@mui/icons-material";
 import { BASE_URL } from "../utils/config";
 
+
 function Itinerary() {
   const location = useLocation();
   const locationState = location.state || {};
   const [itinerary, setItinerary] = useState(locationState.itinerary);
   const mapRef = useRef(null);
+  const directionsService = new window.google.maps.DirectionsService();
+const directionsRenderer = new window.google.maps.DirectionsRenderer();
+
 
   const handleDragStart = (event, date) => {
     event.dataTransfer.setData("text/plain", date);
@@ -78,28 +82,23 @@ function Itinerary() {
     }
   };
 
+  
+
   const initMap = () => {
     if (!itinerary || !mapRef.current) return;
-
-    let centerLat = 37.7749; // Default latitude
-    let centerLng = -122.4194; // Default longitude
-    let firstEventFound = false;
-
     const map = new window.google.maps.Map(mapRef.current, {
       zoom: 12,
-      center: { lat: centerLat, lng: centerLng },
+      center: { lat: 37.7749, lng: -122.4194 }, // Default center
     });
+    directionsRenderer.setMap(map);
 
     Object.entries(itinerary.itineraryEvents).forEach(([date, dailyEvents]) => {
+      const eventCoordinates = [];
+
       ['morning', 'afternoon', 'evening'].forEach(period => {
         dailyEvents[period]?.forEach(event => {
-          if (event.coordinates && !firstEventFound) {
-            centerLat = event.coordinates.latitude;
-            centerLng = event.coordinates.longitude;
-            map.setCenter({ lat: centerLat, lng: centerLng });
-            firstEventFound = true; // Ensures that the map centers on the first event found
-          }
           if (event.coordinates) {
+            eventCoordinates.push({ location: new window.google.maps.LatLng(event.coordinates.latitude, event.coordinates.longitude) });
             new window.google.maps.Marker({
               position: { lat: event.coordinates.latitude, lng: event.coordinates.longitude },
               map: map,
@@ -108,16 +107,44 @@ function Itinerary() {
           }
         });
       });
+
+      if (eventCoordinates.length > 1) {
+        const waypoints = eventCoordinates.slice(1, eventCoordinates.length - 1).map(coord => ({ location: coord.location, stopover: true }));
+        const origin = eventCoordinates[0].location;
+        const destination = eventCoordinates[eventCoordinates.length - 1].location;
+
+        directionsService.route({
+          origin: origin,
+          destination: destination,
+          waypoints: waypoints,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        }, (response, status) => {
+          if (status === window.google.maps.DirectionsStatus.OK) {
+            directionsRenderer.setDirections(response);
+          } else {
+            window.alert('Directions request failed due to ' + status);
+          }
+        });
+      }
     });
   };
-
   useEffect(() => {
-    if (window.google && itinerary) {
-      initMap();
-    } else if (!window.google) {
-      loadGoogleMaps(initMap);
-    }
-  }, [location.state.itinerary, itinerary]); // Dependency array includes itinerary to reinitialize the map on data change
+    const loadGoogleMaps = (callback) => {
+      if (window.google && window.google.maps) {
+        callback();
+      } else {
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8&libraries=&v=weekly`;
+        document.head.appendChild(script);
+        script.onload = callback;
+      }
+    };
+
+    loadGoogleMaps(initMap);
+  }, [itinerary]);
+
+
+
 
   if (!itinerary) {
     return <div>No itinerary data found.</div>;
