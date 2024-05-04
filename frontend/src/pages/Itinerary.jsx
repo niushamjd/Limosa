@@ -1,6 +1,6 @@
 import React, { useState, useEffect,useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { red } from "@mui/material/colors"; // Import red color from MUI's color palette
+import { red,deepOrange, lightBlue } from "@mui/material/colors"; // Import red color from MUI's color palette
 import {
   Button,
   Typography,
@@ -22,6 +22,48 @@ function Itinerary() {
   const locationState = location.state || {};
   const [itinerary, setItinerary] = useState(locationState.itinerary);
   const mapRef = useRef(null);
+
+  const handleDragStart = (event, date) => {
+    event.dataTransfer.setData("text/plain", date);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  
+
+  const handleDrop = async (event, targetDate) => {
+    event.preventDefault();
+    const draggedDate = event.dataTransfer.getData("text/plain");
+    const updatedItinerary = { ...itinerary };
+    const draggedDay = updatedItinerary.itineraryEvents[draggedDate];
+    const targetDay = updatedItinerary.itineraryEvents[targetDate];
+
+    // Swapping days
+    updatedItinerary.itineraryEvents[targetDate] = draggedDay;
+    updatedItinerary.itineraryEvents[draggedDate] = targetDay;
+
+    setItinerary(updatedItinerary);
+
+    // Update the database after the drag-and-drop
+    try {
+      console.log('Making API call to:', `${BASE_URL}/itinerary/update-days/${itinerary._id}`);
+
+      const response = await fetch(`${BASE_URL}/itinerary/update-days/${itinerary._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newDays: updatedItinerary.itineraryEvents })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error('Failed to update the database: ' + data.message);
+      }
+      console.log('Itinerary days updated successfully in database.');
+    } catch (error) {
+      console.error('Error updating itinerary days:', error);
+    }
+  };
 
   const loadGoogleMaps = (callback) => {
     if (window.google) {
@@ -132,11 +174,18 @@ function Itinerary() {
   };
 
   return (
-    <Box sx={{ display: "flex", height: "calc(100vh - 64px)", mt: 8 }}> {/* Changed the background color to light grey */}
-      <Box sx={{ flex: 1, overflowY: "auto", pr: 2 }}>
-        <Typography variant="h4">Your Itinerary</Typography>
-        {Object.entries(itinerary.itineraryEvents).map(([date, periods]) => (
-          <Accordion key={date}>
+    <Box sx={{ display: "flex", height: "calc(100vh - 64px)", mt: 8 }}>
+    <Box sx={{ flex: 1, overflowY: "auto", pr: 2 }}>
+      <Typography variant="h4">Your Itinerary</Typography>
+      {Object.entries(itinerary.itineraryEvents).map(([date, periods]) => (
+        <div
+          key={date}
+          draggable
+          onDragStart={(event) => handleDragStart(event, date)}
+          onDragOver={handleDragOver}
+          onDrop={(event) => handleDrop(event, date)}
+        >
+          <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <LocationOnIcon style={{ color: "orange" }} />
               <Box
@@ -177,7 +226,7 @@ function Itinerary() {
                     {period.charAt(0).toUpperCase() + period.slice(1)}
                   </Typography>
                   {activities.map((activity, index) => (
-                    <Paper key={index} elevation={2} sx={{ p: 2, mb: 2, backgroundColor: "#fafafa", borderRadius: "15px", }}> {/* Changed the background color to dark grey */}
+                    <Paper key={index} elevation={2} sx={{ p: 2, mb: 2, backgroundColor: "#fafafa", borderRadius: "15px", }}>
                       <Typography variant="h5">{activity.name}</Typography>
                       <Typography variant="body1" sx={{ color: "#424242", padding: '8px' }}>
                         {activity.activity}
@@ -211,7 +260,6 @@ function Itinerary() {
                         <span style={{ fontWeight: 600, color: red[500] }}>
                           Delete
                         </span>{" "}
-                        {/* Making text bold */}  
                       </Button>
                     </Paper>
                   ))}
@@ -219,12 +267,14 @@ function Itinerary() {
               ))}
             </AccordionDetails>
           </Accordion>
-        ))}
-      </Box>
-      <Box sx={{ flex: 1, minHeight: '100%' }}>
-        <div ref={mapRef} style={{ width: '100%', height: '100%' }}></div>
-      </Box>
+        </div>
+      ))}
     </Box>
+    <Box sx={{ flex: 1, minHeight: '100%' }}>
+      <div ref={mapRef} style={{ width: '100%', height: '100%' }}></div>
+    </Box>
+  </Box>
+  
   );
   
 }
