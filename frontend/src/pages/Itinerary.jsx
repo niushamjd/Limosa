@@ -25,7 +25,18 @@ function Itinerary() {
   const mapRef = useRef(null);
   const directionsService = new window.google.maps.DirectionsService();
 const directionsRenderer = new window.google.maps.DirectionsRenderer();
+const [expanded, setExpanded] = useState(() => {
+  if (locationState.itinerary && Object.keys(locationState.itinerary.itineraryEvents).length > 0) {
+    const firstDay = Object.keys(locationState.itinerary.itineraryEvents)[0];
+    return firstDay;
+  }
+  return "";
+});
 
+
+const handleAccordionChange = (panel) => (event, isExpanded) => {
+  setExpanded(isExpanded ? panel : "");
+};
 
   const handleDragStart = (event, date) => {
     event.dataTransfer.setData("text/plain", date);
@@ -85,49 +96,52 @@ const directionsRenderer = new window.google.maps.DirectionsRenderer();
   
 
   const initMap = () => {
-    if (!itinerary || !mapRef.current) return;
+    if (!itinerary || !mapRef.current || !expanded) return;
+  
+    const dailyEvents = itinerary.itineraryEvents[expanded];
+    if (!dailyEvents) return;
+  
     const map = new window.google.maps.Map(mapRef.current, {
       zoom: 12,
-      center: { lat: 37.7749, lng: -122.4194 }, // Default center
+      center: { lat: 37.7749, lng: -122.4194 }, // Default center, update as needed
     });
     directionsRenderer.setMap(map);
-
-    Object.entries(itinerary.itineraryEvents).forEach(([date, dailyEvents]) => {
-      const eventCoordinates = [];
-
-      ['morning', 'afternoon', 'evening'].forEach(period => {
-        dailyEvents[period]?.forEach(event => {
-          if (event.coordinates) {
-            eventCoordinates.push({ location: new window.google.maps.LatLng(event.coordinates.latitude, event.coordinates.longitude) });
-            new window.google.maps.Marker({
-              position: { lat: event.coordinates.latitude, lng: event.coordinates.longitude },
-              map: map,
-              title: event.name,
-            });
-          }
-        });
+  
+    const eventCoordinates = [];
+  
+    ['morning', 'afternoon', 'evening'].forEach(period => {
+      dailyEvents[period]?.forEach(event => {
+        if (event.coordinates) {
+          eventCoordinates.push({ location: new window.google.maps.LatLng(event.coordinates.latitude, event.coordinates.longitude) });
+          new window.google.maps.Marker({
+            position: { lat: event.coordinates.latitude, lng: event.coordinates.longitude },
+            map: map,
+            title: event.name,
+          });
+        }
       });
-
-      if (eventCoordinates.length > 1) {
-        const waypoints = eventCoordinates.slice(1, eventCoordinates.length - 1).map(coord => ({ location: coord.location, stopover: true }));
-        const origin = eventCoordinates[0].location;
-        const destination = eventCoordinates[eventCoordinates.length - 1].location;
-
-        directionsService.route({
-          origin: origin,
-          destination: destination,
-          waypoints: waypoints,
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        }, (response, status) => {
-          if (status === window.google.maps.DirectionsStatus.OK) {
-            directionsRenderer.setDirections(response);
-          } else {
-            window.alert('Directions request failed due to ' + status);
-          }
-        });
-      }
     });
+  
+    if (eventCoordinates.length > 1) {
+      const waypoints = eventCoordinates.slice(1, eventCoordinates.length - 1).map(coord => ({ location: coord.location, stopover: true }));
+      const origin = eventCoordinates[0].location;
+      const destination = eventCoordinates[eventCoordinates.length - 1].location;
+  
+      directionsService.route({
+        origin: origin,
+        destination: destination,
+        waypoints: waypoints,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      }, (response, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          directionsRenderer.setDirections(response);
+        } else {
+          window.alert('Directions request failed due to ' + status);
+        }
+      });
+    }
   };
+  
   useEffect(() => {
     const loadGoogleMaps = (callback) => {
       if (window.google && window.google.maps) {
@@ -141,7 +155,7 @@ const directionsRenderer = new window.google.maps.DirectionsRenderer();
     };
 
     loadGoogleMaps(initMap);
-  }, [itinerary]);
+  }, [itinerary, expanded]); // Now depends on `expanded`
 
 
 
@@ -212,7 +226,10 @@ const directionsRenderer = new window.google.maps.DirectionsRenderer();
           onDragOver={handleDragOver}
           onDrop={(event) => handleDrop(event, date)}
         >
-          <Accordion>
+          <Accordion
+    key={date}
+           expanded={expanded === date}
+    onChange={handleAccordionChange(date)}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <LocationOnIcon style={{ color: "orange" }} />
               <Box
