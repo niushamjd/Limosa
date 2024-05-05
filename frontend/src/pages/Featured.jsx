@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardMedia, Typography, Grid } from '@mui/material';
 import { BASE_URL } from '../utils/config';
 import "../styles/featured.css"; // Ensure to include necessary styles
-
+import offerImg from "../assets/images/specialoffer.png";
 const Featured = () => {
   const [businesses, setBusinesses] = useState([]);
 
@@ -39,10 +39,20 @@ const Featured = () => {
                         />
                     )}
                     <CardContent className="CardContent">
-                        <Typography gutterBottom variant="h5" component="div">
-                            {business.name}
-                        </Typography>
-                        
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <Typography gutterBottom variant="h5" component="div">
+        {business.name}
+    </Typography>
+    {business.specialOffers && business.specialOffers.length > 0 && business.specialOffers.some(offer => offer.title && offer.description) && (
+        <CardMedia
+            component="img"
+            image={offerImg}
+            alt="Special Offer"
+            sx={{ width: 70, height: 48 }} // Adjust the size as necessary
+        />
+    )}
+</div>
+
                         <div className="detail-section">
                                 <Typography className="detail-label" variant="body2">Opening Hours:</Typography>
                                 <Typography className="detail-content" variant="body2" component="div">
@@ -55,6 +65,16 @@ const Featured = () => {
                                         )) : 'N/A'}
                                 </Typography>
                             </div>
+                            {business.specialOffers && business.specialOffers.length > 0 && business.specialOffers.some(offer => offer.title && offer.description) && (
+                <div className="detail-section">
+                  <Typography className="detail-label" variant="body2">Special Offers:</Typography>
+                  {business.specialOffers.map((offer, index) => offer.title && offer.description && (
+                    <div key={index}>
+                      <Typography className="detail-content" variant="body2"><strong>{offer.title}</strong>: {offer.description}</Typography>
+                    </div>
+                  ))}
+                </div>
+              )}
                         <div className="detail-section">
                             <Typography className="detail-label" variant="body2">Contact:</Typography>
                             <Typography className="detail-content" variant="body2">
