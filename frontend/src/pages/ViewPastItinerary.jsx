@@ -252,27 +252,28 @@ function ViewPastItinerary() {
               </Box>
               {isEditing ? (
                 <TextField
-                  size="small"
-                  variant="outlined"
-                  value={editState.name}
-                  onChange={(e) => handleChange(e, "name")}
-                  multiline
-                  rows={1}
-                  maxRows={4}
-                  sx={{
-                    width: "100%",
-                    my: 1,
-                    "& .MuiOutlinedInput-root": {
-                      "& fieldset": {
-                        borderWidth: "0 !important",
-                        borderBottomWidth: "1px !important",
-                      },
+                size="small"
+                variant="outlined"
+                value={editState.name}
+                onChange={(e) => handleChange(e, "name")}
+                onClick={(e) => e.stopPropagation()} // Prevent event propagation
+                multiline
+                rows={1}
+                maxRows={4}
+                sx={{
+                  width: "100%",
+                  my: 1,
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                      borderWidth: "0 !important",
+                      borderBottomWidth: "1px !important",
                     },
-                  }}
-                  InputProps={{
-                    maxLength: 50,
-                  }}
-                />
+                  },
+                }}
+                InputProps={{
+                  maxLength: 30,
+                }}
+              />
               ) : (
                 <Typography
                   variant="body2"
@@ -322,14 +323,20 @@ function ViewPastItinerary() {
                 <Button
                   variant="contained"
                   className="btn primary__btn"
-                  onClick={() => deleteItinerary(itinerary._id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Stop the event from propagating to parent elements
+                    deleteItinerary(itinerary._id);
+                  }}
                 >
                   Delete
                 </Button>
                 <Button
                   variant="contained"
                   className="btn primary__btn"
-                  onClick={() => handleEditToggle(itinerary._id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Stop the event from propagating to parent elements
+                    handleEditToggle(itinerary._id);
+                  }}
                 >
                   {isEditing ? "OK" : "Modify"}
                 </Button>
