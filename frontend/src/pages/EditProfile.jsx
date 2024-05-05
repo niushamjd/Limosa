@@ -208,11 +208,10 @@ function EditProfile() {
             ))}
           </Select>
         </FormControl>
-
         <FormControl fullWidth margin="normal" color="warning">
           <InputLabel>Role</InputLabel>
-          <Select
-            
+          <Select    
+           label="Role"        
             value={role}
             onChange={(e) => setRole(e.target.value)}
           >

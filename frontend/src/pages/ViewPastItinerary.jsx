@@ -254,12 +254,13 @@ function ViewPastItinerary() {
                 <TextField
                 size="small"
                 variant="outlined"
+                placeholder="Enter your notes" 
                 value={editState.name}
                 onChange={(e) => handleChange(e, "name")}
                 onClick={(e) => e.stopPropagation()} // Prevent event propagation
                 multiline
                 rows={1}
-                maxRows={4}
+                maxRows={1}
                 sx={{
                   width: "100%",
                   my: 1,
@@ -271,7 +272,7 @@ function ViewPastItinerary() {
                   },
                 }}
                 InputProps={{
-                  maxLength: 30,
+                  maxLength: 20,
                 }}
               />
               ) : (

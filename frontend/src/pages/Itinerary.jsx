@@ -16,8 +16,15 @@ import {
   ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import { BASE_URL } from "../utils/config";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import { orange } from '@mui/material/colors';
+
 
 function Itinerary() {
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+
   const location = useLocation();
   const locationState = location.state || {};
   const [itinerary, setItinerary] = useState(locationState.itinerary);
@@ -60,13 +67,7 @@ function Itinerary() {
 
     setItinerary(updatedItinerary);
 
-    // Update the database after the drag-and-drop
     try {
-      console.log(
-        "Making API call to:",
-        `${BASE_URL}/itinerary/update-days/${itinerary._id}`
-      );
-
       const response = await fetch(
         `${BASE_URL}/itinerary/update-days/${itinerary._id}`,
         {
@@ -79,9 +80,11 @@ function Itinerary() {
       if (!response.ok) {
         throw new Error("Failed to update the database: " + data.message);
       }
-      console.log("Itinerary days updated successfully in database.");
+      setSnackbarMessage("Itinerary days updated successfully!");
+      setSnackbarOpen(true);
     } catch (error) {
-      console.error("Error updating itinerary days:", error);
+      setSnackbarMessage("Error updating itinerary days: " + error.message);
+      setSnackbarOpen(true);
     }
   };
 
@@ -231,133 +234,148 @@ function Itinerary() {
     <Box sx={{ display: "flex", height: "calc(100vh - 64px)", mt: 8 }}>
       <Box sx={{ flex: 1, overflowY: "auto", pr: 2 }}>
         <Typography variant="h4">Your Itinerary</Typography>
-        {
-  Object.entries(itinerary.itineraryEvents).map(([date, periods]) => (
-    <div
-      key={date}
-      draggable
-      onDragStart={(event) => {
-        handleDragStart(event, date);
-        event.currentTarget.style.opacity = '0.5'; // Reduce opacity when dragging
-      }}
-      onDragEnd={(event) => {
-        event.currentTarget.style.opacity = '1'; // Reset opacity after dragging
-      }}
-      onDragOver={handleDragOver}
-      onDrop={(event) => handleDrop(event, date)}
-      style={{
-        cursor: 'grab', // Cursor indicates item can be grabbed
-        marginBottom: '10px', // Maintain margin for visual separation during drag
-      }}
-    >
-      <Accordion
-        expanded={expanded === date}
-        onChange={handleAccordionChange(date)}
-        TransitionProps={{ unmountOnExit: true }} // Helps with performance by unmounting offscreen content
-      >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <LocationOnIcon style={{ color: "orange" }} />
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              width: "100%",
-              alignItems: "center",
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={() => setSnackbarOpen(false)}
+        >
+          <Alert
+            onClose={() => setSnackbarOpen(false)}
+            severity="success"
+            sx={{ 
+              width: '100%',
+              backgroundColor: orange[400], // Turuncu arka plan rengi
+              color: '#fff', // Beyaz metin rengi
+              fontSize: '1.2rem', // Yazı tipi boyutu
+           }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+        {Object.entries(itinerary.itineraryEvents).map(([date, periods]) => (
+          <div
+            key={date}
+            draggable
+            onDragStart={(event) => {
+              handleDragStart(event, date);
+              event.currentTarget.style.opacity = "0.5"; // Reduce opacity when dragging
+            }}
+            onDragEnd={(event) => {
+              event.currentTarget.style.opacity = "1"; // Reset opacity after dragging
+            }}
+            onDragOver={handleDragOver}
+            onDrop={(event) => handleDrop(event, date)}
+            style={{
+              cursor: "grab", // Cursor indicates item can be grabbed
+              marginBottom: "10px", // Maintain margin for visual separation during drag
             }}
           >
-            <Typography
-              style={{
-                flexGrow: 1,
-                marginLeft: "8px",
-                fontSize: "1.6rem",
-              }}
+            <Accordion
+              expanded={expanded === date}
+              onChange={handleAccordionChange(date)}
+              TransitionProps={{ unmountOnExit: true }} // Helps with performance by unmounting offscreen content
             >
-              {formatDate(date)}
-            </Typography>
-            <Button
-              onClick={() => handleDelete(date)}
-              variant="contained"
-              color="error"
-              style={{ borderRadius: "16px" }}
-            >
-              Delete Day
-            </Button>
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          {Object.entries(periods).map(([period, activities]) => (
-            <Box key={period} sx={{ marginTop: 3 }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontSize: "1.5rem", // Increased font size
-                  fontWeight: 600, // Semi-bold for emphasis
-                  color: "#1e1930", // Using a bold color for contrast
-                  backgroundColor: "#FAA935", // Light background color
-                  padding: "8px", // Padding for comfort
-                  borderRadius: "15px", // Rounded corners for smooth edges
-                }}
-              >
-                {period.charAt(0).toUpperCase() + period.slice(1)}
-              </Typography>
-              {activities.map((activity, index) => (
-                <Paper
-                  key={index}
-                  elevation={2}
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <LocationOnIcon style={{ color: "orange" }} />
+                <Box
                   sx={{
-                    p: 2,
-                    mb: 2,
-                    backgroundColor: "#fafafa",
-                    borderRadius: "15px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    alignItems: "center",
                   }}
                 >
-                  <Typography variant="h5">{activity.name}</Typography>
                   <Typography
-                    variant="body1"
-                    sx={{ color: "#424242", padding: "8px" }}
-                  >
-                    {activity.activity}
-                  </Typography>
-                  {activity.photo && (
-                    <img
-                      src={activity.photo}
-                      alt={activity.name}
-                      style={{ width: "100%", marginTop: "8px" }}
-                    />
-                  )}
-                  <Button
-                    size="small"
-                    startIcon={
-                      <DeleteIcon
-                        fontSize="medium" // Standardized icon size
-                        sx={{ color: red[500] }} // Icon color to match the button's error theme
-                      />
-                    }
-                    onClick={() =>
-                      handleDelete(date, period, activity.name)
-                    }
-                    sx={{
-                      mt: 2,
-                      padding: "8px 16px", // Adding padding for a better feel
-                      boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.16)", // Subtle shadow effect
-                      borderRadius: "15px",
-                      textTransform: "none", // No uppercase transformation
+                    style={{
+                      flexGrow: 1,
+                      marginLeft: "8px",
+                      fontSize: "1.6rem",
                     }}
                   >
-                    <span style={{ fontWeight: 600, color: red[500] }}>
-                      Delete
-                    </span>{" "}
+                    {formatDate(date)}
+                  </Typography>
+                  <Button
+                    onClick={() => handleDelete(date)}
+                    variant="contained"
+                    color="error"
+                    style={{ borderRadius: "16px" }}
+                  >
+                    Delete Day
                   </Button>
-                </Paper>
-              ))}
-            </Box>
-          ))}
-        </AccordionDetails>
-      </Accordion>
-    </div>
-  ))
-}
-
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails>
+                {Object.entries(periods).map(([period, activities]) => (
+                  <Box key={period} sx={{ marginTop: 3 }}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontSize: "1.5rem", // Increased font size
+                        fontWeight: 600, // Semi-bold for emphasis
+                        color: "#1e1930", // Using a bold color for contrast
+                        backgroundColor: "#FAA935", // Light background color
+                        padding: "8px", // Padding for comfort
+                        borderRadius: "15px", // Rounded corners for smooth edges
+                      }}
+                    >
+                      {period.charAt(0).toUpperCase() + period.slice(1)}
+                    </Typography>
+                    {activities.map((activity, index) => (
+                      <Paper
+                        key={index}
+                        elevation={2}
+                        sx={{
+                          p: 2,
+                          mb: 2,
+                          backgroundColor: "#fafafa",
+                          borderRadius: "15px",
+                        }}
+                      >
+                        <Typography variant="h5">{activity.name}</Typography>
+                        <Typography
+                          variant="body1"
+                          sx={{ color: "#424242", padding: "8px" }}
+                        >
+                          {activity.activity}
+                        </Typography>
+                        {activity.photo && (
+                          <img
+                            src={activity.photo}
+                            alt={activity.name}
+                            style={{ width: "100%", marginTop: "8px" }}
+                          />
+                        )}
+                        <Button
+                          size="small"
+                          startIcon={
+                            <DeleteIcon
+                              fontSize="medium" // Standardized icon size
+                              sx={{ color: red[500] }} // Icon color to match the button's error theme
+                            />
+                          }
+                          onClick={() =>
+                            handleDelete(date, period, activity.name)
+                          }
+                          sx={{
+                            mt: 2,
+                            padding: "8px 16px", // Adding padding for a better feel
+                            boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.16)", // Subtle shadow effect
+                            borderRadius: "15px",
+                            textTransform: "none", // No uppercase transformation
+                          }}
+                        >
+                          <span style={{ fontWeight: 600, color: red[500] }}>
+                            Delete
+                          </span>{" "}
+                        </Button>
+                      </Paper>
+                    ))}
+                  </Box>
+                ))}
+              </AccordionDetails>
+            </Accordion>
+          </div>
+        ))}
       </Box>
       <Box sx={{ flex: 1, minHeight: "100%" }}>
         <div ref={mapRef} style={{ width: "100%", height: "100%" }}></div>
