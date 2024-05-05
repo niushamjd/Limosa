@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 import FriendModal from './FriendModal';
 import "../styles/connect.css";
 import { debounce } from 'lodash'; // Make sure to install lodash, use `npm install lodash`
@@ -13,6 +14,7 @@ function Message({ message, onClose }) {
 
     return () => clearTimeout(timer); // Cleanup function to clear the timer on unmount
   }, [onClose]);
+  
 
   return (
     <div className="message-container">
@@ -37,6 +39,8 @@ const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const location = useLocation();
+  
   const openModal = (friend) => {
     setSelectedFriend(friend); // Set the selected friend
     setModalIsOpen(true); // Open the modal
@@ -95,7 +99,17 @@ const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers 
 
   fetchData();
 }, []);
-  
+
+useEffect(() => {
+  // This effect runs on the initial mount and every time the location changes
+  if (location.hash === '#friendRequestsSection') {
+    const section = document.getElementById('friendRequestsSection');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+}, [location.hash]); 
+
   
   // Pagination controls
   const lastPageIndex = currentPage * itemsPerPage;
@@ -380,7 +394,7 @@ const [filteredUsers, setFilteredUsers] = useState([]); // Define filteredUsers 
         friend={selectedFriend} // Pass the selected friend
       />
   
-    <h2 className="friend-requests-header">Friend Requests</h2>
+    <h2 className="friend-requests-header" id="friendRequestsSection">Friend Requests</h2>
 <div className="friends-container">
   {friendRequests.map((request) => (
     <div key={request._id} className="friend-card">

@@ -34,6 +34,7 @@ const Header = () => {
     dispatch({ type: "LOGOUT" });
     navigate('/home', { replace: true });  // Navigate to home page
     window.location.reload();  // Force a full page reload
+    window.scrollTo(0, 0);
   };
 
   const stickyHeaderFunc = () => {
@@ -49,9 +50,20 @@ const Header = () => {
     });
   };
   useEffect(() => {
-    stickyHeaderFunc();
-    return window.removeEventListener("scroll", stickyHeaderFunc);
-  });
+    const handleScroll = () => {
+      if (document.body.scrollTop > 80 || document.documentElement.scrollTop > 80) {
+        headerRef.current.classList.add("sticky__header");
+      } else {
+        headerRef.current.classList.remove("sticky__header");
+      }
+    };
+  
+    window.addEventListener("scroll", handleScroll);
+  
+    // Return a function to remove the event listener
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+  
 
 
 const toggleMenu = () => {
@@ -100,7 +112,7 @@ const toggleMenu = () => {
       alt="Friend request"
       className="heart-icon"
       style={{ margin: 0, padding: 0, display: 'inline-block' }}
-      onClick={() => navigate('/connect')} // Navigate to Connect page on click
+      onClick={() => navigate('/connect#friendRequestsSection')}
     />
   )}
 </div>

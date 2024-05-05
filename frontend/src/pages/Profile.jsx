@@ -29,6 +29,8 @@ const Profile = () => {
 
   const goToConnect = () => {
     navigate('/connect');
+    //go to top of the page
+    window.scrollTo(0, 0);
   };
 
   const goToBusinessProfile = () => {
