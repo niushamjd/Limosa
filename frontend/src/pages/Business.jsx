@@ -116,69 +116,68 @@ const handleChange = (e, nestedKey, parentKey, grandParentKey) => {
 
   try {
     if (isLoaded) {
-      const placeDetails = await fetchPlaceDetails(formData.name);
+      const placeDetails = await fetchPlaceDetails(formData.name, formData.contactDetails.address.city);
       console.log(placeDetails);
 
-      if (placeDetails) {
-        // Validate that the place details contain the required fields
-        if (!placeDetails.name.toLowerCase().includes(formData.name.toLowerCase())) {
-          setErrorMessage(`No business found with the exact name '${formData.name}'. Please check the name and try again.`);
-          return;
-        }
+      // Sort placeDetails based on completeness and relevance
+      const sortedPlaceDetails = placeDetails.sort((a, b) => {
+        const scoreA = (a.phoneNumber ? 1 : 0) + (a.website ? 1 : 0) + (a.photos && a.photos.length > 0 ? 1 : 0);
+        const scoreB = (b.phoneNumber ? 1 : 0) + (b.website ? 1 : 0) + (b.photos && b.photos.length > 0 ? 1 : 0);
+        return scoreB - scoreA; // Descending order
+      });
 
-        if (!placeDetails.phoneNumber && !placeDetails.website || placeDetails.photos.length === 0) {
-          setErrorMessage('Essential contact details or photos are missing.');
-          return;
-        }
+      const mostRelevantPlace = sortedPlaceDetails.find(detail => detail.name.toLowerCase().includes(formData.name.toLowerCase()));
 
-        // Prepare data based on the place details
-        const updatedFormData = {
-          ...formData,
-          name: placeDetails.name, // Use the name from place details
-          type: formData.type, // Preserve user input type if available
-          openingHours: JSON.stringify(placeDetails.openingHours.weekday_text),
-          contactDetails: {
-            phone: placeDetails.phoneNumber,
-            email: formData.contactDetails.email, // Preserve user input email if available
-            website: placeDetails.website,
-            address: {
-              street: placeDetails.address.split(',')[0], // Extract street from address
-              city: formData.contactDetails.address.city, // Preserve user input city
-              state: '', // State not extracted; adjust if needed
-              zipCode: '', // Zip code not extracted; adjust if needed
-              country: placeDetails.address.split(',').pop().trim() // Extract country from address
-            }
-          },
-          photo: placeDetails.photos.length > 0 ? placeDetails.photos[0].getUrl() : '',
-        };
+      if (!mostRelevantPlace) {
+        setErrorMessage(`No business found with the exact name '${formData.name}'. Please check the name and try again.`);
+        return;
+      }
 
-        // Attempt to create the business
-        const response = await fetch(`${BASE_URL}/business`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updatedFormData),
+      // Prepare data based on the most relevant place details
+      const updatedFormData = {
+        ...formData,
+        name: mostRelevantPlace.name, // Use the name from place details
+        type: formData.type, // Preserve user input type if available
+        openingHours: mostRelevantPlace.openingHours ? JSON.stringify(mostRelevantPlace.openingHours.weekday_text) : '',
+        contactDetails: {
+          phone: mostRelevantPlace.phoneNumber,
+          email: formData.contactDetails.email, // Preserve user input email if available
+          website: mostRelevantPlace.website,
+          address: {
+            street: mostRelevantPlace.address.split(',')[0], // Extract street from address
+            city: formData.contactDetails.address.city, // Preserve user input city
+            state: '', // State not extracted; adjust if needed
+            zipCode: '', // Zip code not extracted; adjust if needed
+            country: mostRelevantPlace.address.split(',').pop().trim() // Extract country from address
+          }
+        },
+        photo: mostRelevantPlace.photos && mostRelevantPlace.photos.length > 0 ? mostRelevantPlace.photos[0].getUrl() : '',
+      };
+
+      // Attempt to create the business
+      const response = await fetch(`${BASE_URL}/business`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedFormData),
+      });
+
+      if (response.ok) {
+        alert('Business created successfully!');
+        // Reset form data
+        setFormData({
+          name: '',
+          type: '',
+          openingHours: '',
+          contactDetails: { phone: '', email: '', website: '', address: { street: '', city: '', state: '', zipCode: '', country: '' } },
+          specialOffers: [],
+          events: [],
+          premium: true
         });
-
-        if (response.ok) {
-          alert('Business created successfully!');
-          // Reset form data
-          setFormData({
-            name: '',
-            type: '',
-            openingHours: '',
-            contactDetails: { phone: '', email: '', website: '', address: { street: '', city: '', state: '', zipCode: '', country: '' } },
-            specialOffers: [],
-            events: [],
-            premium: true
-          });
-        } else {
-          const errorData = await response.json();
-          setErrorMessage(errorData.message || 'An error occurred while creating the business.');
-        }
       } else {
-        setErrorMessage(`No business found with the name '${formData.name}'. Please check the name and try again.`);
+        const errorData = await response.json();
+        setErrorMessage(errorData.message || 'An error occurred while creating the business.');
       }
     } else {
       setErrorMessage('Google Places API is not loaded.');
