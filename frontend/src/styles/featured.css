@@ -36,3 +36,18 @@
     font-size: 0.875rem; /* Smaller text for details */
     margin-bottom: 8px; /* Space between text lines */
 }
+
+.detail-section {
+    margin-top: 10px;
+}
+
+.detail-label {
+   
+    color: #0c0909;
+    font-weight: bolder;
+}
+
+.detail-content {
+    font-size: 0.875rem;
+    color: #444;
+}
