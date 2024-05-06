@@ -4,7 +4,7 @@ import Itinerary from '../models/Itinerary.js';
 export const createItinerary = async (req, res) => {
   try {
 
-      const { userId, itineraryEvents, dateRange, photo, tips,city,group,budget } = req.body;
+      const { userId, itineraryEvents, dateRange, photo, tips,city,group,budget, createdBy } = req.body;
 
       const newItinerary = new Itinerary({
           userId,
@@ -14,7 +14,8 @@ export const createItinerary = async (req, res) => {
           itineraryEvents,
           dateRange,
           photo,
-          tips
+          tips,
+          createdBy
       });
 
       const savedItinerary = await newItinerary.save();

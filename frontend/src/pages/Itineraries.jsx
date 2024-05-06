@@ -225,7 +225,7 @@ function Itineraries() {
         const itineraryPost = {
           userId: user._id,
           city: destination,
-          group: peopleGroup,
+          group: peopleGroup === "Group" ? groupName : peopleGroup,
           budget: budget,
           itineraryEvents: itineraryWithRestaurants,
           dateRange: {
@@ -234,6 +234,7 @@ function Itineraries() {
           },
           tips: "Additional tips or comments here",
           photo: getCityImage(destination),
+          createdBy: user._id,
         };
         console.log("Itinerary post data:", itineraryPost);
 

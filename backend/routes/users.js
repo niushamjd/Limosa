@@ -1,5 +1,5 @@
 import express from 'express';
-import { deleteUser, getAllUser,updateUserGroup, getAllExceptSingleUser, updateUser, connectUser, getUserFriends, getUserFriendRequests,modifyFriendRequest, getUserGroups} from '../controllers/userController.js';
+import { deleteUser, getAllUser,updateUserGroup, getUserById, getAllExceptSingleUser, updateUser, connectUser, getUserFriends, getGroupMembers, getUserFriendRequests,modifyFriendRequest, getUserGroups} from '../controllers/userController.js';
 import { verifyAdmin, verifyUser } from '../utils/verifyToken.js';
 import { connect } from 'mongoose';
 
@@ -16,6 +16,10 @@ router.get("/:id/friend-requests", getUserFriendRequests);
 router.put("/:id/friend-requests", modifyFriendRequest);
 router.get("/:id/groups", getUserGroups);
 router.put("/:id/groups", updateUserGroup);
+//get group members based on group name
+router.get("/:id/groups/:groupName", getGroupMembers);
+//get a single user
+router.get("/single/:id", getUserById);
 
 router.get("/:id/interests", async (req, res) => {
     const userId = req.params.id;

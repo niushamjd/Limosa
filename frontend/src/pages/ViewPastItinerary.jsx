@@ -24,6 +24,8 @@ function ViewPastItinerary() {
   const [editState, setEditState] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSharing, setIsSharing] = useState(false);
+
 
   useEffect(() => {
     //console.log("Itinerary data:", itineraryData);
@@ -73,7 +75,7 @@ function ViewPastItinerary() {
       const data = await response.json();
       if (data.success) {
         setItineraryData(data.data);
-        console.log("Itinerary data:", data.data);
+        //console.log("Itinerary data:", data.data);
         if (editState._id) {
           const editedItinerary = data.data.find(
             (itinerary) => itinerary._id === editState._id
@@ -100,7 +102,7 @@ function ViewPastItinerary() {
 
   const handleEditToggle = (itineraryId) => {
     const itinerary = itineraryData.find((it) => it._id === itineraryId);
-    if (editState._id === itineraryId && editState.editing) {
+    if (editState._id === itineraryId && editState.editing && !isSharing) {
       handleSaveChanges(itineraryId); // Save changes when in edit mode
     } else {
       setEditState({
@@ -160,7 +162,85 @@ function ViewPastItinerary() {
     } catch (error) {
       setError(error);
     }
+  };const safeToISO = (date) => {
+    if (!date) return null;
+    const parsedDate = (date instanceof Date) ? date : new Date(date);
+    return parsedDate.toISOString();
   };
+  const handleShareClick = async (itinerary) => {
+    setIsSharing(true);  // Set sharing to true
+    if (!["Solo", "Family", "Couple"].includes(itinerary.group)) {
+      try {
+        setIsLoading(true); // Set loading state to true during the fetch
+        const response = await fetch(`${BASE_URL}/users/${userId}/groups/${itinerary.group}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+  
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Group Members:', data.data); // Ensure data is logged correctly
+  
+          const groupMates = data.data.filter(memberId => memberId !== userId);
+          const sharePromises = groupMates.map(memberId => {
+            const itineraryPost = {
+              userId: memberId,
+              city: itinerary.city,
+              group: itinerary.group,
+              budget: itinerary.budget,
+              itineraryEvents: itinerary.itineraryEvents,
+              dateRange: {
+                start: safeToISO(itinerary.dateRange.start),
+                end: safeToISO(itinerary.dateRange.end),
+              },
+              tips: itinerary.tips || "Additional tips or comments here",
+              photo: itinerary.photo,
+              createdBy: user._id,
+            };
+  
+            return fetch(`${BASE_URL}/itinerary`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(itineraryPost),
+            })
+            .then(res => {
+              if (!res.ok) {
+                return res.json().then(data => {
+                  throw new Error(data.message || 'Failed to share itinerary');
+                });
+              }
+              return res.json();
+            })
+            .catch(error => {
+              console.error('Error sharing itinerary with user', memberId, ':', error);
+              throw error;
+            });
+          });
+  
+          // Wait for all share operations to complete
+          await Promise.all(sharePromises);
+          console.log('Itinerary shared with all group members except the user.');
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch group members.');
+        }
+      } catch (error) {
+        console.error('Error sharing itinerary:', error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      console.log("This itinerary does not belong to a shareable group.");
+    }
+    setIsSharing(false);  // Reset sharing state
+  };
+  
+  
+  
+  
 
   const handleSaveChanges = async (itineraryId) => {
     const updatedItinerary = {
@@ -190,9 +270,6 @@ function ViewPastItinerary() {
     } catch (error) {
       setError(error);
     }
-  };
-  const cancelEditing = () => {
-    setEditState({});
   };
 
   if (isLoading) {
@@ -300,6 +377,14 @@ function ViewPastItinerary() {
                 <span style={{ fontWeight: "bold" }}>Budget:</span>{" "}
                 {itinerary.budget}
               </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: "1.1rem", paddingBottom: "3px" }}
+              >
+                <span style={{ fontWeight: "bold" }}>Created by:</span>{" "}
+                {itinerary.createdBy}
+              </Typography>
               <div onClick={(e) => e.stopPropagation()}>
                 <ReactStars
                   count={5} // Number of stars
@@ -340,6 +425,15 @@ function ViewPastItinerary() {
                   }}
                 >
                   {isEditing ? "OK" : "Modify"}
+                </Button>
+                <Button variant="contained"
+                  className="btn primary__btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Stop the event from propagating to parent elements
+                    handleShareClick(itinerary);
+                  }}
+                  >
+                  Share
                 </Button>
               </Box>
             </CardContent>
