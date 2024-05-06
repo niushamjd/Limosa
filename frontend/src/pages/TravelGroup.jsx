@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext,useMemo } from 'react';
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
 import "../styles/travel-group.css";
@@ -43,6 +43,13 @@ function TravelGroup() {
   const [validationErrors, setValidationErrors] = useState({});
   const [interests, setInterests] = useState([]); // All interests
   const [userInterests, setUserInterests] = useState([]); // Store the logged-in user's interests
+  const [searchTerm, setSearchTerm] = useState('');
+
+const sortedAndFilteredFriends = useMemo(() => {
+  return friends
+    .sort((a, b) => a.username.localeCompare(b.username))
+    .filter(friend => friend.username.toLowerCase().includes(searchTerm.toLowerCase()));
+}, [friends, searchTerm]);
   // Fetch interests for image lookup
   useEffect(() => {
     const fetchInterests = async () => {
@@ -170,6 +177,7 @@ function TravelGroup() {
   };
   const validateForm = () => {
     const errors = {};
+
     if (!groupData.groupName) errors.groupName = "Group name is required"; // Validate group name
     if (groupData.groupMates.length === 0) errors.friends = "Select at least one friend"; // Validate friend selection
 
@@ -179,6 +187,15 @@ function TravelGroup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form behavior
+    // Validate if the group name is unique
+  if (groups.some(group => group.groupName.toLowerCase() === groupData.groupName.toLowerCase())) {
+    setValidationErrors(prevErrors => ({
+      ...prevErrors,
+      groupName: "Group name already exists" // Add custom error message
+    }));
+    setError("Same group name already exists. Please choose a different name");
+    return;
+  }
     if (!validateForm()) {
       setError("Please ensure all required fields are filled out.");
       return;
@@ -261,7 +278,7 @@ function TravelGroup() {
     <div key={group._id} className="group-card">
         <img src={getInterestImage(getMostFrequentInterest(group.commonInterests))}
              alt={getMostFrequentInterest(group.commonInterests)} />
-        <p><strong>{group.groupName}</strong></p>
+        <p className='groupName'><strong>{group.groupName}</strong></p>
         Group mates:
         <ul>
             {group.groupMates.map(gm => (
@@ -273,44 +290,51 @@ function TravelGroup() {
                 <li key={index}>{interest}</li>
             ))}
         </ul>
-        <button onClick={() => deleteGroup(group._id)}>Delete Group</button>
+        <div className="submit-container">
+        <button className='submit' onClick={() => deleteGroup(group._id)}>Delete Group</button>
+        </div>
     </div>
 ))}
 </div>
 
       </div>
       </div>
-        <div className="right-section"> {/* Right section for creating a new travel group */}
-          <h2>Create a Travel Group</h2>
-          <form className='group' onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="groupName">Group Name:</label>
-          <input type="text" id="groupName" name="groupName" value={groupData.groupName} onChange={handleChange} className={validationErrors.groupName ? 'input-error' : ''} />
-          
-        </div>
-        <div className="form-group">
-          <label>Select Friends:</label>
-          {friends.map(friend => (
-    <div key={friend._id}>
-        <label>
-            <input 
-                type="checkbox"
-                checked={groupData.groupMates.some((gm) => gm.id === friend._id)} // Check if selected
-          onChange={() => handleFriendChange(friend)} // Trigger toggle
+      <div className="right-section">
+        <h2>Create a Travel Group</h2>
+        <form className='group' onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="groupName">Group Name:</label>
+            <input type="text" id="groupName" name="groupName" value={groupData.groupName} onChange={handleChange} className={validationErrors.groupName ? 'input-error' : ''} />
+          </div>
+          <div className="form-group">
+            <label>Search Friends:</label>
+            <input
+              type="text"
+              placeholder="Search by name..."
+              onChange={e => setSearchTerm(e.target.value)}
             />
-            {friend.username}
-        </label>
+          </div>
+          <div className="form-group" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+  <label>Select Friends:</label>
+  {sortedAndFilteredFriends.map(friend => (
+    <div key={friend._id} className="checkbox-container">
+      <input
+        type="checkbox"
+        checked={groupData.groupMates.some(gm => gm.id === friend._id)}
+        onChange={() => handleFriendChange(friend)}
+      />
+      <label>{friend.username}</label>
     </div>
-))}
-         
-        </div>
-        <div className="submit-container">
-          <button type="submit" className="submit">Create Group</button>
-        </div>
-      </form>
-        </div>
+  ))}
+</div>
+
+          <div className="submit-container">
+            <button type="submit" className="submit">Create Group</button>
+          </div>
+        </form>
       </div>
-    </>
+    </div>
+  </>
   );
 }
 

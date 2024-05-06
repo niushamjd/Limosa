@@ -57,6 +57,9 @@
     align-items: center;
     font-family: var(--font-name);
   }
+  .groupName{
+     align-items: center;
+  }
   
   .form-group label {
     display: block;
@@ -118,7 +121,28 @@
     overflow: hidden; /* clip content to the border radius */
     cursor: pointer; /* change cursor on hover */
     transition: transform 0.3s ease, border-color 0.3s ease; /* smooth transitions */
+    /* Align items to the start of the flex direction */
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    justify-content: space-between; /* Space between top content and button */
+   
   }
+
+  .checkbox-container {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Ensures the checkbox takes only the necessary space and labels take up the rest */
+    align-items: center; /* Aligns items vertically in the center */
+    gap: 10px; /* Space between the checkbox and the label */
+    margin-bottom: 8px;
+    width: 100%; /* Ensures the container takes full width of its parent, which helps in maintaining alignment */
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin-right: 10px; /* Ensures a gap between checkbox and label if needed */
+    width: 20px; /* Optionally set a fixed width for checkboxes */
+}
+
+
   
   .group-card img {
     width: 100%; /* full width */
@@ -145,20 +169,18 @@
     border: 2px solid red;
   }
 
-  .group-card button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    width: 80%; /* Optional: adjust button width as per design requirements */
-    margin-top: 10px;
-    font-weight: bold; /* Optional: makes the button text stand out */
-}
+ 
+.group-card button {
+  border: none;
+  align-self: flex-end; 
+  font-family: var(--font-name);
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 5px 10px; /* Reduce padding to make button smaller */
+  font-size: 15px; /* Reduce font size for smaller text */
+  height: 50px; /* Set a specific height */
+  width: auto;
+  margin-top: auto; 
 
-.group-card button:hover {
-    background-color: var(--secondary-color);
+  justify-content: center;
 }
-  
