@@ -8,7 +8,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Box,
-  Paper,
+  Paper
 } from "@mui/material";
 import {
   LocationOn as LocationOnIcon,
@@ -19,18 +19,50 @@ import { BASE_URL } from "../utils/config";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import { orange } from '@mui/material/colors';
+import { FacebookShareButton, TwitterShareButton, WhatsappShareButton, EmailShareButton, FacebookIcon, TwitterIcon, WhatsappIcon, EmailIcon } from "react-share";
+
+
+
 
 
 function Itinerary() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
+
+ 
   const location = useLocation();
   const locationState = location.state || {};
   const [itinerary, setItinerary] = useState(locationState.itinerary);
   const mapRef = useRef(null);
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    }).format(date);
+  };
   const directionsService = new window.google.maps.DirectionsService();
   const directionsRenderer = new window.google.maps.DirectionsRenderer();
+
+  const shareUrl = window.location.href;
+  const title = "Check out my travel itinerary!";
+
+  const formatItineraryForSharing = () => {
+    if (!itinerary) return "";
+    return Object.entries(itinerary.itineraryEvents).map(([date, events]) => {
+      const dayDescription = `\n${formatDate(date)}:\n`;  // Ensures that each date is followed by a newline
+      const eventDescriptions = Object.entries(events).map(([period, details]) => {
+        const eventList = details.map(event => `${event.name} at ${event.location}`).join(", ");
+        return `${period.charAt(0).toUpperCase() + period.slice(1)}: ${eventList}`;
+      });
+      return `${dayDescription}${eventDescriptions}\n`; // Additional newline for better separation
+    }).join("\n");
+  };
+  
+
+  const fullShareText = `${title}\n${formatItineraryForSharing()}`;
   const [expanded, setExpanded] = useState(() => {
     if (
       locationState.itinerary &&
@@ -181,14 +213,7 @@ function Itinerary() {
     return <div>No itinerary data found.</div>;
   }
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    }).format(date);
-  };
+
 
   const handleDelete = async (date, period = null, eventName = null) => {
     const isDeletingDay = !period && !eventName; // Check that both are null to decide to delete the whole day
@@ -232,8 +257,22 @@ function Itinerary() {
 
   return (
     <Box sx={{ display: "flex", height: "calc(100vh - 64px)", mt: 8 }}>
-      <Box sx={{ flex: 1, overflowY: "auto", pr: 2 }}>
-        <Typography variant="h4">Your Itinerary</Typography>
+    <Box sx={{ flex: 1, overflowY: "auto", pr: 2 }}>
+      <Typography variant="h4">Your Itinerary</Typography>
+      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+        <FacebookShareButton url={shareUrl} quote={fullShareText}>
+          <FacebookIcon size={32} round />
+        </FacebookShareButton>
+        <TwitterShareButton url={shareUrl} title={fullShareText}>
+          <TwitterIcon size={32} round />
+        </TwitterShareButton>
+        <WhatsappShareButton url={shareUrl} title={fullShareText}>
+          <WhatsappIcon size={32} round />
+        </WhatsappShareButton>
+        <EmailShareButton url={shareUrl} subject={title} body={fullShareText}>
+          <EmailIcon size={32} round />
+        </EmailShareButton>
+      </Box>
         <Snackbar
           open={snackbarOpen}
           autoHideDuration={6000}
