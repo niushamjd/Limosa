@@ -14,7 +14,7 @@ import { BASE_URL } from "../utils/config";
 import "../styles/ItineraryGrid.css";
 import TextField from "@mui/material/TextField";
 import { useNavigate } from "react-router-dom";
-import LoadingScreen from '../components/LoadingScreen';
+import LoadingScreen from "../components/LoadingScreen";
 
 function ViewPastItinerary() {
   const navigate = useNavigate();
@@ -73,39 +73,32 @@ function ViewPastItinerary() {
       const data = await response.json();
       if (data.success) {
         setItineraryData(data.data);
-        console.log("Itinerary data:", data.data);
-        if (editState._id) {
-          const editedItinerary = data.data.find(
-            (itinerary) => itinerary._id === editState._id
-          );
-          if (editedItinerary) {
-            setEditState((prevState) => ({
-              ...prevState,
-              rate: editedItinerary.rate || 0,
-            }));
-          }
-        }
+        console.log("Fetched data:", data.data);
       } else {
         throw new Error(data.message);
       }
     } catch (error) {
+      console.error("Error fetching itineraries:", error);
       setError(error);
     }
     setIsLoading(false);
   };
+  
 
   useEffect(() => {
     fetchItineraries();
   }, [userId]);
 
   const handleEditToggle = (itineraryId) => {
-    const itinerary = itineraryData.find((it) => it._id === itineraryId);
+    const itinerary = itineraryData.find(it => it._id === itineraryId);
     if (editState._id === itineraryId && editState.editing) {
-      handleSaveChanges(itineraryId); // Save changes when in edit mode
+      // If already editing, clicking Modify should toggle off editing and save changes
+      handleSaveChanges(itineraryId);
     } else {
       setEditState({
         ...itinerary,
         editing: true,
+        notes: itinerary.notes || '',
       });
     }
   };
@@ -136,16 +129,15 @@ function ViewPastItinerary() {
     });
   };
 
-  const handleChange = (e, field) => {
-    setEditState({
-      ...editState,
-      [field]: e.target.value,
-    });
+  const handleChange = (e) => {
+    setEditState(prevState => ({
+      ...prevState,
+      notes: e.target.value,
+    }));
   };
 
   const saveChanges = async (itineraryId, changes) => {
     try {
-      console.log("Saving changes:", changes);
       const response = await fetch(`${BASE_URL}/itinerary/${itineraryId}`, {
         method: "PUT",
         headers: {
@@ -156,34 +148,31 @@ function ViewPastItinerary() {
       const data = await response.json();
       if (!data.success) {
         throw new Error(data.message);
+      } else {
+        console.log("Changes saved successfully:", data);
       }
     } catch (error) {
+      console.error("Failed to save changes:", error);
       setError(error);
     }
   };
+  
 
   const handleSaveChanges = async (itineraryId) => {
-    const updatedItinerary = {
-      ...editState,
-      name: editState.name,
-      editing: false, // Turn off editing mode
-    };
     try {
       const response = await fetch(`${BASE_URL}/itinerary/${itineraryId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: updatedItinerary.name }),
+        body: JSON.stringify({ notes: editState.notes }),
       });
       const data = await response.json();
       if (data.success) {
-        setItineraryData(
-          itineraryData.map((it) =>
-            it._id === itineraryId ? { ...it, name: updatedItinerary.name } : it
-          )
-        );
-        setEditState({}); // Reset edit state
+        setItineraryData(itineraryData.map(it =>
+          it._id === itineraryId ? { ...it, notes: editState.notes } : it
+        ));
+        setEditState({});
       } else {
         throw new Error(data.message);
       }
@@ -191,6 +180,7 @@ function ViewPastItinerary() {
       setError(error);
     }
   };
+
   const cancelEditing = () => {
     setEditState({});
   };
@@ -214,11 +204,9 @@ function ViewPastItinerary() {
         return (
           <Card
             key={index}
-            sx={{ maxWidth: 345, cursor: "pointer" }} // Add cursor pointer for better UX
+            sx={{ maxWidth: 345, cursor: "pointer" }}
             onClick={() => handleCardClick(itinerary._id)}
           >
-            {" "}
-            {/* Card Component */}
             <CardMedia
               component="img"
               height="190"
@@ -252,36 +240,30 @@ function ViewPastItinerary() {
               </Box>
               {isEditing ? (
                 <TextField
-                size="small"
-                variant="outlined"
-                placeholder="Enter your notes" 
-                value={editState.name}
-                onChange={(e) => handleChange(e, "name")}
-                onClick={(e) => e.stopPropagation()} // Prevent event propagation
-                multiline
-                rows={1}
-                maxRows={1}
-                sx={{
-                  width: "100%",
-                  my: 1,
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderWidth: "0 !important",
-                      borderBottomWidth: "1px !important",
-                    },
-                  },
-                }}
-                InputProps={{
-                  maxLength: 20,
-                }}
-              />
+                  size="small"
+                  variant="outlined"
+                  placeholder="enter your notes here..."
+                  value={editState.notes}
+                  onChange={handleChange}
+                  onClick={(e) => e.stopPropagation()}
+                  multiline
+                  rows={2}
+                  maxRows={4}
+                  sx={{
+                    width: "100%",
+                    my: 1,
+                  }}
+                  inputProps={{
+                    maxLength: 20 
+                  }}
+                />
               ) : (
                 <Typography
                   variant="body2"
                   color="text.secondary"
                   sx={{ fontSize: "1.1rem", paddingBottom: "3px" }}
                 >
-                  {itinerary.name}
+                  {itinerary.notes || "Click the Modify button to enter a note"}
                 </Typography>
               )}
               <Typography
@@ -302,13 +284,13 @@ function ViewPastItinerary() {
               </Typography>
               <div onClick={(e) => e.stopPropagation()}>
                 <ReactStars
-                  count={5} // Number of stars
-                  value={itinerary.rate || 0} // Use itinerary.rate instead of itineraryData.rate
-                  size={24} // Size of stars
-                  activeColor="#ffd700" // Color when active
+                  count={5}
+                  value={itinerary.rate || 0}
+                  size={24}
+                  activeColor="#ffd700"
                   onChange={(newRating) =>
                     onRatingChange(newRating, itinerary._id)
-                  } // Event handler for changes
+                  }
                 />
               </div>
               <Box
@@ -319,13 +301,11 @@ function ViewPastItinerary() {
                   mt: 2,
                 }}
               >
-                {" "}
-                {/* Box to contain buttons */}
                 <Button
                   variant="contained"
                   className="btn primary__btn"
                   onClick={(e) => {
-                    e.stopPropagation(); // Stop the event from propagating to parent elements
+                    e.stopPropagation();
                     deleteItinerary(itinerary._id);
                   }}
                 >
@@ -335,7 +315,7 @@ function ViewPastItinerary() {
                   variant="contained"
                   className="btn primary__btn"
                   onClick={(e) => {
-                    e.stopPropagation(); // Stop the event from propagating to parent elements
+                    e.stopPropagation();
                     handleEditToggle(itinerary._id);
                   }}
                 >
