@@ -389,3 +389,35 @@ export const getUserGroups = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+export const getGroupMembers = async (req, res) => {
+  const { id, groupName } = req.params;
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const group = user.groups.find(group => group.groupName === groupName);
+    if (!group) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+    // Extract only the IDs of the group members
+    const memberIds = group.groupMates.map(member => member.id);
+    res.status(200).json({ message: 'Group members found', data: memberIds });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+}
+// Get a single user by ID
+export const getUserById = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const user = await User.findById(userId).select('username email');  // Select fields you actually need
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ message: 'User found', data: user });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}

@@ -25,6 +25,10 @@ function ViewPastItinerary() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [userNames, setUserNames] = useState({});
+  const [sharedItineraries, setSharedItineraries] = useState({});  // State to track shared itineraries
+
+  
 
 
   useEffect(() => {
@@ -75,6 +79,7 @@ function ViewPastItinerary() {
       const data = await response.json();
       if (data.success) {
         setItineraryData(data.data);
+        fetchUsernames(data.data); 
         //console.log("Itinerary data:", data.data);
         if (editState._id) {
           const editedItinerary = data.data.find(
@@ -94,6 +99,23 @@ function ViewPastItinerary() {
       setError(error);
     }
     setIsLoading(false);
+  };
+
+  const fetchUsernames = async (itineraries) => {
+    const userIds = [...new Set(itineraries.map(it => it.createdBy))]; // Get unique IDs
+    userIds.forEach(async id => {
+      if (!userNames[id]) {
+        try {
+          const response = await fetch(`${BASE_URL}/users/single/${id}`);
+          const data = await response.json();
+          if (data.data) {
+            setUserNames(prev => ({ ...prev, [id]: data.data.username }));
+          }
+        } catch (error) {
+          console.log('Error fetching user name:', error);
+        }
+      }
+    });
   };
 
   useEffect(() => {
@@ -168,6 +190,10 @@ function ViewPastItinerary() {
     return parsedDate.toISOString();
   };
   const handleShareClick = async (itinerary) => {
+    if (sharedItineraries[itinerary._id]) {
+      alert("This itinerary has already been shared with group members.");
+      return;
+    }
     setIsSharing(true);  // Set sharing to true
     if (!["Solo", "Family", "Couple"].includes(itinerary.group)) {
       try {
@@ -221,6 +247,7 @@ function ViewPastItinerary() {
   
           // Wait for all share operations to complete
           await Promise.all(sharePromises);
+          setSharedItineraries(prev => ({...prev, [itinerary._id]: true}));
           console.log('Itinerary shared with all group members except the user.');
         } else {
           const errorData = await response.json();
@@ -377,14 +404,13 @@ function ViewPastItinerary() {
                 <span style={{ fontWeight: "bold" }}>Budget:</span>{" "}
                 {itinerary.budget}
               </Typography>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ fontSize: "1.1rem", paddingBottom: "3px" }}
-              >
-                <span style={{ fontWeight: "bold" }}>Created by:</span>{" "}
-                {itinerary.createdBy}
-              </Typography>
+              {
+  itinerary.createdBy !== userId && (
+    <Typography variant="body2" color="text.secondary">
+      Shared by: {userNames[itinerary.createdBy] || 'Loading...'}
+    </Typography>
+  )
+}
               <div onClick={(e) => e.stopPropagation()}>
                 <ReactStars
                   count={5} // Number of stars
@@ -426,6 +452,7 @@ function ViewPastItinerary() {
                 >
                   {isEditing ? "OK" : "Modify"}
                 </Button>
+                {itinerary.createdBy === userId && ( // Only show share button if user created the itinerary}
                 <Button variant="contained"
                   className="btn primary__btn"
                   onClick={(e) => {
@@ -435,6 +462,7 @@ function ViewPastItinerary() {
                   >
                   Share
                 </Button>
+              )}
               </Box>
             </CardContent>
           </Card>
