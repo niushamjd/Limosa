@@ -14,6 +14,7 @@ import { BASE_URL } from "../utils/config";
 import "../styles/ItineraryGrid.css";
 import TextField from "@mui/material/TextField";
 import { useNavigate } from "react-router-dom";
+import LoadingScreen from '../components/LoadingScreen';
 
 function ViewPastItinerary() {
   const navigate = useNavigate();
@@ -195,9 +196,8 @@ function ViewPastItinerary() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingScreen />; // isLoading true ise LoadingScreen komponentini göster
   }
-
   if (error) {
     return <div>Error loading itineraries: {error.message}</div>;
   }
