@@ -4,6 +4,7 @@ import { BASE_URL } from "../utils/config";
 import { fetchPlaceDetails } from '../services/RestaurantService';
 import { useLoadScript } from '@react-google-maps/api';
 import '../styles/business.css'; 
+import { set } from 'mongoose';
 function Business() {
   // State to store input form data
   const [formData, setFormData] = useState({
@@ -102,91 +103,95 @@ const handleChange = (e, nestedKey, parentKey, grandParentKey) => {
     // Handle top-level state changes
     setFormData({ ...formData, [e.target.name]: e.target.value });
   }
-};const handleSubmit = async (e) => {
+};
+const handleSubmit = async (e) => {
   e.preventDefault();
   setErrorMessage(''); // Clear previous error messages
 
   if (!formData.name.trim()) {
     setErrorMessage('Name field must not be empty.');
+    setTimeout(() => setErrorMessage(''), 1500);
     return;
   } else if (!formData.contactDetails.address.city.trim()) {
     setErrorMessage('City field must not be empty.');
+    setTimeout(() => setErrorMessage(''), 1500);
     return;
   }
 
   try {
-    if (isLoaded) {
-      const placeDetails = await fetchPlaceDetails(formData.name, formData.contactDetails.address.city);
-      console.log(placeDetails);
-
-      // Sort placeDetails based on completeness and relevance
-      const sortedPlaceDetails = placeDetails.sort((a, b) => {
-        const scoreA = (a.phoneNumber ? 1 : 0) + (a.website ? 1 : 0) + (a.photos && a.photos.length > 0 ? 1 : 0);
-        const scoreB = (b.phoneNumber ? 1 : 0) + (b.website ? 1 : 0) + (b.photos && b.photos.length > 0 ? 1 : 0);
-        return scoreB - scoreA; // Descending order
-      });
-
-      const mostRelevantPlace = sortedPlaceDetails.find(detail => detail.name.toLowerCase().includes(formData.name.toLowerCase()));
-
-      if (!mostRelevantPlace) {
-        setErrorMessage(`No business found with the exact name '${formData.name}'. Please check the name and try again.`);
-        return;
-      }
-
-      // Prepare data based on the most relevant place details
-      const updatedFormData = {
-        ...formData,
-        name: mostRelevantPlace.name, // Use the name from place details
-        type: formData.type, // Preserve user input type if available
-        openingHours: mostRelevantPlace.openingHours ? JSON.stringify(mostRelevantPlace.openingHours.weekday_text) : '',
-        contactDetails: {
-          phone: mostRelevantPlace.phoneNumber,
-          email: formData.contactDetails.email, // Preserve user input email if available
-          website: mostRelevantPlace.website,
-          address: {
-            street: mostRelevantPlace.address.split(',')[0], // Extract street from address
-            city: formData.contactDetails.address.city, // Preserve user input city
-            state: '', // State not extracted; adjust if needed
-            zipCode: '', // Zip code not extracted; adjust if needed
-            country: mostRelevantPlace.address.split(',').pop().trim() // Extract country from address
-          }
-        },
-        photo: mostRelevantPlace.photos && mostRelevantPlace.photos.length > 0 ? mostRelevantPlace.photos[0].getUrl() : '',
-      };
-
-      // Attempt to create the business
-      const response = await fetch(`${BASE_URL}/business`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedFormData),
-      });
-
-      if (response.ok) {
-        alert('Business created successfully!');
-        // Reset form data
-        setFormData({
-          name: '',
-          type: '',
-          openingHours: '',
-          contactDetails: { phone: '', email: '', website: '', address: { street: '', city: '', state: '', zipCode: '', country: '' } },
-          specialOffers: [],
-          events: [],
-          premium: true
-        });
-      } else {
-        const errorData = await response.json();
-        setErrorMessage(errorData.message || 'An error occurred while creating the business.');
-      }
-    } else {
+    if (!isLoaded) {
       setErrorMessage('Google Places API is not loaded.');
+      setTimeout(() => setErrorMessage(''), 1500);
+      return;
     }
+
+    const placeDetails = await fetchPlaceDetails(formData.name, formData.contactDetails.address.city);
+    if (!placeDetails.length) {
+      setErrorMessage(`No business found with the name '${formData.name}'. Please check and try again.`);
+      setTimeout(() => setErrorMessage(''), 1500);
+      return;
+    }
+
+    const sortedPlaceDetails = placeDetails.sort((a, b) => {
+      const scoreA = (a.phoneNumber ? 1 : 0) + (a.website ? 1 : 0) + (a.photos?.length ? 1 : 0);
+      const scoreB = (b.phoneNumber ? 1 : 0) + (b.website ? 1 : 0) + (b.photos?.length ? 1 : 0);
+      return scoreB - scoreA;
+    });
+
+    const mostRelevantPlace = sortedPlaceDetails[0];
+
+    const updatedFormData = {
+      ...formData,
+      name: mostRelevantPlace.name,
+      type: formData.type,
+      openingHours: mostRelevantPlace.openingHours ? JSON.stringify(mostRelevantPlace.openingHours.weekday_text) : '',
+      contactDetails: {
+        ...formData.contactDetails,
+        phone: mostRelevantPlace.phoneNumber,
+        website: mostRelevantPlace.website,
+        address: {
+          ...formData.contactDetails.address,
+          street: mostRelevantPlace.address.split(',')[0],
+          country: mostRelevantPlace.address.split(',').pop().trim()
+        },
+        photo: mostRelevantPlace.photos && mostRelevantPlace.photos.length > 0 ? mostRelevantPlace.photos[0].getUrl() : ''
+      }
+    };
+
+    const response = await fetch(`${BASE_URL}/business`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(updatedFormData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      setErrorMessage(errorData.message || 'Failed to create the business.');
+      setTimeout(() => setErrorMessage(''), 1500);
+      return;
+    }
+
+   // Set the success message directly and schedule its removal
+setErrorMessage('Business created successfully!');
+setTimeout(() => setErrorMessage(''), 1500);  // Clears the success message after 3 seconds
+
+    setFormData({
+      name: '',
+      type: '',
+      openingHours: '',
+      contactDetails: { phone: '', email: '', website: '', address: { street: '', city: '', state: '', zipCode: '', country: '' } },
+      specialOffers: [],
+      events: [],
+      premium: true
+    });
+
   } catch (error) {
     console.error('Error creating business:', error);
     setErrorMessage(error.message || 'Network error, please try again later.');
+    setTimeout(() => setErrorMessage(''), 1500);
   }
 };
+
 
 
 
