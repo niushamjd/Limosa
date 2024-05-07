@@ -173,7 +173,7 @@ function ViewPastItinerary() {
       if (!data.success) {
         throw new Error(data.message);
       } else {
-        console.log("Changes saved successfully:", data);
+       // console.log("Changes saved successfully:", data);
       }
       // Assuming the change was successful, update local state if needed
     } catch (error) {
