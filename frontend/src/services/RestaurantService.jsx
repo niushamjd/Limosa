@@ -105,9 +105,11 @@ const getCityLocation = async (cityName) => {
     throw new Error("Failed to geocode city name");
   }
 };
+
+// Example function to fetch place details including coordinates
 export const fetchPlaceDetails = async (placeName, city = null) => {
   if (!city) {
-    throw new Error(`City parameter is required but was not provided.`);
+    throw new Error(`City parameter is required but not provided.`);
   }
 
   const location = await getCityLocation(city);
@@ -121,51 +123,96 @@ export const fetchPlaceDetails = async (placeName, city = null) => {
         query: `${placeName}`,
         location: new google.maps.LatLng(location.lat, location.lng),
         radius: radius,
-      }, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-          resolve(results);
-        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-          reject(new Error(`No places found for '${placeName}' in '${city}'.`));
-        } else {
-          reject(new Error(`Failed to fetch place details with status: ${status}`));
-        }
-      });
+      }, handleSearchResults(resolve, reject));
     });
 
     return processSearchResults(searchResults, service);
   } catch (error) {
-    console.error('Error fetching place details:', error.message);
+    console.error('Error fetching place details:', error);
     throw error;
   }
 };
+
+const handleSearchResults = (resolve, reject) => (results, status) => {
+  if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+    resolve(results);
+  } else {
+    reject(`No places found, status: ${status}`);
+  }
+};
+
+
+
+const formatPlaceDetails = (place) => {
+  return {
+    name: place.name,
+    address: place.formatted_address,
+    phoneNumber: place.formatted_phone_number,
+    website: place.website,
+    openingHours: place.opening_hours ? place.opening_hours.weekday_text : [],
+    photos: place.photos ? place.photos.map(photo => photo.getUrl()) : [],
+    coordinates: {
+      latitude: place.geometry.location.lat(),
+      longitude: place.geometry.location.lng()
+    }
+  };
+};
+export const fetchPlaceCoordinates = async (placeName, city = null) => {
+  if (!city) {
+    throw new Error(`City parameter is required but not provided.`);
+  }
+
+  const location = await getCityLocation(city);
+  const map = new window.google.maps.Map(document.createElement('div'));
+  const service = new window.google.maps.places.PlacesService(map);
+  const radius = 30000; // Reduced radius for more localized results
+
+  try {
+    const searchResults = await new Promise((resolve, reject) => {
+      service.textSearch({
+        query: `${placeName} ${city}`, // Append the city to the query
+        location: new google.maps.LatLng(location.lat, location.lng),
+        radius: radius,
+      }, handleSearchResults(resolve, reject));
+    });
+
+    // Filter search results to find the exact match for place name and city
+    const filteredResults = searchResults.filter(result => 
+      result.name.toLowerCase().includes(placeName.toLowerCase()) && 
+      result.formatted_address.toLowerCase().includes(city.toLowerCase())
+    );
+
+    if (filteredResults.length > 0 && filteredResults[0].geometry && filteredResults[0].geometry.location) {
+      const coordinates = {
+        latitude: filteredResults[0].geometry.location.lat(),
+        longitude: filteredResults[0].geometry.location.lng()
+      };
+      console.log(`Coordinates found for ${placeName} in ${city}:`, coordinates);
+      return coordinates;
+    } else {
+      console.error(`Coordinates not found for ${placeName} in ${city}`);
+      throw new Error(`Coordinates not found for ${placeName} in ${city}`);
+    }
+  } catch (error) {
+    console.error('Error fetching place coordinates:', error);
+    throw error;
+  }
+};
+
 
 const processSearchResults = async (searchResults, service) => {
   const detailsRequests = searchResults.map(result => new Promise((resolve, reject) => {
     service.getDetails({
       placeId: result.place_id,
-      fields: ['name', 'geometry', 'formatted_address', 'formatted_phone_number', 'website', 'opening_hours', 'photos']
+      fields: ['name', 'geometry', 'formatted_address', 'formatted_phone_number', 'website', 'opening_hours', 'photos', ]
     }, (place, status) => {
       if (status === google.maps.places.PlacesServiceStatus.OK) {
         resolve(formatPlaceDetails(place));
       } else {
-        reject(new Error(`Details not found for ${result.name}, status: ${status}`));
+        reject('Details not found for ' + result.name);
       }
     });
   }));
-
-  return Promise.all(detailsRequests).catch(error => {
-    console.error('Error fetching details for places:', error.message);
-    throw error;
-  });
+  return Promise.all(detailsRequests);
 };
 
-
-const formatPlaceDetails = (place) => ({
-  name: place.name,
-  coordinates: { latitude: place.geometry.location.lat(), longitude: place.geometry.location.lng() },
-  address: place.formatted_address,
-  phoneNumber: place.formatted_phone_number,
-  website: place.website,
-  openingHours: place.opening_hours,
-  photos: place.photos
-});
