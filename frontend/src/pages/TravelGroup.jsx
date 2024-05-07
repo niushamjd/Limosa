@@ -279,13 +279,15 @@ const sortedAndFilteredFriends = useMemo(() => {
         <img src={getInterestImage(getMostFrequentInterest(group.commonInterests))}
              alt={getMostFrequentInterest(group.commonInterests)} />
         <p className='groupName'><strong>{group.groupName}</strong></p>
-        Group mates:
+       <strong>Group mates:</strong> 
         <ul>
             {group.groupMates.map(gm => (
                 <li key={gm.id}>{gm.username}</li>
             ))}
         </ul>
+        <strong>Group interests:</strong> 
         <ul>
+        
             {group.commonInterests.map((interest, index) => (
                 <li key={index}>{interest}</li>
             ))}
