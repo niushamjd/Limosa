@@ -2,7 +2,10 @@ import React, { useState, useEffect, useContext } from 'react';
 import '../styles/ınterest.css'; // Ensure the file name is correctly spelled
 import { BASE_URL } from "../utils/config";
 import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom'; 
 
+
+  
 function Message({ message }) {
   // Remove the close button's onClick event
   return (
@@ -29,7 +32,12 @@ function Interest() {
         : [...prevSelectedInterests, interest]
     );
   };
+  const navigate = useNavigate();
 
+  // Navigation functions
+  const goToProfile = () => {
+    navigate('/profile');
+  };
   const isInterestSelected = (interest) => selectedInterests.includes(interest);
 
   const handleSubmit = async (e) => {
@@ -45,7 +53,8 @@ function Interest() {
       if (response.ok) {
         setSuccessMessage("Interests updated successfully");
         setShowMessage(true);
-        window.scrollTo(0, 0); // Scroll to the top of the page
+        window.scrollTo(0, 0);
+        setTimeout(goToProfile, 3000); // Scroll to the top of the page
       } else {
         console.error('Failed to update interests');
       }

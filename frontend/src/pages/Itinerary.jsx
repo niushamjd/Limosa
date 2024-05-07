@@ -135,31 +135,30 @@ function Itinerary() {
 
   const initMap = () => {
     if (!itinerary || !mapRef.current || !expanded) return;
-
+  
     const dailyEvents = itinerary.itineraryEvents[expanded];
     if (!dailyEvents) return;
-
+  
     const map = new window.google.maps.Map(mapRef.current, {
       zoom: 12,
-      center: { lat: 37.7749, lng: -122.4194 }, // Default center, update as needed
+      center: { lat: 37.7749, lng: 26.4194 }, // Default center, update as needed based on your location data
     });
     directionsRenderer.setMap(map);
-
-    const eventCoordinates = [];
-
-    ["morning", "afternoon", "evening"].forEach((period) => {
-      dailyEvents[period]?.forEach((event) => {
+  
+    let eventCoordinates = []; // Array to store all events with coordinates
+  
+    ["morning", "afternoon", "evening"].forEach(period => {
+      dailyEvents[period]?.forEach(event => {
+        console.log(event);
         if (event.coordinates) {
           eventCoordinates.push({
-            location: new window.google.maps.LatLng(
-              event.coordinates.latitude,
-              event.coordinates.longitude
-            ),
+            location: new window.google.maps.LatLng(event.coordinates.latitude, event.coordinates.longitude),
+            title: event.name
           });
           new window.google.maps.Marker({
             position: {
               lat: event.coordinates.latitude,
-              lng: event.coordinates.longitude,
+              lng: event.coordinates.longitude
             },
             map: map,
             title: event.name,
@@ -167,32 +166,35 @@ function Itinerary() {
         }
       });
     });
-
-    if (eventCoordinates.length > 1) {
-      const waypoints = eventCoordinates
-        .slice(1, eventCoordinates.length - 1)
-        .map((coord) => ({ location: coord.location, stopover: true }));
-      const origin = eventCoordinates[0].location;
-      const destination =
-        eventCoordinates[eventCoordinates.length - 1].location;
-
-      directionsService.route(
-        {
+  
+    // Function to calculate and render directions
+    const calculateAndDisplayRoute = () => {
+      if (eventCoordinates.length > 1) {
+        const waypoints = eventCoordinates.slice(1, -1).map(coord => ({ location: coord.location, stopover: true }));
+        const origin = eventCoordinates[0].location;
+        const destination = eventCoordinates[eventCoordinates.length - 1].location;
+  
+        directionsService.route({
           origin: origin,
           destination: destination,
           waypoints: waypoints,
           travelMode: window.google.maps.TravelMode.DRIVING,
-        },
-        (response, status) => {
+        }, (response, status) => {
           if (status === window.google.maps.DirectionsStatus.OK) {
             directionsRenderer.setDirections(response);
           } else {
             window.alert("Directions request failed due to " + status);
           }
-        }
-      );
-    }
+        });
+      }
+    };
+  
+    // Call the function to calculate and display route
+    calculateAndDisplayRoute();
   };
+  
+
+  
 
   useEffect(() => {
     const loadGoogleMaps = (callback) => {
@@ -381,7 +383,7 @@ function Itinerary() {
                           <img
                             src={activity.photo}
                             alt={activity.name}
-                            style={{ width: "100%", marginTop: "8px" }}
+                            style={{ width: "50%",height:"50%", marginTop:  "8px" , marginLeft: "25%", marginRight: "25%"}}
                           />
                         )}
                         <Button
@@ -424,3 +426,4 @@ function Itinerary() {
 }
 
 export default Itinerary;
+

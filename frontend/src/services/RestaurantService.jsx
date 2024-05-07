@@ -43,7 +43,7 @@ export async function fetchNearbyRestaurants(mapRef, itinerary, budget) {
 
           const restaurantRequest = {
             location: location,
-            radius: "1000",
+            radius: "5000",
             type: ["restaurant"],
           };
 
@@ -105,11 +105,9 @@ const getCityLocation = async (cityName) => {
     throw new Error("Failed to geocode city name");
   }
 };
-
-// Example function to fetch place details including coordinates
 export const fetchPlaceDetails = async (placeName, city = null) => {
   if (!city) {
-    throw new Error(`City parameter is required but not provided.`);
+    throw new Error(`City parameter is required but was not provided.`);
   }
 
   const location = await getCityLocation(city);
@@ -123,21 +121,21 @@ export const fetchPlaceDetails = async (placeName, city = null) => {
         query: `${placeName}`,
         location: new google.maps.LatLng(location.lat, location.lng),
         radius: radius,
-      }, handleSearchResults(resolve, reject));
+      }, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+          resolve(results);
+        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+          reject(new Error(`No places found for '${placeName}' in '${city}'.`));
+        } else {
+          reject(new Error(`Failed to fetch place details with status: ${status}`));
+        }
+      });
     });
 
     return processSearchResults(searchResults, service);
   } catch (error) {
-    console.error('Error fetching place details:', error);
+    console.error('Error fetching place details:', error.message);
     throw error;
-  }
-};
-
-const handleSearchResults = (resolve, reject) => (results, status) => {
-  if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-    resolve(results);
-  } else {
-    reject(`No places found, status: ${status}`);
   }
 };
 
@@ -150,12 +148,17 @@ const processSearchResults = async (searchResults, service) => {
       if (status === google.maps.places.PlacesServiceStatus.OK) {
         resolve(formatPlaceDetails(place));
       } else {
-        reject('Details not found for ' + result.name);
+        reject(new Error(`Details not found for ${result.name}, status: ${status}`));
       }
     });
   }));
-  return Promise.all(detailsRequests);
+
+  return Promise.all(detailsRequests).catch(error => {
+    console.error('Error fetching details for places:', error.message);
+    throw error;
+  });
 };
+
 
 const formatPlaceDetails = (place) => ({
   name: place.name,
