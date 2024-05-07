@@ -2,7 +2,7 @@
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-    apiKey: "sk-proj-a27Dfu3uuEP0T8iGyb9cT3BlbkFJZdCNfPEu3gnhEyLhKbDU",
+    apiKey: "sk-proj-2uSf3vMsPUE6vqaWBC85T3BlbkFJcLO6sX8CL9PxZYmukwQb",
     dangerouslyAllowBrowser: true,
 });
 
@@ -20,7 +20,7 @@ export const generateItineraryPrompt = (destination, peopleGroup, budget, user, 
         user.interests
       } and ${commonInterests}from ${dateRange[0].format("YYYY-MM-DD")} to ${dateRange[1].format(
         "YYYY-MM-DD"
-      )}, covering each day including last day, when selected start and end date are same, only generate for a single day but if it is not same date create for all dates exactly . Divide the itinerary into morning, afternoon, and evening sections for each day. For each period, suggest two places to visit but not food or restaurants. Present the itinerary with explicit headings for each day and period, followed by the names of places to visit, each accompanied by a brief description.
+      )}, covering each day including last day(pay attention to generating itenary for all included days), when selected start and end date are same, only generate for a single day but if it is not same date create for all dates exactly . Divide the itinerary into morning, afternoon, and evening sections for each day. For each period, suggest two places to visit but not food or restaurants. Present the itinerary with explicit headings for each day and period, followed by the names of places to visit, each accompanied by a brief description.
   
         Example format:
         Day 1: Tuesday, 19 Mar 2024

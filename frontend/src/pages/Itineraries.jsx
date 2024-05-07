@@ -93,7 +93,7 @@ function Itineraries() {
     
   
   const openai = new OpenAI({
-    apiKey: "sk-proj-a27Dfu3uuEP0T8iGyb9cT3BlbkFJZdCNfPEu3gnhEyLhKbDU",
+    apiKey: "sk-proj-2uSf3vMsPUE6vqaWBC85T3BlbkFJcLO6sX8CL9PxZYmukwQb",
     dangerouslyAllowBrowser: true,
   });
   // Function to parse the itinerary response from ChatGPT

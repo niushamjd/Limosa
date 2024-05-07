@@ -115,7 +115,7 @@ export const fetchPlaceDetails = async (placeName, city = null) => {
   const location = await getCityLocation(city);
   const map = new window.google.maps.Map(document.createElement('div'));
   const service = new window.google.maps.places.PlacesService(map);
-  const radius = 30000; // Reduced radius for more localized results
+  const radius = 7000; // Reduced radius for more localized results
 
   try {
     const searchResults = await new Promise((resolve, reject) => {

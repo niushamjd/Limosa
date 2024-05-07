@@ -52,7 +52,6 @@ const Header = () => {
         const jsonResponse = await response.json();
         if (jsonResponse.success) {
           setFriendRequests(jsonResponse.data);
-          console.log('Friend requests:', jsonResponse.data);
         } else {
           throw new Error(jsonResponse.message);
         }
@@ -76,18 +75,7 @@ const Header = () => {
   }, [user, fetchFriendRequests]);
   
 
-  const stickyHeaderFunc = () => {
-    window.addEventListener("scroll", () => {
-      if (
-        document.body.scrollTop > 80 ||
-        document.documentElement.scrollTop > 80
-      ) {
-        headerRef.current.classList.add("sticky__header");
-      } else {
-        headerRef.current.classList.remove("sticky__header");
-      }
-    });
-  };
+
   useEffect(() => {
     const handleScroll = () => {
       if (document.body.scrollTop > 80 || document.documentElement.scrollTop > 80) {
