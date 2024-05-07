@@ -72,6 +72,11 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
     width: 100px;
+    margin-right: 10px;
+  }
+
+  .interaction-button:last-child {
+    margin-right: 0; /* Son butona sağ taraftan boşluk eklememek için */
   }
   
   .interaction-button:hover {
