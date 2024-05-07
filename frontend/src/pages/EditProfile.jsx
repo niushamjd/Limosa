@@ -44,7 +44,9 @@ function EditProfile() {
   const [showMessage, setShowMessage] = useState(false);
   const [role, setRole] = useState(user.role || ''); // Add this line
 
-
+  const [nameError, setNameError] = useState('');
+  const [surnameError, setSurnameError] = useState('');
+  
   // getNameList'den dönen nesneyi al
   const countriesObject = getNameList();
 
@@ -65,7 +67,31 @@ function EditProfile() {
     "Chef/Culinary Enthusiast",
     "Environmental Scientist",
   ];
-
+  const validateNameInput = (input) => {
+    // Regex kullanarak harflere, Türkçe karakterlere, boşluklara ve sayılara izin ver
+    const regex = /^[a-zA-ZğüşöçİĞÜŞÖÇ0-9\s]+$/;
+    return regex.test(input);
+  };
+  const handleNameChange = (e) => {
+    const newName = e.target.value;
+    if (validateNameInput(newName) || newName === "") {
+      setName(newName);
+      setNameError('');
+    } else {
+      setNameError('Invalid characters. Only letters, numbers, and spaces are allowed.');
+    }
+  };
+  
+  const handleSurnameChange = (e) => {
+    const newSurname = e.target.value;
+    if (validateNameInput(newSurname) || newSurname === "") {
+      setSurname(newSurname);
+      setSurnameError('');
+    } else {
+      setSurnameError('Invalid characters. Only letters, numbers, and spaces are allowed.');
+    }
+  };
+  
 
   // Function to handle form submission
   const handleSubmit = async (e) => {
@@ -161,22 +187,26 @@ function EditProfile() {
     <div className="edit-profile-container">
       <h2>Edit Your Profile</h2>
       <form onSubmit={handleSubmit}>
-        <TextField
-          label="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          fullWidth
-          margin="normal"
-          color="warning"
-        />
-        <TextField
-          label="Surname"
-          value={surname}
-          onChange={(e) => setSurname(e.target.value)}
-          fullWidth
-          margin="normal"
-          color="warning"
-        />
+      <TextField
+  label="Name"
+  value={name}
+  onChange={handleNameChange}
+  fullWidth
+  margin="normal"
+  color="warning"
+  error={!!nameError}
+  helperText={nameError}
+/>
+<TextField
+  label="Surname"
+  value={surname}
+  onChange={handleSurnameChange}
+  fullWidth
+  margin="normal"
+  color="warning"
+  error={!!surnameError}
+  helperText={surnameError}
+/>
         <TextField
           label="Date of Birth"
           type="date"
