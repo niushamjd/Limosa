@@ -116,16 +116,16 @@ function ViewPastItinerary() {
   const handleEditToggle = (itineraryId) => {
     const itinerary = itineraryData.find(it => it._id === itineraryId);
     if (editState._id === itineraryId && editState.editing && !isSharing) {
-      // If already editing, clicking Modify should toggle off editing and save changes
-      handleSaveChanges(itineraryId);
+        handleSaveChanges(itineraryId);
     } else {
-      setEditState({
-        ...itinerary,
-        editing: true,
-        notes: itinerary.notes || '',
-      });
+        setEditState({
+            ...itinerary,
+            editing: true,
+            name: itinerary.name || '', // Change from notes to name
+        });
     }
-  };
+};
+
 
   const deleteItinerary = async (itineraryId) => {
     try {
@@ -156,9 +156,9 @@ function ViewPastItinerary() {
   const handleChange = (e) => {
     setEditState(prevState => ({
       ...prevState,
-      notes: e.target.value,
+      name: e.target.value, // Change from notes to name
     }));
-  };
+};
 
   const saveChanges = async (itineraryId, changes) => {
     try {
@@ -282,12 +282,12 @@ function ViewPastItinerary() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ notes: editState.notes }),
+        body: JSON.stringify({ name: editState.name }), // Change from notes to name
       });
       const data = await response.json();
       if (data.success) {
         setItineraryData(itineraryData.map(it =>
-          it._id === itineraryId ? { ...it, notes: editState.notes } : it
+          it._id === itineraryId ? { ...it, name: editState.name } : it // Change from notes to name
         ));
         setEditState({});
       } else {
@@ -296,7 +296,8 @@ function ViewPastItinerary() {
     } catch (error) {
       setError(error);
     }
-  };
+};
+
 
 
   if (isLoading) {
@@ -357,7 +358,7 @@ function ViewPastItinerary() {
                   size="small"
                   variant="outlined"
                   placeholder="enter your notes here..."
-                  value={editState.notes}
+                  value={editState.name}
                   onChange={handleChange}
                   onClick={(e) => e.stopPropagation()}
                   multiline
@@ -377,7 +378,7 @@ function ViewPastItinerary() {
                   color="text.secondary"
                   sx={{ fontSize: "1.1rem", paddingBottom: "3px" }}
                 >
-                  {itinerary.notes || "Click the Modify button to enter a note"}
+                  {itinerary.name || "Click the Modify button to enter a note"}
                 </Typography>
               )}
               <Typography
