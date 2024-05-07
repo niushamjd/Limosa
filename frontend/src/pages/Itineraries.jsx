@@ -78,13 +78,16 @@ function Itineraries() {
       dateRange[1] && 
       peopleGroup && 
       budget &&
-      (peopleGroup !== "Group" || groupName) // Eğer 'Group' seçili ise groupName'un dolu olup olmadığını kontrol et
+      (peopleGroup !== "Group" || groupName) &&
+      dayjs(dateRange[1]).diff(dayjs(dateRange[0]), 'day') <= 7
     ) {
-      setIsFormValid(true);
+        setIsFormValid(true);
+        setFormError("");
     } else {
-      setIsFormValid(false);
+        setIsFormValid(false);
+        setFormError("Please ensure all fields are correctly filled and the date range does not exceed 7 days.");
     }
-  };
+};
   
   
   const openai = new OpenAI({
@@ -270,21 +273,22 @@ function Itineraries() {
   };
 
   const handleDateChange = (newValue) => {
-    const today = dayjs().startOf("day"); // Bugünün tarihini alır, saat bilgisini sıfırlar
-    const start = newValue[0] ? dayjs(newValue[0]) : null;
-    const end = newValue[1] ? dayjs(newValue[1]) : null;
+    const [newStart, newEnd] = newValue;
+    const start = newStart ? dayjs(newStart) : null;
+    const end = newEnd ? dayjs(newEnd) : null;
 
-    // Start date'in bugünden önce olup olmadığını kontrol et
-    if (start && start.isBefore(today)) {
-      // Eğer start date bugünden önceyse, hata mesajı göster ve tarih aralığını sıfırla
-      setFormError("You cannot select a past date for the start date.");
-      setDateRange([null, null]);
+    if (start && end && end.diff(start, 'day') > 7) {
+        // If the date range exceeds 7 days
+        setDateRange([null, null]); // Clear the date range
+        setFormError("The selected date range should not exceed 7 days.");
+        setIsFormValid(false); // Disable form submission
     } else {
-      // Aksi takdirde, tarih aralığını güncelle ve form hatalarını temizle
-      setDateRange([start, end]);
-      setFormError("");
+        // Valid date range
+        setDateRange([start, end]);
+        setFormError(""); // Clear any existing errors
+        setIsFormValid(true); // Enable form submission
     }
-  };
+};
 
   // Render the component
   return (
@@ -350,10 +354,10 @@ function Itineraries() {
                       setDateRange([start, end]); // Geçerli tarihlerde tarih aralığını güncelle
                       setFormError(""); // Form hatalarını temizle
 
-                      // Seçilen tarih aralığının 14 günü aşmamasını kontrol et
-                      if (end && start && end.diff(start, "day") > 14) {
+                      // Seçilen tarih aralığının 7 günü aşmamasını kontrol et
+                      if (end && start && end.diff(start, "day") > 7) {
                         setFormError(
-                          "The selected date range should not exceed 14 days. Please use calendar to select a valid date range."
+                          "The selected date range should not exceed 7 days. Please use calendar to select a valid date range."
                         );
                         setIsFormValid(false);
                       } else {
@@ -441,15 +445,15 @@ function Itineraries() {
               </FormControl>
             </Box>
             <div className="centered-button-container">
-              <Button
-                type="submit"
-                variant="contained"
-                className="btn primary__btn"
-                sx={{ mt: 2 }}
-                disabled={!isFormValid} // Use the isFormValid state to enable/disable the button
-              >
-                Create my trip
-              </Button>
+            <Button
+    type="submit"
+    variant="contained"
+    className="btn primary__btn"
+    sx={{ mt: 2 }}
+    disabled={!isFormValid} // Use the isFormValid state to enable/disable the button
+>
+    Create my trip
+</Button>
             </div>
           </form>
           <br />

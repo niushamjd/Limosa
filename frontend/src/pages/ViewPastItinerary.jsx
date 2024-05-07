@@ -28,9 +28,6 @@ function ViewPastItinerary() {
   const [userNames, setUserNames] = useState({});
   const [isShared, setIsShared] = useState(false);
 
-  
-
-
   useEffect(() => {
     //console.log("Itinerary data:", itineraryData);
     fetchItineraries();
@@ -79,7 +76,7 @@ function ViewPastItinerary() {
       const data = await response.json();
       if (data.success) {
         setItineraryData(data.data);
-        fetchUsernames(data.data); 
+        fetchUsernames(data.data);
         //console.log("Fetched data:", data.data);
       } else {
         throw new Error(data.message);
@@ -92,40 +89,38 @@ function ViewPastItinerary() {
   };
 
   const fetchUsernames = async (itineraries) => {
-    const userIds = [...new Set(itineraries.map(it => it.createdBy))]; // Get unique IDs
-    userIds.forEach(async id => {
+    const userIds = [...new Set(itineraries.map((it) => it.createdBy))]; // Get unique IDs
+    userIds.forEach(async (id) => {
       if (!userNames[id]) {
         try {
           const response = await fetch(`${BASE_URL}/users/single/${id}`);
           const data = await response.json();
           if (data.data) {
-            setUserNames(prev => ({ ...prev, [id]: data.data.username }));
+            setUserNames((prev) => ({ ...prev, [id]: data.data.username }));
           }
         } catch (error) {
-          console.log('Error fetching user name:', error);
+          console.log("Error fetching user name:", error);
         }
       }
     });
   };
-  
 
   useEffect(() => {
     fetchItineraries();
   }, [userId]);
 
   const handleEditToggle = (itineraryId) => {
-    const itinerary = itineraryData.find(it => it._id === itineraryId);
+    const itinerary = itineraryData.find((it) => it._id === itineraryId);
     if (editState._id === itineraryId && editState.editing && !isSharing) {
-        handleSaveChanges(itineraryId);
+      handleSaveChanges(itineraryId);
     } else {
-        setEditState({
-            ...itinerary,
-            editing: true,
-            name: itinerary.name || '', // Change from notes to name
-        });
+      setEditState({
+        ...itinerary,
+        editing: true,
+        name: itinerary.name || "", // Change from notes to name
+      });
     }
-};
-
+  };
 
   const deleteItinerary = async (itineraryId) => {
     try {
@@ -154,11 +149,11 @@ function ViewPastItinerary() {
   };
 
   const handleChange = (e) => {
-    setEditState(prevState => ({
+    setEditState((prevState) => ({
       ...prevState,
       name: e.target.value, // Change from notes to name
     }));
-};
+  };
 
   const saveChanges = async (itineraryId, changes) => {
     try {
@@ -173,19 +168,19 @@ function ViewPastItinerary() {
       if (!data.success) {
         throw new Error(data.message);
       } else {
-       // console.log("Changes saved successfully:", data);
+        // console.log("Changes saved successfully:", data);
       }
       // Assuming the change was successful, update local state if needed
     } catch (error) {
       console.error("Failed to save changes:", error);
-      console.error('Failed to save changes:', error);
+      console.error("Failed to save changes:", error);
       setError(error.message);
     }
   };
-  
+
   const safeToISO = (date) => {
     if (!date) return null;
-    const parsedDate = (date instanceof Date) ? date : new Date(date);
+    const parsedDate = date instanceof Date ? date : new Date(date);
     return parsedDate.toISOString();
   };
   const handleShareClick = async (itinerary) => {
@@ -197,23 +192,28 @@ function ViewPastItinerary() {
       alert("This itinerary has already been shared with group members.");
       return;
     }
-    setIsSharing(true);  // Set sharing to true
-  
+    setIsSharing(true); // Set sharing to true
+
     if (!["Solo", "Family", "Couple"].includes(itinerary.group)) {
       try {
         setIsLoading(true); // Set loading state to true during the fetch
-        const response = await fetch(`${BASE_URL}/users/${userId}/groups/${itinerary.group}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
+        const response = await fetch(
+          `${BASE_URL}/users/${userId}/groups/${itinerary.group}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
           }
-        });
-  
+        );
+
         if (response.ok) {
           const data = await response.json();
-  
-          const groupMates = data.data.filter(memberId => memberId !== userId);
-          const sharePromises = groupMates.map(memberId => {
+
+          const groupMates = data.data.filter(
+            (memberId) => memberId !== userId
+          );
+          const sharePromises = groupMates.map((memberId) => {
             const itineraryPost = {
               userId: memberId,
               city: itinerary.city,
@@ -228,52 +228,56 @@ function ViewPastItinerary() {
               photo: itinerary.photo,
               createdBy: user._id,
             };
-  
+
             return fetch(`${BASE_URL}/itinerary`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(itineraryPost),
             })
-            .then(res => {
-              if (!res.ok) {
-                return res.json().then(data => {
-                  throw new Error(data.message || 'Failed to share itinerary');
-                });
-              }
-              return res.json();
-            })
-            .catch(error => {
-              console.error('Error sharing itinerary with user', memberId, ':', error);
-              throw error; // rethrow to catch in outer block
-            });
+              .then((res) => {
+                if (!res.ok) {
+                  return res.json().then((data) => {
+                    throw new Error(
+                      data.message || "Failed to share itinerary"
+                    );
+                  });
+                }
+                return res.json();
+              })
+              .catch((error) => {
+                console.error(
+                  "Error sharing itinerary with user",
+                  memberId,
+                  ":",
+                  error
+                );
+                throw error; // rethrow to catch in outer block
+              });
           });
-  
+
           // Wait for all share operations to complete
           await Promise.all(sharePromises);
           saveChanges(itinerary._id, { shared: true }); // Update shared status in the database
-          setIsShared(true);  // Set shared state to true
-          alert('Itinerary shared successfully');
+          setIsShared(true); // Set shared state to true
+          alert("Itinerary shared successfully");
         } else {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to fetch group members.');
+          throw new Error(
+            errorData.message || "Failed to fetch group members."
+          );
         }
       } catch (error) {
-        console.error('Error sharing itinerary:', error);
+        console.error("Error sharing itinerary:", error);
         setError(error.message);
       } finally {
         setIsLoading(false); // Reset loading state
-        setIsSharing(false);  // Reset sharing state
+        setIsSharing(false); // Reset sharing state
       }
     } else {
       console.log("This itinerary does not belong to a shareable group.");
-      setIsSharing(false);  // Reset sharing state
+      setIsSharing(false); // Reset sharing state
     }
   };
-  
-  
-  
-  
-  
 
   const handleSaveChanges = async (itineraryId) => {
     try {
@@ -286,9 +290,12 @@ function ViewPastItinerary() {
       });
       const data = await response.json();
       if (data.success) {
-        setItineraryData(itineraryData.map(it =>
-          it._id === itineraryId ? { ...it, name: editState.name } : it // Change from notes to name
-        ));
+        setItineraryData(
+          itineraryData.map(
+            (it) =>
+              it._id === itineraryId ? { ...it, name: editState.name } : it // Change from notes to name
+          )
+        );
         setEditState({});
       } else {
         throw new Error(data.message);
@@ -296,9 +303,7 @@ function ViewPastItinerary() {
     } catch (error) {
       setError(error);
     }
-};
-
-
+  };
 
   if (isLoading) {
     return <LoadingScreen />; // isLoading true ise LoadingScreen komponentini göster
@@ -319,7 +324,7 @@ function ViewPastItinerary() {
         return (
           <Card
             key={index}
-            sx={{ maxWidth: 345, cursor: "pointer" }}
+            sx={{ maxWidth: 345, height: '500px', display: 'flex', flexDirection: 'column', cursor: "pointer" }}
             onClick={() => handleCardClick(itinerary._id)}
           >
             <CardMedia
@@ -328,7 +333,8 @@ function ViewPastItinerary() {
               image={imageSrc}
               alt={`Image for ${itinerary.city}`}
             />
-            <CardContent>
+            <CardContent  sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <Box sx={{ flexGrow: 1 }}>
               <Typography gutterBottom variant="h5" component="div">
                 {itinerary.city}, Turkey
               </Typography>
@@ -369,7 +375,7 @@ function ViewPastItinerary() {
                     my: 1,
                   }}
                   inputProps={{
-                    maxLength: 20 
+                    maxLength: 20,
                   }}
                 />
               ) : (
@@ -397,13 +403,11 @@ function ViewPastItinerary() {
                 <span style={{ fontWeight: "bold" }}>Budget:</span>{" "}
                 {itinerary.budget}
               </Typography>
-              {
-  itinerary.createdBy !== userId && (
-    <Typography variant="body2" color="text.secondary">
-      Shared by: {userNames[itinerary.createdBy] || 'Loading...'}
-    </Typography>
-  )
-}
+              {itinerary.createdBy !== userId && (
+                <Typography variant="body2" color="text.secondary">
+                  Shared by: {userNames[itinerary.createdBy] || "Loading..."}
+                </Typography>
+              )}
               <div onClick={(e) => e.stopPropagation()}>
                 <ReactStars
                   count={5}
@@ -415,6 +419,7 @@ function ViewPastItinerary() {
                   }
                 />
               </div>
+              </Box>
               <Box
                 sx={{
                   display: "flex",
@@ -444,16 +449,17 @@ function ViewPastItinerary() {
                   {isEditing ? "OK" : "Modify"}
                 </Button>
                 {itinerary.createdBy === userId && ( // Only show share button if user created the itinerary}
-                <Button variant="contained"
-                  className="btn primary__btn"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Stop the event from propagating to parent elements
-                    handleShareClick(itinerary);
-                  }}
+                  <Button
+                    variant="contained"
+                    className="btn primary__btn"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Stop the event from propagating to parent elements
+                      handleShareClick(itinerary);
+                    }}
                   >
-                  Share
-                </Button>
-              )}
+                    Share
+                  </Button>
+                )}
               </Box>
             </CardContent>
           </Card>
