@@ -142,7 +142,10 @@
     width: 20px; /* Optionally set a fixed width for checkboxes */
 }
 
+.groupName{
 
+  color: #FAA935;
+}
   
   .group-card img {
     width: 100%; /* full width */
