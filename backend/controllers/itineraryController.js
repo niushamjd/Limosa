@@ -3,7 +3,6 @@ import Itinerary from '../models/Itinerary.js';
 // Controller function to create an itinerary object
 export const createItinerary = async (req, res) => {
   try {
-
       const { userId, itineraryEvents, dateRange, photo, tips,city,group,budget, createdBy } = req.body;
 
       const newItinerary = new Itinerary({
@@ -102,16 +101,19 @@ export const deleteEventsFromItinerary = async (req, res) => {
 export const updateItinerary = async (req, res) => {
   try {
       // Extract itinerary ID from request parameters
+      console.log('Updating itinerary with:', req.body);
+
       const { id } = req.params;
 
       // Extract updated itinerary data from request body
-      const { name, tips, rate } = req.body;
+      const { name, tips, rate, shared } = req.body;
 
       // Find the itinerary object by ID and update it
       const updatedItinerary = await Itinerary.findByIdAndUpdate(id, {
           name, // Only update name and tips
           tips,
-          rate
+          rate,
+          shared
       }, { new: true });
       if (!updatedItinerary) {
           return res.status(404).json({ success: false, message: 'Itinerary not found' });
@@ -147,3 +149,4 @@ export const updateItineraryDays = async (req, res) => {
       res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
+

@@ -26,7 +26,7 @@ function ViewPastItinerary() {
   const [error, setError] = useState(null);
   const [isSharing, setIsSharing] = useState(false);
   const [userNames, setUserNames] = useState({});
-  const [sharedItineraries, setSharedItineraries] = useState({});  // State to track shared itineraries
+  const [isShared, setIsShared] = useState(false);
 
   
 
@@ -169,7 +169,6 @@ function ViewPastItinerary() {
 
   const saveChanges = async (itineraryId, changes) => {
     try {
-      console.log("Saving changes:", changes);
       const response = await fetch(`${BASE_URL}/itinerary/${itineraryId}`, {
         method: "PUT",
         headers: {
@@ -181,20 +180,29 @@ function ViewPastItinerary() {
       if (!data.success) {
         throw new Error(data.message);
       }
+      // Assuming the change was successful, update local state if needed
     } catch (error) {
-      setError(error);
+      console.error('Failed to save changes:', error);
+      setError(error.message);
     }
-  };const safeToISO = (date) => {
+  };
+  
+  const safeToISO = (date) => {
     if (!date) return null;
     const parsedDate = (date instanceof Date) ? date : new Date(date);
     return parsedDate.toISOString();
   };
   const handleShareClick = async (itinerary) => {
-    if (sharedItineraries[itinerary._id]) {
+    if (isShared) {
+      alert("This itinerary has already been shared with group members.");
+      return;
+    }
+    if (itinerary.shared) {
       alert("This itinerary has already been shared with group members.");
       return;
     }
     setIsSharing(true);  // Set sharing to true
+  
     if (!["Solo", "Family", "Couple"].includes(itinerary.group)) {
       try {
         setIsLoading(true); // Set loading state to true during the fetch
@@ -207,7 +215,6 @@ function ViewPastItinerary() {
   
         if (response.ok) {
           const data = await response.json();
-          console.log('Group Members:', data.data); // Ensure data is logged correctly
   
           const groupMates = data.data.filter(memberId => memberId !== userId);
           const sharePromises = groupMates.map(memberId => {
@@ -241,14 +248,15 @@ function ViewPastItinerary() {
             })
             .catch(error => {
               console.error('Error sharing itinerary with user', memberId, ':', error);
-              throw error;
+              throw error; // rethrow to catch in outer block
             });
           });
   
           // Wait for all share operations to complete
           await Promise.all(sharePromises);
-          setSharedItineraries(prev => ({...prev, [itinerary._id]: true}));
-          console.log('Itinerary shared with all group members except the user.');
+          saveChanges(itinerary._id, { shared: true }); // Update shared status in the database
+          setIsShared(true);  // Set shared state to true
+          alert('Itinerary shared successfully');
         } else {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to fetch group members.');
@@ -257,12 +265,13 @@ function ViewPastItinerary() {
         console.error('Error sharing itinerary:', error);
         setError(error.message);
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // Reset loading state
+        setIsSharing(false);  // Reset sharing state
       }
     } else {
       console.log("This itinerary does not belong to a shareable group.");
+      setIsSharing(false);  // Reset sharing state
     }
-    setIsSharing(false);  // Reset sharing state
   };
   
   

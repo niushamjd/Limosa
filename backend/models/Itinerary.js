@@ -35,7 +35,8 @@ const itinerarySchema = new Schema({
   photo: String,
   tips: String,
   rate: { type: Number, default: 0 },
-  createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }
+  createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  shared: { type: Boolean, default: false }
 }, { timestamps: true });
 
 export default mongoose.model('Itinerary', itinerarySchema);

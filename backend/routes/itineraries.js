@@ -27,6 +27,7 @@ router.post("/delete-event", (req, res) => {
   deleteEventsFromItinerary(req, res);
 });
 
+
 // Update itinerary days
 router.put("/update-days/:itineraryId", updateItineraryDays);
 
