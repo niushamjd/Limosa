@@ -79,6 +79,7 @@
     background: var(--heading-color) !important;
     width: 100%;
     color: #fff !important;
+    margin-bottom: 5px;
 }
 .login__form p{
     font-size: .9rem;
@@ -91,6 +92,13 @@
     text-decoration: none;
     margin-left: 5px;
     font-weight: 500;
+}
+
+.google-login {
+    display: flex;
+    justify-content: center; /* Center align the Google login button */
+    margin-top: 20px; /* Adds space above the Google login button */
+    border-radius: 5px;
 }
 
 @media only screen and (max-width: 768px) {

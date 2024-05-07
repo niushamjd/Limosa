@@ -151,8 +151,10 @@ const sendTokenToBackend = async (token) => {
                   >
                     Login
                   </Button>
-                </Form>
+                </Form> 
+                <div className="google-login">
                 <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleFailure} />
+                </div>
                 <p>
                   Don't have an account? <Link to="/register">Create</Link>
                 </p>
