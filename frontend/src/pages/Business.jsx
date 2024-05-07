@@ -4,7 +4,7 @@ import { BASE_URL } from "../utils/config";
 import { fetchPlaceDetails } from '../services/RestaurantService';
 import { useLoadScript } from '@react-google-maps/api';
 import '../styles/business.css'; 
-import { set } from 'mongoose';
+
 function Business() {
   // State to store input form data
   const [formData, setFormData] = useState({
