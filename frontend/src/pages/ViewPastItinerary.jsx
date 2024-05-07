@@ -15,6 +15,16 @@ import "../styles/ItineraryGrid.css";
 import TextField from "@mui/material/TextField";
 import { useNavigate } from "react-router-dom";
 import LoadingScreen from "../components/LoadingScreen";
+function Message({ message }) {
+  // Eğer message içeriği boş ise, hiçbir şey render etme
+  if (!message) return null;
+
+  return (
+    <div className="message-container">
+      <div className="message-content">{message}</div>
+    </div>
+  );
+}
 
 function ViewPastItinerary() {
   const navigate = useNavigate();
@@ -27,12 +37,25 @@ function ViewPastItinerary() {
   const [isSharing, setIsSharing] = useState(false);
   const [userNames, setUserNames] = useState({});
   const [isShared, setIsShared] = useState(false);
-
+  const [message, setMessage] = useState(""); // State to handle messages
+  let messageTimeout = null; // To hold the timeout ID
   useEffect(() => {
     //console.log("Itinerary data:", itineraryData);
     fetchItineraries();
   }, [userId]);
+  useEffect(() => {
+    return () => {
+      if (messageTimeout) clearTimeout(messageTimeout); // Clear timeout on component unmount
+    };
+  }, []);
 
+  const showMessage = (msg) => {
+    setMessage(msg);
+    if (messageTimeout) clearTimeout(messageTimeout); // Clear any existing timeout
+    messageTimeout = setTimeout(() => {
+      setMessage("");
+    }, 3000); // Clear the message after 3000 milliseconds
+  };
   const formatEventDate = (isoDateString) => {
     return new Date(isoDateString).toLocaleDateString("en-GB", {
       day: "2-digit", // Use two digits for the day
@@ -185,11 +208,11 @@ function ViewPastItinerary() {
   };
   const handleShareClick = async (itinerary) => {
     if (isShared) {
-      alert("This itinerary has already been shared with group members.");
+      showMessage("This itinerary has already been shared with group members.");
       return;
     }
     if (itinerary.shared) {
-      alert("This itinerary has already been shared with group members.");
+      showMessage("This itinerary has already been shared with group members.");
       return;
     }
     setIsSharing(true); // Set sharing to true
@@ -259,7 +282,7 @@ function ViewPastItinerary() {
           await Promise.all(sharePromises);
           saveChanges(itinerary._id, { shared: true }); // Update shared status in the database
           setIsShared(true); // Set shared state to true
-          alert("Itinerary shared successfully");
+          showMessage("Itinerary shared successfully");
         } else {
           const errorData = await response.json();
           throw new Error(
@@ -274,7 +297,7 @@ function ViewPastItinerary() {
         setIsSharing(false); // Reset sharing state
       }
     } else {
-      console.log("This itinerary does not belong to a shareable group.");
+      showMessage("This itinerary does not belong to a shareable group.");
       setIsSharing(false); // Reset sharing state
     }
   };
@@ -317,7 +340,9 @@ function ViewPastItinerary() {
   };
 
   return (
+    
     <div className="itinerary-grid">
+      <Message message={message} onClose={() => setMessage("")} />
       {itineraryData.map((itinerary, index) => {
         const imageSrc = itinerary.photo;
         const isEditing = editState._id === itinerary._id && editState.editing;
