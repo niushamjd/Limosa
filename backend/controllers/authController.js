@@ -214,6 +214,37 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
+// In authController.js or a similar controller file
+export const subscribeToNewsletter = async (req, res) => {
+  const { email } = req.body;
+  try {
+    // Define the message to be sent
+    const subscriptionMessage = `Thank you for subscribing to our newsletter! You will now receive updates on our latest news and special offers directly to your inbox.`;
+
+    // Email parameters similar to the password reset function
+    const params = {
+        Destination: {
+            ToAddresses: [email],  // Email address collected from the newsletter form
+        },
+        Message: {
+            Body: {
+                Text: { Data: subscriptionMessage },
+            },
+            Subject: { Data: 'Subscription Confirmation' },
+        },
+        Source: 'prosmarttravel@gmail.com',  // Your verified sender email address
+    };
+
+    // Send the email using the sendEmail function
+    await sendEmail(params);
+    res.status(200).json({ success: true, message: "Subscription email sent" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Email could not be sent" });
+  }
+};
+
+
 
 export const resetPassword = async (req, res) => {
   const { token } = req.params;

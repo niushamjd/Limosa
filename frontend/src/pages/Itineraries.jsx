@@ -145,9 +145,6 @@ function Itineraries() {
     }
   }, [itinerary]); // Dependency array ensures this effect runs only when `itinerary` changes
 
-  useEffect(() => {
-    validateForm();
-  }, [destination, dateRange, peopleGroup, groupName, budget]);
   
 
   
@@ -161,6 +158,7 @@ function Itineraries() {
   // Form submission handler
   const handleSubmit = async (event) => {
     event.preventDefault();
+    validateForm(); // Validate the form before submission
 
     if (formError) {
       console.error("Form submission halted due to errors.");
@@ -325,7 +323,6 @@ for (const date of Object.keys(parsedItinerary)) {
                   value={destination}
                   onChange={(e) => {
                     setDestination(e.target.value);
-                    validateForm(); // Formu doğrula
                   }}
                   label="Where do you want to go?"
                 >
@@ -345,7 +342,6 @@ for (const date of Object.keys(parsedItinerary)) {
                   value={dateRange}
                   onChange={(newValue) => {
                     setDateRange(newValue);
-                    validateForm();
                     const today = dayjs().startOf("day"); // Bugünün tarihini başlangıç saatine ayarla
                     const start = dayjs(newValue[0]);
                     const end = dayjs(newValue[1]);
