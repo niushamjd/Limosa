@@ -80,14 +80,14 @@ function Itineraries() {
       peopleGroup && 
       budget &&
       (peopleGroup !== "Group" || groupName) &&	
-              dayjs(dateRange[1]).diff(dayjs(dateRange[0]), 'day') <= 7	
+              dayjs(dateRange[1]).diff(dayjs(dateRange[0]), 'day') <= 3
     ) {
       setIsFormValid(true);	
       setFormError("");	
     } else {	
 
       setIsFormValid(false);
-      setFormError("Please ensure all fields are correctly filled and the date range does not exceed 7 days.");	
+      setFormError("Please ensure all fields are correctly filled and the date range does not exceed 3 days.");	
     }
   };
     
@@ -99,7 +99,7 @@ function Itineraries() {
   // Function to parse the itinerary response from ChatGPT
   const libraries = useMemo(() => ["places"], []);
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8", // Replace with your actual Google Maps API key
+    googleMapsApiKey: "AIzaSyAv3imtsnRlkjYvOgm-hL1Wv0LNzdFLniU", // Replace with your actual Google Maps API key
     libraries,
   });
   useEffect(() => {
@@ -282,10 +282,10 @@ for (const date of Object.keys(parsedItinerary)) {
     const start = newStart ? dayjs(newStart) : null;
     const end = newEnd ? dayjs(newEnd) : null;
 
-    if (start && end && end.diff(start, 'day') > 7) {
-        // If the date range exceeds 7 days
+    if (start && end && end.diff(start, 'day') > 3) {
+        // If the date range exceeds 3 days
         setDateRange([null, null]); // Clear the date range
-        setFormError("The selected date range should not exceed 7 days.");
+        setFormError("The selected date range should not exceed 3 days.");
         setIsFormValid(false); // Disable form submission
     } else {
         // Valid date range
@@ -357,10 +357,10 @@ for (const date of Object.keys(parsedItinerary)) {
                       setDateRange([start, end]); // Geçerli tarihlerde tarih aralığını güncelle
                       setFormError(""); // Form hatalarını temizle
 
-                      // Seçilen tarih aralığının 14 günü aşmamasını kontrol et
-                      if (end && start && end.diff(start, "day") > 7) {
+                      // Seçilen tarih aralığının 3 günü aşmamasını kontrol et
+                      if (end && start && end.diff(start, "day") > 3) {
                         setFormError(
-                          "The selected date range should not exceed 7 days. Please use calendar to select a valid date range."
+                          "The selected date range should not exceed 3 days. Please use calendar to select a valid date range."
                         );
                         setIsFormValid(false);
                       } else {

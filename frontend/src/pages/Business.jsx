@@ -29,7 +29,7 @@ function Business() {
   const [errorMessage, setErrorMessage] = useState('');
   const libraries = useMemo(() => ["places"], []);
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8", // Replace with your actual Google Maps API key
+    googleMapsApiKey: "AIzaSyAv3imtsnRlkjYvOgm-hL1Wv0LNzdFLniU", // Replace with your actual Google Maps API key
     libraries,
   });
  
