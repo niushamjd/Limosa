@@ -8,9 +8,7 @@ const ItineraryMap = () => {
 
   const cities = [
     { name: 'Istanbul', lat: 41.0082, lng: 28.9784 },
-    { name: 'Izmir', lat: 38.4192, lng: 27.1287 },
     { name: 'Ankara', lat: 39.9334, lng: 32.8597 },
-    { name: 'Antalya', lat: 36.8969, lng: 30.7133 },
   ];
 
   const initGoogleMap = () => {

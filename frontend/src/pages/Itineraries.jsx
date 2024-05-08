@@ -66,7 +66,7 @@ function Itineraries() {
 
   const navigate = useNavigate(); // Add this if not already imported
   const location = useLocation();
-  const cityOptions = ["İstanbul", "İzmir", "Ankara", "Antalya"];
+  const cityOptions = ["İstanbul", "Ankara"];
   // Instantiate OpenAI with the API key
   const navigateToItinerary = () => {
     navigate("/itinerary");
