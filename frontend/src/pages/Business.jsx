@@ -102,14 +102,10 @@ const handleChange = (e, nestedKey, parentKey, grandParentKey) => {
     // Handle top-level state changes
     setFormData({ ...formData, [e.target.name]: e.target.value });
   }
-};
-const handleSubmit = async (e) => {
+};const handleSubmit = async (e) => {
   e.preventDefault();
-
-  // Clear previous error messages
   setErrorMessage('');
 
-  // Validate form data
   if (!formData.name.trim()) {
     setErrorMessage('Name field must not be empty.');
     setTimeout(() => setErrorMessage(''), 1500);
@@ -120,74 +116,63 @@ const handleSubmit = async (e) => {
     return;
   }
 
+  if (!isLoaded) {
+    setErrorMessage('Google Places API is not loaded.');
+    setTimeout(() => setErrorMessage(''), 1500);
+    return;
+  }
+
   try {
-    if (!isLoaded) {
-      setErrorMessage('Google Places API is not loaded.');
+    const placeDetails = await fetchPlaceDetails(formData.name, formData.contactDetails.address.city);
+
+    // Filter out places without photos
+    const placesWithPhotos = placeDetails.filter(place => place.photos && place.photos.length > 0);
+
+    if (placesWithPhotos.length === 0) {
+      setErrorMessage(`No business with photos found for the name '${formData.name}'. Please try another name.`);
       setTimeout(() => setErrorMessage(''), 1500);
       return;
     }
 
-    // Fetch place details
-    const placeDetails = await fetchPlaceDetails(formData.name, formData.contactDetails.address.city);
-
     // Sort placeDetails based on completeness and relevance
-    const sortedPlaceDetails = placeDetails.sort((a, b) => {
-      const scoreA = (a.phoneNumber ? 1 : 0) + (a.website ? 1 : 0) + (a.photos && a.photos.length > 0 ? 1 : 0);
-      const scoreB = (b.phoneNumber ? 1 : 0) + (b.website ? 1 : 0) + (b.photos && b.photos.length > 0 ? 1 : 0);
+    const sortedPlaceDetails = placesWithPhotos.sort((a, b) => {
+      const scoreA = (a.phoneNumber ? 1 : 0) + (a.website ? 1 : 0);
+      const scoreB = (b.phoneNumber ? 1 : 0) + (b.website ? 1 : 0);
       return scoreB - scoreA; // Descending order
     });
 
-    const mostRelevantPlace = sortedPlaceDetails.find(detail => detail.name.toLowerCase().includes(formData.name.toLowerCase()));
+    const mostRelevantPlace = sortedPlaceDetails[0]; // Taking the first after sorting since all have photos
 
-    if (!mostRelevantPlace) {
-      setErrorMessage(`No business found with the name '${formData.name}'. Please check and try again.`);
-      setTimeout(() => setErrorMessage(''), 1500);
-      return;
-    }
-
-    // Prepare data based on the most relevant place details
     const updatedFormData = {
       ...formData,
-      name: mostRelevantPlace.name, // Use the name from place details
-      type: formData.type, // Preserve user input type if available
+      name: mostRelevantPlace.name,
+      type: formData.type,
       openingHours: mostRelevantPlace.openingHours ? JSON.stringify(mostRelevantPlace.openingHours.weekday_text) : '',
       contactDetails: {
         phone: mostRelevantPlace.phoneNumber,
-        email: formData.contactDetails.email, // Preserve user input email if available
+        email: formData.contactDetails.email,
         website: mostRelevantPlace.website,
         address: {
-          street: mostRelevantPlace.address.split(',')[0], // Extract street from address
-          city: formData.contactDetails.address.city, // Preserve user input city
-          state: '', // State not extracted; adjust if needed
-          zipCode: '', // Zip code not extracted; adjust if needed
-          country: mostRelevantPlace.address.split(',').pop().trim() // Extract country from address
+          street: mostRelevantPlace.address.split(',')[0],
+          city: formData.contactDetails.address.city,
+          state: '',
+          zipCode: '',
+          country: mostRelevantPlace.address.split(',').pop().trim()
         }
       },
-      photo: mostRelevantPlace.photos && mostRelevantPlace.photos.length > 0 ? mostRelevantPlace.photos[0].getUrl() : '',
+      photo: mostRelevantPlace.photos[0]
     };
 
-    // Attempt to create the business
     const response = await fetch(`${BASE_URL}/business`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedFormData),
     });
 
     if (response.ok) {
       setErrorMessage('Business created successfully!');
       setTimeout(() => setErrorMessage(''), 1500);
-      // Reset form data
-      setFormData({
-        name: '',
-        type: '',
-        openingHours: '',
-        contactDetails: { phone: '', email: '', website: '', address: { street: '', city: '', state: '', zipCode: '', country: '' } },
-        specialOffers: [],
-        events: [],
-        premium: true
-      });
+      setFormData({ name: '', type: '', openingHours: '', contactDetails: { phone: '', email: '', website: '', address: { street: '', city: '', state: '', zipCode: '', country: '' } }, specialOffers: [], events: [], premium: true });
     } else {
       const errorData = await response.json();
       setErrorMessage(errorData.message || 'An error occurred while creating the business.');
@@ -199,6 +184,7 @@ const handleSubmit = async (e) => {
     setTimeout(() => setErrorMessage(''), 1500);
   }
 };
+
 
 
 
