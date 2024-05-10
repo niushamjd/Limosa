@@ -53,7 +53,7 @@ function PastItineraryDetails() {
       callback();
     } else {
       const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8&libraries=&v=weekly`; // Replace YOUR_API_KEY with your actual API key
+      script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY`; // Replace YOUR_API_KEY with your actual API key
       document.head.appendChild(script);
       script.onload = callback;
     }

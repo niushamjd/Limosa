@@ -202,7 +202,7 @@ function Itinerary() {
         callback();
       } else {
         const script = document.createElement("script");
-        script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8&libraries=&v=weekly`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY`;
         document.head.appendChild(script);
         script.onload = callback;
       }

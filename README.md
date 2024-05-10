@@ -34,3 +34,5 @@ npm install
 ```sh
 npm run dev
 ```
+
+## Replace YOUR_API_KEY parts with your Google Maps and OPENAI APIs

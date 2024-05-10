@@ -93,13 +93,13 @@ function Itineraries() {
     
   
   const openai = new OpenAI({
-    apiKey: "sk-proj-2uSf3vMsPUE6vqaWBC85T3BlbkFJcLO6sX8CL9PxZYmukwQb",
+    apiKey: "YOUR_API_KEY",
     dangerouslyAllowBrowser: true,
   });
   // Function to parse the itinerary response from ChatGPT
   const libraries = useMemo(() => ["places"], []);
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "AIzaSyAv3imtsnRlkjYvOgm-hL1Wv0LNzdFLniU", // Replace with your actual Google Maps API key
+    googleMapsApiKey: "YOUR_API_KEY", // Replace with your actual Google Maps API key
     libraries,
   });
   useEffect(() => {

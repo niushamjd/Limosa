@@ -96,7 +96,7 @@ export async function fetchNearbyRestaurants(mapRef, itinerary, budget) {
   return restaurantsArray;
 }
 const getCityLocation = async (cityName) => {
-  const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityName)}&key=AIzaSyBA5ofh8H6x4Ycow_y-Bv5VF_BhrtU0Lz8`;
+  const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityName)}&key=YOUR_API_KEY`;
   const response = await fetch(geocodeUrl);
   const data = await response.json();
   if (data.status === "OK") {
