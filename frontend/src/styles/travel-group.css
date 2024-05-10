@@ -1,0 +1,189 @@
+/* Travel Group CSS for consistency with Edit Profile styling */
+:root {
+    --primary-color: #ff7e01;
+    --secondary-color: #faa935;
+    --heading-color: #0b2727;
+    --text-color: #6e7074;
+   
+    
+  }
+  .split-container {
+    display: flex; /* Use flex layout to create a split view */
+    justify-content: space-between; /* Space between the two sections */
+    padding: 20px; /* Padding around the container */
+  }
+  
+  /* Left section for "Your Trips" */
+  .left-section {
+    flex: 1; /* Take up equal space with the right section */
+    padding-right: 10px; /* Space between the two sections */
+  }
+  
+  /* Right section for "Create a Travel Group" */
+  .right-section {
+    flex: 1; /* Take up equal space with the left section */
+    padding-left: 10px; /* Space between the two sections */
+  }
+  
+  /* Group Grid Layout */
+  .group-grid {
+    display: grid;
+    grid-template-columns: 3fr; /* Default to 1 column */
+    gap: 10px; /* Space between grid items */
+  }
+  
+  
+  .travel-group-container h2, /* Assuming you wrap your component in a div with this class */
+  h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--heading-color);
+    font-size: 2rem;
+    text-align: center;
+    margin: 20px 0;
+  }
+  h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-top: 20px;
+  }
+  /* You may want to wrap your Travel Group form in a container with a specific class or reuse .travel-group-container for consistency */
+  
+  .travel-group-container, .form-group {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: var(--font-name);
+  }
+  .groupName{
+     align-items: center;
+  }
+  
+  .form-group label {
+    display: block;
+  
+  
+  color: var(--text-color); /* Label color */
+  font-size: 1rem; /* Label font size */
+  margin-bottom: 5px; /* Space below the label */
+  }
+  
+  .form-group input[type="text"],
+  .form-group input[type="number"],
+  .form-group select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px; /* Adjust based on layout */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    
+  }
+  
+  .submit-container {
+    display: flex;
+    justify-content: center;
+    border: none;
+    border-radius: 4px;
+    font-family: var(--font-name);
+    cursor: pointer;
+    margin-top: 20px;
+    padding: 10px 15px;
+    text-align: center;
+    
+  }
+  
+  .submit {
+    border: none;
+   
+    font-family: var(--font-name);
+    background-color: var(--secondary-color);
+    color: white;
+   
+    
+  }
+  
+  .group-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns layout */
+    gap: 16px; /* space between grid items */
+    margin: 0 auto; /* center the grid */
+    max-width: 960px; /* maximum grid width */
+    padding: 16px; /* padding around the grid */
+  }
+  
+  .group-card {
+    background: #fff; /* white background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* subtle shadow */
+    border-radius: 8px; /* rounded corners */
+    overflow: hidden; /* clip content to the border radius */
+    cursor: pointer; /* change cursor on hover */
+    transition: transform 0.3s ease, border-color 0.3s ease; /* smooth transitions */
+    /* Align items to the start of the flex direction */
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    justify-content: space-between; /* Space between top content and button */
+   
+  }
+
+  .checkbox-container {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Ensures the checkbox takes only the necessary space and labels take up the rest */
+    align-items: center; /* Aligns items vertically in the center */
+    gap: 10px; /* Space between the checkbox and the label */
+    margin-bottom: 8px;
+    width: 100%; /* Ensures the container takes full width of its parent, which helps in maintaining alignment */
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin-right: 10px; /* Ensures a gap between checkbox and label if needed */
+    width: 20px; /* Optionally set a fixed width for checkboxes */
+}
+
+.groupName{
+
+  color: #FAA935;
+}
+  
+  .group-card img {
+    width: 100%; /* full width */
+    height: auto; /* maintain aspect ratio */
+    object-fit: cover; /* fill without distorting */
+    transition: opacity 0.3s ease; /* smooth opacity change */
+  }
+  
+  .group-card:hover {
+    transform: scale(1.05); /* slight enlargement on hover */
+  }
+  
+  .group-card p {
+    --font-name: "Montserrat", sans-serif;
+    text-align: center; /* centered text */
+    padding: 8px; /* padding inside the card */
+    margin: 0; /* remove default paragraph margin */
+  }
+  
+  .group-card.selected {
+    border: 2px solid #FAA935; /* highlight when selected */
+  }
+  .input-error {
+    border: 2px solid red;
+  }
+
+ 
+.group-card button {
+  border: none;
+  align-self: flex-end; 
+  font-family: var(--font-name);
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 5px 10px; /* Reduce padding to make button smaller */
+  font-size: 15px; /* Reduce font size for smaller text */
+  height: 50px; /* Set a specific height */
+  width: auto;
+  margin-top: auto; 
+
+  justify-content: center;
+}

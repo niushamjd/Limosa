@@ -1,0 +1,53 @@
+/* Featured.css */
+.featured-grid {
+    padding: 20px;
+    justify-content: center; /* Center the cards horizontally */
+}
+
+.Card {
+    transition: transform 0.3s ease-in-out; /* Smooth transformation upon hovering */
+}
+
+.Card:hover {
+    transform: translateY(-5px); /* Slight raise effect on hover */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2); /* Add shadow for better focus */
+}
+
+.CardMedia {
+    border-top-left-radius: 4px; /* Rounded corners at the top of the image */
+    border-top-right-radius: 4px;
+}
+
+.CardContent {
+    padding: 16px;
+}
+
+/* Typography styles for consistent font rendering */
+.Typography {
+    color: #333; /* Dark grey color for text for better readability */
+}
+
+.Typography h5 {
+    font-size: 1.25rem; /* Larger text for the business name */
+    font-weight: bold;
+}
+
+.Typography body2 {
+    font-size: 0.875rem; /* Smaller text for details */
+    margin-bottom: 8px; /* Space between text lines */
+}
+
+.detail-section {
+    margin-top: 10px;
+}
+
+.detail-label {
+   
+    color: #0c0909;
+    font-weight: bolder;
+}
+
+.detail-content {
+    font-size: 0.875rem;
+    color: #444;
+}

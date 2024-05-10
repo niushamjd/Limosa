@@ -1,0 +1,89 @@
+/* Business Page CSS */
+:root {
+    --primary-color: #ff7e01;
+    --secondary-color: #faa935;
+    --heading-color: #0b2727;
+    --text-color: #6e7074;
+    --font-name: "Montserrat", sans-serif;
+}
+
+.business-container h1, .business-container h2, .business-container h3 {
+    font-family: 'Playfair Display', serif;
+    color: var(--heading-color);
+}
+
+.business-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: var(--font-name);
+    background: #fff; /* Optional: you might want to set a background color */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Optional: adds shadow for better focus */
+}
+
+.business-container form {
+    width: 100%;
+}
+
+.business-container .MuiTextField-root,
+.business-container .MuiFormControl-root,
+.business-container .MuiButton-root { /* Adjusting for Material UI components */
+    width: 100%;
+    margin: 12px 0;
+    color: var(--text-color);
+}
+
+.business-container .MuiRadio-root {
+    color: var(--secondary-color); /* Radio buttons color */
+}
+
+.business-container button {
+    margin-top: 20px !important;
+    padding: 10px 20px !important;
+   
+   
+    font-family: var(--font-name) !important;
+    cursor: pointer !important;
+    display: block !important;
+    text-align: center !important;
+}
+
+.primary__btn {
+   
+    background-color: var(--secondary-color)!important ;
+    color: white !important;
+}
+
+.business-container .secondary__btn {
+  
+    background-color: var(--secondary-color) !important;
+    color: white !important;
+    cursor: pointer !important;
+    width: 250px;
+}
+.message-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 1050; /* Yeterince yüksek bir değer, diğer içeriklerin üstünde görünmesini sağlar */
+  }
+
+  .message-content {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #FAA935; /* Mesaj kutusu için arka plan rengi */
+    color: #721c24; /* Metin rengi */
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: auto;
+    max-width: 80%; /* Kutunun maksimum genişliği */
+  }
